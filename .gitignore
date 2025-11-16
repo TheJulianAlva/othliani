@@ -1,0 +1,33 @@
+# ==================================
+# ARCHIVOS DE SECRETOS Y ENTORNO
+# ==================================
+# Este archivo (usado por Docker y Node.js) contendrá nuestras
+# contraseñas de base de datos y llaves de API.
+.env
+
+# ==================================
+# ARCHIVOS DE SISTEMA OPERATIVO
+# ==================================
+# macOS
+.DS_Store
+.AppleDouble
+.Trashes
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# ==================================
+# ARCHIVOS DEL IDE (VS Code)
+# ==================================
+# Ignora la configuración local del espacio de trabajo
+# (historial, archivos abiertos, etc.)
+.vscode/
+
+# ==================================
+# ARCHIVOS DE LOG (Errores)
+# ==================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
