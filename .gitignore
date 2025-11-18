@@ -23,6 +23,7 @@ desktop.ini
 # Ignora la configuración local del espacio de trabajo
 # (historial, archivos abiertos, etc.)
 .vscode/
+devtools_options.yaml
 
 # ==================================
 # ARCHIVOS DE LOG (Errores)
