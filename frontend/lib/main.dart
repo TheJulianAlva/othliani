@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/presentation_turista/screens/folio.dart';
+import 'package:frontend/presentation_turista/screens/folio_screen.dart';
 
 void main() {
   runApp(const MainApp());
