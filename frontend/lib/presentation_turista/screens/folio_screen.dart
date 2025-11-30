@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/info_modal.dart';
+import 'package:frontend/core/navigation/routes_turista.dart';
+import 'package:frontend/core/widgets/info_modal.dart';
+import 'package:go_router/go_router.dart';
 
 class FolioScreen extends StatelessWidget {
   const FolioScreen({super.key});
@@ -67,8 +69,7 @@ class FolioScreen extends StatelessWidget {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            // Acción futura
-                            print("Ventana de numero de telefono");
+                            context.go(RoutesTurista.phoneConfirm);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF3F51B5),
@@ -87,8 +88,6 @@ class FolioScreen extends StatelessWidget {
                       // Enlace Privacidad
                       GestureDetector(
                         onTap: () {
-                          // Acción futura
-
                           InfoModal.show(
                             context: context,
                             title: 'Aviso de Privacidad',
@@ -97,6 +96,45 @@ Este es el texto de ejemplo para el Aviso de Privacidad.
 Incluye políticas de datos personales, finalidad del tratamiento,
 mecanismos de acceso, rectificación y cancelación, etc.
 Por favor, asegúrese de leer y comprender estos términos antes de continuar.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+
                                       ''',
                           );
                         },
