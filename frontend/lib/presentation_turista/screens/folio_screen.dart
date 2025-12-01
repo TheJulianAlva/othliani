@@ -12,7 +12,7 @@ class FolioScreen extends StatelessWidget {
 
     return Scaffold(
       //resizeToAvoidBottomInset: false, // El teclado no empuja el contenido
-      backgroundColor: const Color(0xFFF2F2F2), // Gris muy claro de fondo
+      // backgroundColor: const Color(0xFFF2F2F2), // Gris muy claro de fondo -> Taken from Theme
       body: SafeArea(
         child: Center(
           // Centra vertical y horizontalmente
@@ -21,11 +21,11 @@ class FolioScreen extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: Card(
-                elevation: 20,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
+                // elevation: 20, -> Taken from Theme
+                // color: Colors.white, -> Taken from Theme
+                // shape: RoundedRectangleBorder( -> Taken from Theme
+                //   borderRadius: BorderRadius.circular(5),
+                // ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
@@ -71,14 +71,7 @@ class FolioScreen extends StatelessWidget {
                           onPressed: () {
                             context.go(RoutesTurista.phoneConfirm);
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF3F51B5),
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(44),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
+                          // style: ElevatedButton.styleFrom(...) -> Taken from Theme
                           child: const Text('Ingresar'),
                         ),
                       ),

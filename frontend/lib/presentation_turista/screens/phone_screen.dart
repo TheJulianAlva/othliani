@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/utils/e164_utils.dart';
 import 'package:frontend/core/widgets/info_modal.dart';
 import 'package:frontend/core/widgets/phone_number_field.dart';
@@ -40,6 +42,8 @@ class _PhoneScreenState extends State<PhoneScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Número confirmado: ${parts.e164}')));
+
+    context.push(RoutesTurista.smsVerification);
   }
 
   @override

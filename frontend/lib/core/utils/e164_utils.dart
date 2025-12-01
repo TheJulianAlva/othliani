@@ -1,6 +1,7 @@
 /// Utilidades para formatear números en E.164 y validaciones simples.
+library;
 
-/// Devuelve el número en formato E.164: +<código><local_sin_separadores>
+/// Devuelve el número en formato E.164: +`código``local_sin_separadores`
 /// - `dialCode` puede venir como '+52' o '52'; se asegura el '+'
 /// - `localDigits` debe ser solo dígitos (limpia si traen separadores).
 String toE164(String dialCode, String localDigits) {
