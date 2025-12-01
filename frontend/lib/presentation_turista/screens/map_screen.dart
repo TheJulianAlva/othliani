@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../widgets/walkie_talkie_button.dart';
+import '../../core/theme/app_constants.dart';
+import '../../core/theme/app_colors.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -13,6 +14,15 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   Position? _currentPosition;
   bool _isLoading = true;
+
+  // Actividades en curso (simuladas)
+  final List<Map<String, String>> _currentActivities = [
+    {
+      'time': '10:00 AM',
+      'title': 'Visita a zona arqueológica',
+      'status': 'En curso',
+    },
+  ];
 
   @override
   void initState() {
@@ -99,25 +109,113 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mapa Interactivo'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.my_location),
+    return Stack(
+      children: [
+        _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _buildMapPlaceholder(),
+
+        // Current activities list (bottom)
+        if (_currentActivities.isNotEmpty)
+          Positioned(
+            bottom: 16,
+            left: 16,
+            right: 16,
+            child: Card(
+              elevation: 8,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.directions_walk,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        const Text(
+                          'Actividades en curso',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    ..._currentActivities.map(
+                      (activity) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                activity['time']!,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                activity['title']!,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.orange,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                activity['status']!,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+        // Location button (top right)
+        Positioned(
+          top: 16,
+          right: 16,
+          child: FloatingActionButton(
             onPressed: _centerOnCurrentLocation,
             tooltip: 'Centrar en mi ubicación',
+            mini: true,
+            child: const Icon(Icons.my_location),
           ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _buildMapPlaceholder(),
-          const WalkieTalkieButton(),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -192,36 +290,6 @@ class _MapScreenState extends State<MapScreen> {
                         'Ubicación no disponible',
                         style: TextStyle(color: Colors.orange),
                       ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Open setup guide
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Configurar Google Maps'),
-                            content: const SingleChildScrollView(
-                              child: Text(
-                                '1. Ve a console.cloud.google.com\n'
-                                '2. Crea un proyecto\n'
-                                '3. Habilita Maps SDK for Android/iOS\n'
-                                '4. Crea una API Key\n'
-                                '5. Configúrala en AndroidManifest.xml\n\n'
-                                'Ver GOOGLE_MAPS_SETUP.md para más detalles',
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Entendido'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.help_outline),
-                      label: const Text('Cómo configurar'),
-                    ),
                   ],
                 ),
               ),

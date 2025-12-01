@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/message_input_field.dart';
-import '../widgets/walkie_talkie_button.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -31,34 +30,23 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Chat Grupal')),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Expanded(
-                child: _messages.isEmpty
-                    ? const Center(
-                        child: Text('No hay mensajes aún. ¡Saluda al grupo!'),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          return ChatBubble(
-                            message: _messages[index],
-                            isSent: true,
-                          );
-                        },
-                      ),
-              ),
-              MessageInputField(controller: _controller, onSend: _sendMessage),
-            ],
-          ),
-          const WalkieTalkieButton(),
-        ],
-      ),
+    return Column(
+      children: [
+        Expanded(
+          child: _messages.isEmpty
+              ? const Center(
+                  child: Text('No hay mensajes aún. ¡Saluda al grupo!'),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    return ChatBubble(message: _messages[index], isSent: true);
+                  },
+                ),
+        ),
+        MessageInputField(controller: _controller, onSend: _sendMessage),
+      ],
     );
   }
 }

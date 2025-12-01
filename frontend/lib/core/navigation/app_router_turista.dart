@@ -5,7 +5,7 @@ import 'package:frontend/presentation_turista/screens/register_screen.dart';
 import 'package:frontend/presentation_turista/screens/login_screen.dart';
 import 'package:frontend/presentation_turista/screens/forgot_password_screen.dart';
 import 'package:frontend/presentation_turista/screens/email_verification_screen.dart';
-import 'package:frontend/presentation_turista/screens/home_screen.dart';
+import 'package:frontend/presentation_turista/screens/main_shell_screen.dart';
 import 'package:frontend/presentation_turista/screens/itinerary_screen.dart';
 import 'package:frontend/presentation_turista/screens/map_screen.dart';
 import 'package:frontend/presentation_turista/screens/chat_screen.dart';
@@ -99,7 +99,7 @@ class AppRouterTurista {
         name: 'turista_home',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const HomeScreen(),
+          child: const MainShellScreen(),
           transitionsBuilder: fadeSlideTransition,
         ),
       ),
