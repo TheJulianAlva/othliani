@@ -73,7 +73,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Confirma número de teléfono',
+                            'Ingresa número de teléfono',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -101,7 +101,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
                             height: 48,
                             child: ElevatedButton(
                               onPressed: _onConfirm,
-                              child: const Text('Confirmar'),
+                              child: const Text('Enviar SMS'),
                             ),
                           ),
                           const SizedBox(height: 24),
