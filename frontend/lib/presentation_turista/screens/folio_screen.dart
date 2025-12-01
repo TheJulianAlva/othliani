@@ -1,31 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/widgets/info_modal.dart';
+import 'package:frontend/core/theme/app_colors.dart';
 import 'package:go_router/go_router.dart';
 
-class FolioScreen extends StatelessWidget {
+class FolioScreen extends StatefulWidget {
   const FolioScreen({super.key});
+
+  @override
+  State<FolioScreen> createState() => _FolioScreenState();
+}
+
+class _FolioScreenState extends State<FolioScreen> {
+  final _folioController = TextEditingController();
+
+  @override
+  void dispose() {
+    _folioController.dispose();
+    super.dispose();
+  }
+
+  void _handleSubmit() {
+    final folio = _folioController.text.trim();
+    if (folio.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, ingresa tu folio de viaje'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    context.go(RoutesTurista.phoneConfirm);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      //resizeToAvoidBottomInset: false, // El teclado no empuja el contenido
-      // backgroundColor: const Color(0xFFF2F2F2), // Gris muy claro de fondo -> Taken from Theme
       body: SafeArea(
         child: Center(
-          // Centra vertical y horizontalmente
           child: SingleChildScrollView(
-            // Permite scroll si el contenido se queda detrás del teclado en pantallas pequeñas
             child: SizedBox(
               width: double.infinity,
               child: Card(
-                // elevation: 20, -> Taken from Theme
-                // color: Colors.white, -> Taken from Theme
-                // shape: RoundedRectangleBorder( -> Taken from Theme
-                //   borderRadius: BorderRadius.circular(5),
-                // ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
@@ -48,10 +67,9 @@ class FolioScreen extends StatelessWidget {
                         style: TextStyle(fontSize: 14, color: Colors.black54),
                       ),
                       const SizedBox(height: 35),
-
-                      // Campo de texto (solo frontend, sin validaciones)
-                      const TextField(
-                        decoration: InputDecoration(
+                      TextField(
+                        controller: _folioController,
+                        decoration: const InputDecoration(
                           hintText: 'XXXXX-XXXXXX-XXX',
                           border: OutlineInputBorder(),
                           contentPadding: EdgeInsets.symmetric(
@@ -61,24 +79,15 @@ class FolioScreen extends StatelessWidget {
                         ),
                         textCapitalization: TextCapitalization.characters,
                       ),
-
                       const SizedBox(height: 35),
-
-                      // Botón Ingresar
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            context.go(RoutesTurista.phoneConfirm);
-                          },
-                          // style: ElevatedButton.styleFrom(...) -> Taken from Theme
+                          onPressed: _handleSubmit,
                           child: const Text('Ingresar'),
                         ),
                       ),
-
                       const SizedBox(height: 80),
-
-                      // Enlace Privacidad
                       GestureDetector(
                         onTap: () {
                           InfoModal.show(

@@ -16,6 +16,79 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _termsAccepted = false;
   bool _privacyAccepted = false;
 
+  final _nameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = 'Juan';
+    _lastNameController.text = 'Morales';
+    _emailController.text = 'juanmorales@outlook.com';
+    _passwordController.text = '************';
+    _confirmPasswordController.text = '************';
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  bool _isValidInput() {
+    final name = _nameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (name.isEmpty ||
+        lastName.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
+      return false;
+    }
+
+    if (password != confirmPassword) {
+      return false;
+    }
+
+    return true;
+  }
+
+  void _handleRegister() {
+    if (!_isValidInput()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, completa todos los campos correctamente'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    if (!_termsAccepted || !_privacyAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Debes aceptar los términos y condiciones'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    MockAuthData.registeredEmail = _emailController.text.trim();
+    context.go(RoutesTurista.login);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,17 +114,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
-              _buildTextField('Nombre:', 'Juan'),
+              _buildTextField(
+                'Nombre:',
+                'Ingresa tu nombre',
+                controller: _nameController,
+              ),
               const SizedBox(height: 16),
-              _buildTextField('Apellido:', 'Morales'),
+              _buildTextField(
+                'Apellido:',
+                'Ingresa tu apellido',
+                controller: _lastNameController,
+              ),
               const SizedBox(height: 16),
-              _buildTextField('Correo:', 'juanmorales@outlook.com'),
+              _buildTextField(
+                'Correo:',
+                'Ingresa tu correo',
+                controller: _emailController,
+              ),
               const SizedBox(height: 16),
-              _buildTextField('Contraseña:', '************', obscureText: true),
+              _buildTextField(
+                'Contraseña:',
+                'Ingresa tu contraseña',
+                controller: _passwordController,
+                obscureText: true,
+              ),
               const SizedBox(height: 16),
               _buildTextField(
                 'Confirmar contraseña:',
-                '************',
+                'Confirma tu contraseña',
+                controller: _confirmPasswordController,
                 obscureText: true,
               ),
               const SizedBox(height: 16),
@@ -94,13 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 30),
               ElevatedButton(
-                onPressed: _termsAccepted && _privacyAccepted
-                    ? () {
-                        MockAuthData.registeredEmail =
-                            'juanmorales@outlook.com';
-                        context.go(RoutesTurista.login);
-                      }
-                    : null,
+                onPressed: _handleRegister,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
                 ),
@@ -116,6 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildTextField(
     String label,
     String hint, {
+    required TextEditingController controller,
     bool obscureText = false,
   }) {
     return Column(
@@ -127,6 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         const SizedBox(height: 4),
         TextField(
+          controller: controller,
           obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hint,

@@ -3,8 +3,41 @@ import 'package:frontend/core/theme/app_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 
-class ForgotPasswordScreen extends StatelessWidget {
+class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
+
+  @override
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+}
+
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final _emailController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.text = 'juanmorales@outlook.com';
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  void _handleSend() {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, ingresa tu correo electrónico'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    context.go(RoutesTurista.emailVerification);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +68,10 @@ class ForgotPasswordScreen extends StatelessWidget {
                 textAlign: TextAlign.left,
               ),
               const SizedBox(height: 30),
-              _buildTextField('Correo electrónico:', 'juanmorales@outlook.com'),
+              _buildTextField('Correo electrónico:', 'Ingresa tu correo'),
               const SizedBox(height: 30),
               ElevatedButton(
-                onPressed: () {
-                  context.go(RoutesTurista.emailVerification);
-                },
+                onPressed: _handleSend,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
                 ),
@@ -63,6 +94,7 @@ class ForgotPasswordScreen extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         TextField(
+          controller: _emailController,
           decoration: InputDecoration(
             hintText: hint,
             contentPadding: const EdgeInsets.symmetric(

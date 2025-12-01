@@ -4,8 +4,50 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/utils/mock_auth_data.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.text =
+        MockAuthData.registeredEmail ?? 'juanmorales@outlook.com';
+    _passwordController.text = '************';
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  bool _isValidInput() {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    return email.isNotEmpty && password.isNotEmpty;
+  }
+
+  void _handleLogin() {
+    if (_isValidInput()) {
+      context.go(RoutesTurista.home);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, completa todos los campos'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +77,19 @@ class LoginScreen extends StatelessWidget {
               const SizedBox(height: 30),
               _buildTextField(
                 'Correo electrónico:',
-                MockAuthData.registeredEmail ?? 'juanmorales@outlook.com',
+                'Ingresa tu correo',
+                controller: _emailController,
               ),
               const SizedBox(height: 16),
-              _buildTextField('Contraseña:', '************', obscureText: true),
+              _buildTextField(
+                'Contraseña:',
+                'Ingresa tu contraseña',
+                controller: _passwordController,
+                obscureText: true,
+              ),
               const SizedBox(height: 30),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: _handleLogin,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
                 ),
@@ -67,6 +115,7 @@ class LoginScreen extends StatelessWidget {
   Widget _buildTextField(
     String label,
     String hint, {
+    required TextEditingController controller,
     bool obscureText = false,
   }) {
     return Column(
@@ -78,6 +127,7 @@ class LoginScreen extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         TextField(
+          controller: controller,
           obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hint,

@@ -5,6 +5,13 @@ import 'package:frontend/presentation_turista/screens/register_screen.dart';
 import 'package:frontend/presentation_turista/screens/login_screen.dart';
 import 'package:frontend/presentation_turista/screens/forgot_password_screen.dart';
 import 'package:frontend/presentation_turista/screens/email_verification_screen.dart';
+import 'package:frontend/presentation_turista/screens/home_screen.dart';
+import 'package:frontend/presentation_turista/screens/itinerary_screen.dart';
+import 'package:frontend/presentation_turista/screens/map_screen.dart';
+import 'package:frontend/presentation_turista/screens/chat_screen.dart';
+import 'package:frontend/presentation_turista/screens/config_screen.dart';
+import 'package:frontend/presentation_turista/screens/profile_screen.dart';
+import 'package:frontend/presentation_turista/screens/currency_converter_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../presentation_turista/screens/folio_screen.dart';
 
@@ -84,6 +91,69 @@ class AppRouterTurista {
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
           child: const EmailVerificationScreen(),
+          transitionsBuilder: fadeSlideTransition,
+        ),
+      ),
+      GoRoute(
+        path: RoutesTurista.home,
+        name: 'turista_home',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const HomeScreen(),
+          transitionsBuilder: fadeSlideTransition,
+        ),
+      ),
+      GoRoute(
+        path: RoutesTurista.itinerary,
+        name: 'turista_itinerary',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const ItineraryScreen(),
+          transitionsBuilder: fadeSlideTransition,
+        ),
+      ),
+      GoRoute(
+        path: RoutesTurista.map,
+        name: 'turista_map',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const MapScreen(),
+          transitionsBuilder: fadeSlideTransition,
+        ),
+      ),
+      GoRoute(
+        path: RoutesTurista.chat,
+        name: 'turista_chat',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const ChatScreen(),
+          transitionsBuilder: fadeSlideTransition,
+        ),
+      ),
+      GoRoute(
+        path: RoutesTurista.config,
+        name: 'turista_config',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const ConfigScreen(),
+          transitionsBuilder: fadeSlideTransition,
+        ),
+      ),
+      GoRoute(
+        path: RoutesTurista.profile,
+        name: 'turista_profile',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const ProfileScreen(),
+          transitionsBuilder: fadeSlideTransition,
+        ),
+      ),
+      GoRoute(
+        path: RoutesTurista.currencyConverter,
+        name: 'turista_currency_converter',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const CurrencyConverterScreen(),
           transitionsBuilder: fadeSlideTransition,
         ),
       ),
