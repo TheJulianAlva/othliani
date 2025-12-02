@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_constants.dart';
-import '../../core/theme/app_colors.dart';
-import 'activity_detail_screen.dart';
+
+import 'pantalla_detalle_actividad.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class TripHomeScreen extends StatefulWidget {
   const TripHomeScreen({super.key});
@@ -173,6 +174,8 @@ class _TripHomeScreenState extends State<TripHomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final currentDay = _activitiesByDay.keys.elementAt(_tabController.index);
     final filteredActivities = _getFilteredActivities(currentDay);
     final statusCounts = _getStatusCounts(currentDay);
@@ -185,9 +188,9 @@ class _TripHomeScreenState extends State<TripHomeScreen>
           margin: const EdgeInsets.all(AppSpacing.md),
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(AppBorderRadius.md),
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: theme.dividerColor),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
@@ -202,17 +205,17 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppBorderRadius.sm),
                 ),
-                child: const Icon(Icons.image, size: 35, color: Colors.grey),
+                child: Icon(Icons.image, size: 35, color: theme.iconTheme.color),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -223,9 +226,9 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                             color: Colors.green.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
-                            'Activo',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.active,
+                            style: const TextStyle(
                               fontSize: 11,
                               color: Colors.green,
                               fontWeight: FontWeight.bold,
@@ -235,17 +238,16 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Cancún-Tulum',
-                      style: TextStyle(
-                        fontSize: 16,
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Viaje todo incluido',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      l10n.allIncluded,
+                      style: theme.textTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -258,15 +260,15 @@ class _TripHomeScreenState extends State<TripHomeScreen>
         Container(
           margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(AppBorderRadius.sm),
           ),
           child: TabBar(
             controller: _tabController,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.grey[600],
+            labelColor: theme.colorScheme.onPrimary,
+            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
             indicator: BoxDecoration(
-              color: AppColors.primary,
+              color: theme.colorScheme.primary,
               borderRadius: BorderRadius.circular(AppBorderRadius.sm),
             ),
             indicatorSize: TabBarIndicatorSize.tab,
@@ -295,9 +297,9 @@ class _TripHomeScreenState extends State<TripHomeScreen>
           margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(AppBorderRadius.sm),
-            border: Border.all(color: Colors.grey[200]!),
+            border: Border.all(color: theme.dividerColor),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,16 +307,18 @@ class _TripHomeScreenState extends State<TripHomeScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Progreso del día',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  Text(
+                    l10n.dayProgress,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   Text(
                     '${(progress * 100).toStringAsFixed(0)}%',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ],
@@ -325,13 +329,15 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                 child: LinearProgressIndicator(
                   value: progress,
                   minHeight: 8,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                alignment: WrapAlignment.spaceAround,
                 children: [
                   _buildStatusBadge(
                     '✓ ${statusCounts['terminada']}',
@@ -360,13 +366,13 @@ class _TripHomeScreenState extends State<TripHomeScreen>
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              _buildFilterChip('Todas'),
+              _buildFilterChip('Todas', l10n.all),
               const SizedBox(width: 8),
-              _buildFilterChip('Terminada'),
+              _buildFilterChip('Terminada', l10n.finished),
               const SizedBox(width: 8),
-              _buildFilterChip('En_curso'),
+              _buildFilterChip('En_curso', l10n.inProgress),
               const SizedBox(width: 8),
-              _buildFilterChip('Pendiente'),
+              _buildFilterChip('Pendiente', l10n.pending),
             ],
           ),
         ),
@@ -383,12 +389,12 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                       Icon(
                         Icons.filter_list_off,
                         size: 48,
-                        color: Colors.grey[400],
+                        color: theme.disabledColor,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'No hay actividades con este filtro',
-                        style: TextStyle(color: Colors.grey[600]),
+                        l10n.noActivities,
+                        style: TextStyle(color: theme.disabledColor),
                       ),
                     ],
                   ),
@@ -427,31 +433,34 @@ class _TripHomeScreenState extends State<TripHomeScreen>
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = _selectedFilter == label;
+  Widget _buildFilterChip(String filterKey, String label) {
+    final theme = Theme.of(context);
+    final isSelected = _selectedFilter == filterKey;
     return FilterChip(
       label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
         setState(() {
-          _selectedFilter = label;
+          _selectedFilter = filterKey;
         });
       },
-      selectedColor: AppColors.primary.withValues(alpha: 0.2),
-      checkmarkColor: AppColors.primary,
+      selectedColor: theme.colorScheme.primary.withValues(alpha: 0.2),
+      checkmarkColor: theme.colorScheme.primary,
       labelStyle: TextStyle(
-        color: isSelected ? AppColors.primary : Colors.grey[700],
+        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
         fontSize: 12,
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: theme.cardColor,
       side: BorderSide(
-        color: isSelected ? AppColors.primary : Colors.grey[300]!,
+        color: isSelected ? theme.colorScheme.primary : theme.dividerColor,
       ),
     );
   }
 
   Widget _buildActivityCard(Map<String, dynamic> activity, int index) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final status = activity['status'] as String;
     Color statusColor;
     String statusLabel;
@@ -460,18 +469,18 @@ class _TripHomeScreenState extends State<TripHomeScreen>
     switch (status) {
       case 'terminada':
         statusColor = Colors.green;
-        statusLabel = 'Terminada';
+        statusLabel = l10n.finished;
         statusIcon = Icons.check_circle;
         break;
       case 'en_curso':
         statusColor = Colors.orange;
-        statusLabel = 'En curso';
+        statusLabel = l10n.inProgress;
         statusIcon = Icons.play_circle;
         break;
       case 'pendiente':
       default:
         statusColor = Colors.grey;
-        statusLabel = 'Pendiente';
+        statusLabel = l10n.pending;
         statusIcon = Icons.circle_outlined;
         break;
     }
@@ -495,12 +504,12 @@ class _TripHomeScreenState extends State<TripHomeScreen>
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(AppBorderRadius.md),
             border: Border.all(
               color: status == 'en_curso'
                   ? statusColor.withValues(alpha: 0.5)
-                  : Colors.grey[300]!,
+                  : theme.dividerColor,
               width: status == 'en_curso' ? 2 : 1,
             ),
             boxShadow: [
@@ -531,7 +540,10 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -539,19 +551,18 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
+                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             activity['time'],
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+                              color: theme.colorScheme.primary,
                             ),
                           ),
                         ),
-                        const Spacer(),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -575,9 +586,9 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                     const SizedBox(height: 8),
                     Text(
                       activity['title'],
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        fontSize: 15,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -585,7 +596,7 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                       activity['description'],
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: theme.textTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -594,7 +605,7 @@ class _TripHomeScreenState extends State<TripHomeScreen>
               const SizedBox(width: AppSpacing.sm),
 
               // Arrow icon
-              Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
+              Icon(Icons.arrow_forward_ios, size: 14, color: theme.disabledColor),
             ],
           ),
         ),

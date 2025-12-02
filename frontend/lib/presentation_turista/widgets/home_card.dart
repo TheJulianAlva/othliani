@@ -34,10 +34,17 @@ class HomeCard extends StatelessWidget {
               color: color ?? Theme.of(context).primaryColor,
             ),
             const SizedBox(height: AppSpacing.md),
-            Text(
-              title,
-              style: AppTextStyles.subheading,
-              textAlign: TextAlign.center,
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  title,
+                  style: AppTextStyles.subheading,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
           ],
         ),

@@ -68,22 +68,27 @@ class _CircularTimerState extends State<CircularTimer> {
               color: AppColors.primary,
             ),
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '$_remainingSeconds',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+          Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$_remainingSeconds',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const Text(
+                    'segundos',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ],
               ),
-              const Text(
-                'segundos',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-            ],
+            ),
           ),
         ],
       ),

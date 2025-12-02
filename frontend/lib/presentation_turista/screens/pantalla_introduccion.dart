@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
-import 'package:frontend/core/theme/app_colors.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -14,26 +15,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Map<String, String>> _pages = [
-    {
-      'title': 'Bienvenido a OthliAni',
-      'description': 'Descubre los mejores destinos turísticos de México.',
-      'image': 'assets/images/onboarding1.png', // Placeholder
-    },
-    {
-      'title': 'Planifica tu Viaje',
-      'description': 'Organiza tu itinerario y disfruta sin preocupaciones.',
-      'image': 'assets/images/onboarding2.png', // Placeholder
-    },
-    {
-      'title': 'Conecta con Guías',
-      'description': 'Encuentra guías locales certificados para tu aventura.',
-      'image': 'assets/images/onboarding3.png', // Placeholder
-    },
-  ];
-
   void _onNext() {
-    if (_currentPage < _pages.length - 1) {
+    if (_currentPage < 2) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -43,12 +26,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _onFinish() {
-    context.go(RoutesTurista.folio);
+  Future<void> _onFinish() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('seenOnboarding', true);
+    if (mounted) {
+      context.go(RoutesTurista.folio);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final pages = [
+      {
+        'title': l10n.onboardingTitle1,
+        'description': l10n.onboardingDesc1,
+      },
+      {
+        'title': l10n.onboardingTitle2,
+        'description': l10n.onboardingDesc2,
+      },
+      {
+        'title': l10n.onboardingTitle3,
+        'description': l10n.onboardingDesc3,
+      },
+    ];
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -56,50 +59,42 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 onPageChanged: (index) {
                   setState(() {
                     _currentPage = index;
                   });
                 },
                 itemBuilder: (context, index) {
-                  final page = _pages[index];
+                  final page = pages[index];
                   return Padding(
                     padding: const EdgeInsets.all(32.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Image Placeholder
                         Container(
                           height: 250,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.image,
                             size: 100,
-                            color: Colors.grey,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 40),
                         Text(
                           page['title']!,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
+                          style: Theme.of(context).textTheme.headlineMedium,
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
                         Text(
                           page['description']!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textSecondary,
-                          ),
+                          style: Theme.of(context).textTheme.bodyLarge,
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -113,10 +108,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Page Indicators
                   Row(
                     children: List.generate(
-                      _pages.length,
+                      pages.length,
                       (index) => Container(
                         margin: const EdgeInsets.only(right: 8),
                         width: 10,
@@ -124,13 +118,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: _currentPage == index
-                              ? AppColors.primary
-                              : Colors.grey[300],
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.surfaceContainerHighest,
                         ),
                       ),
                     ),
                   ),
-                  // Next/Finish Button
                   ElevatedButton(
                     onPressed: _onNext,
                     style: ElevatedButton.styleFrom(
@@ -138,7 +131,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       padding: const EdgeInsets.all(16),
                     ),
                     child: Icon(
-                      _currentPage == _pages.length - 1
+                      _currentPage == pages.length - 1
                           ? Icons.check
                           : Icons.arrow_forward,
                     ),

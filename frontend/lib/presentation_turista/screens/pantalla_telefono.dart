@@ -4,8 +4,7 @@ import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/utils/e164_utils.dart';
 import 'package:frontend/core/widgets/info_modal.dart';
 import 'package:frontend/core/widgets/phone_number_field.dart';
-
-/// Pantalla que utiliza el widget reutilizable y muestra botón Confirmar.
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PhoneScreen extends StatefulWidget {
   const PhoneScreen({super.key});
@@ -19,35 +18,35 @@ class _PhoneScreenState extends State<PhoneScreen> {
   PhoneNumberValue? _current;
 
   void _onConfirm() {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
     if (_current == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Complete el número de teléfono')),
+        SnackBar(content: Text(l10n.enterPhone)),
       );
       return;
     }
 
-    // Construimos las partes explícitas
     final parts = partsFrom(
-      countryCode: _current!.countryCode, // MX
-      dialCode: _current!.dialCode, // +52
-      localDigits: _current!.localDigits, // 7225698563
+      countryCode: _current!.countryCode,
+      dialCode: _current!.dialCode,
+      localDigits: _current!.localDigits,
     );
 
-    // Aquí puedes enviar al backend (Firebase/API)
     debugPrint(
       'codigo: ${parts.codigo} | numero: ${parts.numero} | pais: ${parts.pais} | e164: ${parts.e164}',
     );
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Número confirmado: ${parts.e164}')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${l10n.phoneNumber}: ${parts.e164}')),
+    );
 
     context.push(RoutesTurista.smsVerification);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -77,14 +76,14 @@ class _PhoneScreenState extends State<PhoneScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Ingresa número de teléfono',
+                            l10n.verifyPhone,
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Coloque su número de teléfono',
+                            l10n.enterPhone,
                             style: theme.textTheme.bodyMedium,
                           ),
                           const SizedBox(height: 16),
@@ -105,7 +104,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
                             height: 48,
                             child: ElevatedButton(
                               onPressed: _onConfirm,
-                              child: const Text('Enviar SMS'),
+                              child: Text(l10n.sendCode),
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -114,23 +113,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
                               InfoModal.show(
                                 context: context,
                                 title: 'Aviso de Privacidad',
-                                content: '''
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-Este es el texto de ejemplo para el Aviso de Privacidad...
-
-''',
+                                content: 'Contenido del aviso de privacidad...',
                               );
                             },
                             child: Text(

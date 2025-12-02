@@ -1,30 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/presentation_turista/widgets/verification_status_widget.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SmsVerificationScreen extends StatelessWidget {
   const SmsVerificationScreen({super.key});
 
   void _onResend(BuildContext context) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('SMS reenviado')));
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.resendCode)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go(RoutesTurista.phoneConfirm),
         ),
-        title: const Text('Verificación'),
+        title: Text(l10n.verify),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -34,19 +36,18 @@ class SmsVerificationScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               VerificationStatusWidget(
-                message: 'Se ha enviado un mensaje de texto.',
+                message: l10n.codeDescription,
                 onResend: () => _onResend(context),
               ),
               const SizedBox(height: 40),
-              // Code Input Field
-              const TextField(
+              TextField(
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 24, letterSpacing: 8),
+                style: const TextStyle(fontSize: 24, letterSpacing: 8),
                 decoration: InputDecoration(
                   hintText: '------',
-                  labelText: 'Código de verificación',
-                  border: OutlineInputBorder(),
+                  labelText: l10n.verificationCode,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLength: 6,
               ),
@@ -56,10 +57,9 @@ class SmsVerificationScreen extends StatelessWidget {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Verify code logic
                     context.go(RoutesTurista.register);
                   },
-                  child: const Text('Verificar'),
+                  child: Text(l10n.verify),
                 ),
               ),
             ],

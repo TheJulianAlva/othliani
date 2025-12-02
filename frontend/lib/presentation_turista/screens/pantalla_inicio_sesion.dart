@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/utils/mock_auth_data.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,27 +37,39 @@ class _LoginScreenState extends State<LoginScreen> {
     return email.isNotEmpty && password.isNotEmpty;
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     if (_isValidInput()) {
-      context.go(RoutesTurista.home);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('userName', 'Juan Morales');
+      await prefs.setString('userEmail', _emailController.text.trim());
+      
+      if (mounted) {
+        context.go(RoutesTurista.home);
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, completa todos los campos'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.error),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -65,25 +78,21 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40),
-              const Text(
-                'Iniciar sesión',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+              Text(
+                l10n.login,
+                style: theme.textTheme.headlineMedium,
                 textAlign: TextAlign.left,
               ),
               const SizedBox(height: 30),
               _buildTextField(
-                'Correo electrónico:',
-                'Ingresa tu correo',
+                '${l10n.emailAddress}:',
+                l10n.emailAddress,
                 controller: _emailController,
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                'Contraseña:',
-                'Ingresa tu contraseña',
+                '${l10n.password}:',
+                l10n.password,
                 controller: _passwordController,
                 obscureText: true,
               ),
@@ -93,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
                 ),
-                child: const Text('Ingresar'),
+                child: Text(l10n.signIn),
               ),
               const SizedBox(height: 16),
               Align(
@@ -102,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     context.go(RoutesTurista.forgotPassword);
                   },
-                  child: const Text('Olvide mi contraseña'),
+                  child: Text(l10n.forgotPassword),
                 ),
               ),
             ],
@@ -123,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 4),
         TextField(

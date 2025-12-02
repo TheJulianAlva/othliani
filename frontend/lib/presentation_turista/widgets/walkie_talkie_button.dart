@@ -21,7 +21,7 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+
 
     return Stack(
       children: [
@@ -32,14 +32,17 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
             feedback: _buildButton(context, isDragging: true),
             childWhenDragging: Container(),
             onDragEnd: (details) {
+              final RenderBox renderBox = context.findRenderObject() as RenderBox;
+              final localOffset = renderBox.globalToLocal(details.offset);
+              
               setState(() {
                 // Keep button within screen bounds
-                double newX = details.offset.dx;
-                double newY = details.offset.dy;
+                double newX = localOffset.dx;
+                double newY = localOffset.dy;
 
-                // Constrain to screen bounds (with padding)
-                newX = newX.clamp(0.0, size.width - 70);
-                newY = newY.clamp(0.0, size.height - 150);
+                // Constrain to widget bounds (with padding)
+                newX = newX.clamp(0.0, renderBox.size.width - 56); // 56 is button width
+                newY = newY.clamp(0.0, renderBox.size.height - 56);
 
                 _position = Offset(newX, newY);
               });

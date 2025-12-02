@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -26,12 +26,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   void _handleSend() {
+    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, ingresa tu correo electrónico'),
-          backgroundColor: AppColors.error,
+        SnackBar(
+          content: Text(l10n.enterEmail),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -41,6 +42,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -49,7 +53,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -58,24 +61,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40),
-              const Text(
-                'Ingresa tu correo electrónico',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+              Text(
+                l10n.resetPassword,
+                style: theme.textTheme.headlineMedium,
                 textAlign: TextAlign.left,
               ),
               const SizedBox(height: 30),
-              _buildTextField('Correo electrónico:', 'Ingresa tu correo'),
+              _buildTextField('${l10n.emailAddress}:', l10n.enterEmail),
               const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: _handleSend,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
                 ),
-                child: const Text('Enviar'),
+                child: Text(l10n.sendResetLink),
               ),
             ],
           ),
@@ -90,7 +89,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 4),
         TextField(

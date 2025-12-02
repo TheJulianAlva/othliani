@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/message_input_field.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -30,12 +31,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Column(
       children: [
         Expanded(
           child: _messages.isEmpty
-              ? const Center(
-                  child: Text('No hay mensajes aún. ¡Saluda al grupo!'),
+              ? Center(
+                  child: Text(l10n.typeMessage),
                 )
               : ListView.builder(
                   padding: const EdgeInsets.all(16),

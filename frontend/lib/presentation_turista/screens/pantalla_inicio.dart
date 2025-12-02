@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
-import '../../core/theme/app_colors.dart';
 import '../widgets/walkie_talkie_button.dart';
-import 'trip_home_screen.dart';
-import 'chat_screen.dart';
-import 'config_screen.dart';
-import 'map_screen.dart';
-import 'profile_screen.dart';
-import 'currency_converter_screen.dart';
+import 'pantalla_inicio_viaje.dart';
+import 'pantalla_chat.dart';
+import 'pantalla_configuracion.dart';
+import 'pantalla_mapa.dart';
+import 'pantalla_perfil.dart';
+import 'pantalla_conversor_divisas.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -28,7 +28,7 @@ class _MainShellScreenState extends State<MainShellScreen>
     Icons.map_outlined,
   ];
 
-  final List<String> _labelList = ['viaje', 'chat', 'moneda', 'config', 'mapa'];
+
 
   final List<Widget> _screens = [
     const TripHomeScreen(),
@@ -40,9 +40,12 @@ class _MainShellScreenState extends State<MainShellScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final labelList = [l10n.itinerary, l10n.chat, l10n.currency, l10n.config, l10n.map];
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_getTitle()),
+        title: Text(_getTitle(l10n)),
         centerTitle: true,
         actions: [
           IconButton(
@@ -66,19 +69,27 @@ class _MainShellScreenState extends State<MainShellScreen>
       bottomNavigationBar: AnimatedBottomNavigationBar.builder(
         itemCount: _iconList.length,
         tabBuilder: (int index, bool isActive) {
-          final color = isActive ? AppColors.primary : Colors.grey;
+          final color = isActive 
+              ? Theme.of(context).bottomNavigationBarTheme.selectedItemColor 
+              : Theme.of(context).bottomNavigationBarTheme.unselectedItemColor;
           return Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(_iconList[index], size: 24, color: color),
               const SizedBox(height: 4),
-              Text(
-                _labelList[index],
-                style: TextStyle(
-                  color: color,
-                  fontSize: 11,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    labelList[index],
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 11,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -90,8 +101,8 @@ class _MainShellScreenState extends State<MainShellScreen>
         leftCornerRadius: 16,
         rightCornerRadius: 16,
         onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: Colors.white,
-        splashColor: AppColors.primary.withValues(alpha: 0.2),
+        backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        splashColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
         splashSpeedInMilliseconds: 300,
         elevation: 8,
         shadow: BoxShadow(
@@ -103,20 +114,20 @@ class _MainShellScreenState extends State<MainShellScreen>
     );
   }
 
-  String _getTitle() {
+  String _getTitle(AppLocalizations l10n) {
     switch (_currentIndex) {
       case 0:
-        return 'Mi Viaje';
+        return l10n.myTrips;
       case 1:
-        return 'Chat Grupal';
+        return l10n.chat;
       case 2:
-        return 'Cambio de Moneda';
+        return l10n.currencyConverter;
       case 3:
-        return 'Configuración';
+        return l10n.configuration;
       case 4:
-        return 'Mapa Interactivo';
+        return l10n.map;
       default:
-        return 'OthliAni';
+        return l10n.appTitle;
     }
   }
 }

@@ -21,6 +21,9 @@ class ChatBubble extends StatelessWidget {
               : AppColors.chatBubbleReceived,
           borderRadius: BorderRadius.circular(AppBorderRadius.md),
         ),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
         child: Text(message),
       ),
     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/widgets/info_modal.dart';
-import 'package:frontend/core/theme/app_colors.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class FolioScreen extends StatefulWidget {
   const FolioScreen({super.key});
@@ -21,12 +21,13 @@ class _FolioScreenState extends State<FolioScreen> {
   }
 
   void _handleSubmit() {
+    final l10n = AppLocalizations.of(context)!;
     final folio = _folioController.text.trim();
     if (folio.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, ingresa tu folio de viaje'),
-          backgroundColor: AppColors.error,
+        SnackBar(
+          content: Text(l10n.folioDescription),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -36,6 +37,7 @@ class _FolioScreenState extends State<FolioScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -54,17 +56,14 @@ class _FolioScreenState extends State<FolioScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.max,
                     children: [
-                      const Text(
-                        'Bienvenido a\nOtlhiani',
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Text(
+                        l10n.appTitle,
+                        style: theme.textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        'Coloque su folio de viaje',
-                        style: TextStyle(fontSize: 14, color: Colors.black54),
+                      Text(
+                        l10n.folioDescription,
+                        style: theme.textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 35),
                       TextField(
@@ -84,7 +83,7 @@ class _FolioScreenState extends State<FolioScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _handleSubmit,
-                          child: const Text('Ingresar'),
+                          child: Text(l10n.continueButton),
                         ),
                       ),
                       const SizedBox(height: 80),
@@ -98,45 +97,6 @@ Este es el texto de ejemplo para el Aviso de Privacidad.
 Incluye políticas de datos personales, finalidad del tratamiento,
 mecanismos de acceso, rectificación y cancelación, etc.
 Por favor, asegúrese de leer y comprender estos términos antes de continuar.
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-
                                       ''',
                           );
                         },

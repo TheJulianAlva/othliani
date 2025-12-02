@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/core/widgets/info_modal.dart';
 import 'package:go_router/go_router.dart';
-import 'package:frontend/core/navigation/routes_turista.dart';
-import 'package:frontend/core/utils/mock_auth_data.dart';
+import 'package:frontend/core/navigation/routes_guia.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/widgets/info_modal.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class RegisterScreenGuia extends StatefulWidget {
+  const RegisterScreenGuia({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<RegisterScreenGuia> createState() => _RegisterScreenGuiaState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenGuiaState extends State<RegisterScreenGuia> {
   bool _termsAccepted = false;
   bool _privacyAccepted = false;
 
   final _nameController = TextEditingController();
-  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -25,9 +23,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController.text = 'Juan';
-    _lastNameController.text = 'Morales';
-    _emailController.text = 'juanmorales@outlook.com';
+    // Pre-fill for testing purposes
+    _nameController.text = 'Agencia Demo';
+    _emailController.text = 'agencia@othliani.com';
     _passwordController.text = '************';
     _confirmPasswordController.text = '************';
   }
@@ -35,7 +33,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _lastNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -44,13 +41,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isValidInput() {
     final name = _nameController.text.trim();
-    final lastName = _lastNameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
     if (name.isEmpty ||
-        lastName.isEmpty ||
         email.isEmpty ||
         password.isEmpty ||
         confirmPassword.isEmpty) {
@@ -65,11 +60,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _handleRegister() {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (!_isValidInput()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, completa todos los campos correctamente'),
-          backgroundColor: AppColors.error,
+        SnackBar(
+          content: Text(l10n.error),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -77,26 +74,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (!_termsAccepted || !_privacyAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Debes aceptar los términos y condiciones'),
-          backgroundColor: AppColors.error,
+        SnackBar(
+          content: const Text('Debes aceptar los términos y condiciones'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
     }
 
-    MockAuthData.registeredEmail = _emailController.text.trim();
-    context.go(RoutesTurista.login);
+    // In a real app, we would register the user here.
+    // For now, we just navigate to the login screen.
+    context.go(RoutesGuia.login);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: AppColors.textPrimary,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -104,63 +108,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Verifica tus datos',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+              Text(
+                l10n.createAccount,
+                style: theme.textTheme.headlineMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
               _buildTextField(
-                'Nombre:',
-                'Ingresa tu nombre',
+                '${l10n.name}:',
+                l10n.name,
                 controller: _nameController,
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                'Apellido:',
-                'Ingresa tu apellido',
-                controller: _lastNameController,
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                'Correo:',
-                'Ingresa tu correo',
+                '${l10n.email}:',
+                l10n.email,
                 controller: _emailController,
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                'Contraseña:',
-                'Ingresa tu contraseña',
+                '${l10n.password}:',
+                l10n.password,
                 controller: _passwordController,
                 obscureText: true,
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                'Confirmar contraseña:',
-                'Confirma tu contraseña',
+                '${l10n.confirmPassword}:',
+                l10n.confirmPassword,
                 controller: _confirmPasswordController,
                 obscureText: true,
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: () {
-                    InfoModal.show(
-                      context: context,
-                      title: 'Datos incorrectos',
-                      content:
-                          'Por favor verifica que tus datos sean correctos...',
-                      icon: Icons.error_outline,
-                      titleColor: AppColors.error,
-                    );
-                  },
-                  child: const Text('¿Datos incorrectos?'),
-                ),
               ),
               const SizedBox(height: 16),
               _buildCheckbox(
@@ -189,7 +166,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
                 ),
-                child: const Text('Crear cuenta'),
+                child: Text(l10n.createAccount),
               ),
             ],
           ),
@@ -209,7 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 4),
         TextField(
@@ -236,13 +213,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Row(
       children: [
         Checkbox(value: value, onChanged: onChanged),
-        GestureDetector(
-          onTap: onTapLink,
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
+        Flexible(
+          child: GestureDetector(
+            onTap: onTapLink,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),

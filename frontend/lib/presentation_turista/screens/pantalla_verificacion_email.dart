@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/presentation_turista/widgets/verification_status_widget.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class EmailVerificationScreen extends StatelessWidget {
   const EmailVerificationScreen({super.key});
 
   void _onResend(BuildContext context) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Correo reenviado')));
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.resendCode)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -23,14 +26,13 @@ class EmailVerificationScreen extends StatelessWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Center(
             child: VerificationStatusWidget(
-              message: 'Se ha enviado un correo de restablecimiento.',
+              message: l10n.sendResetLink,
               onResend: () => _onResend(context),
             ),
           ),
