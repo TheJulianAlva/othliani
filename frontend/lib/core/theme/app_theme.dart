@@ -41,6 +41,12 @@ class AppTheme {
         elevation: 20,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
       ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Colors.white,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: Colors.grey,
+        elevation: 8,
+      ),
     );
   }
 }
