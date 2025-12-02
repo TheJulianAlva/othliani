@@ -9,6 +9,8 @@ class InfoModal {
     required BuildContext context,
     required String title,
     required String content,
+    IconData? icon,
+    Color? titleColor,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -18,7 +20,12 @@ class InfoModal {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) {
-        return _AnimatedInfoSheet(title: title, content: content);
+        return _AnimatedInfoSheet(
+          title: title,
+          content: content,
+          icon: icon,
+          titleColor: titleColor,
+        );
       },
     );
   }
@@ -28,8 +35,15 @@ class InfoModal {
 class _AnimatedInfoSheet extends StatefulWidget {
   final String title;
   final String content;
+  final IconData? icon;
+  final Color? titleColor;
 
-  const _AnimatedInfoSheet({required this.title, required this.content});
+  const _AnimatedInfoSheet({
+    required this.title,
+    required this.content,
+    this.icon,
+    this.titleColor,
+  });
 
   @override
   State<_AnimatedInfoSheet> createState() => _AnimatedInfoSheetState();
@@ -123,11 +137,25 @@ class _AnimatedInfoSheetState extends State<_AnimatedInfoSheet>
                 // Título
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    widget.title,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                  child: Row(
+                    children: [
+                      if (widget.icon != null) ...[
+                        Icon(
+                          widget.icon,
+                          color: widget.titleColor ?? Colors.black,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Expanded(
+                        child: Text(
+                          widget.title,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: widget.titleColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 8),
