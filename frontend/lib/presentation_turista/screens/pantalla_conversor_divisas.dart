@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:io';
 import '../../core/theme/app_constants.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class CurrencyConverterScreen extends StatefulWidget {
   const CurrencyConverterScreen({super.key});
@@ -67,9 +67,9 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
   void _convertCurrency() {
     final l10n = AppLocalizations.of(context)!;
     if (_amountController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.enterAmount)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.enterAmount)));
       return;
     }
 
@@ -140,9 +140,9 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${l10n.error}: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
     }
   }
 
@@ -181,11 +181,9 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
 
       if (foundNumber == null) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.noNumberFound),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.noNumberFound)));
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -208,9 +206,7 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             SingleChildScrollView(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -219,11 +215,15 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                         height: 200,
                         margin: const EdgeInsets.only(bottom: AppSpacing.md),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                          borderRadius: BorderRadius.circular(
+                            AppBorderRadius.md,
+                          ),
                           border: Border.all(color: theme.colorScheme.primary),
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                          borderRadius: BorderRadius.circular(
+                            AppBorderRadius.md,
+                          ),
                           child: Image.file(_selectedImage!, fit: BoxFit.cover),
                         ),
                       ),
@@ -312,8 +312,9 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                         onPressed: _swapCurrencies,
                         icon: const Icon(Icons.swap_vert, size: 32),
                         style: IconButton.styleFrom(
-                          backgroundColor:
-                              theme.colorScheme.primary.withValues(alpha: 0.1),
+                          backgroundColor: theme.colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
                           foregroundColor: theme.colorScheme.primary,
                         ),
                       ),
@@ -381,7 +382,9 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                         padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                          borderRadius: BorderRadius.circular(
+                            AppBorderRadius.sm,
+                          ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -453,27 +456,28 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             underline: const SizedBox(),
             icon: const Icon(Icons.arrow_drop_down),
             dropdownColor: theme.cardColor,
-            items: _currencies.map((currency) {
-              return DropdownMenuItem<String>(
-                value: currency['code'],
-                child: Row(
-                  children: [
-                    Text(
-                      currency['flag']!,
-                      style: const TextStyle(fontSize: 24),
+            items:
+                _currencies.map((currency) {
+                  return DropdownMenuItem<String>(
+                    value: currency['code'],
+                    child: Row(
+                      children: [
+                        Text(
+                          currency['flag']!,
+                          style: const TextStyle(fontSize: 24),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            '${currency['code']} - ${currency['name']}',
+                            style: theme.textTheme.bodyMedium,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        '${currency['code']} - ${currency['name']}',
-                        style: theme.textTheme.bodyMedium,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+                  );
+                }).toList(),
             onChanged: onChanged,
           ),
         ),

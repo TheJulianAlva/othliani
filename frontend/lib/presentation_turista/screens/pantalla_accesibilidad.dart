@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/accessibility_provider.dart';
 import '../../core/theme/app_constants.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class AccessibilityScreen extends StatelessWidget {
   const AccessibilityScreen({super.key});
@@ -13,9 +13,7 @@ class AccessibilityScreen extends StatelessWidget {
     final accessibilityProvider = context.watch<AccessibilityProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.accessibilitySettings),
-      ),
+      appBar: AppBar(title: Text(l10n.accessibilitySettings)),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
@@ -50,10 +48,13 @@ class AccessibilityScreen extends StatelessWidget {
                         label = l10n.extraLarge;
                         break;
                     }
+                    // ignore: deprecated_member_use
                     return RadioListTile<FontSizeOption>(
                       title: Text(label),
                       value: option,
+                      // ignore: deprecated_member_use
                       groupValue: accessibilityProvider.fontSize,
+                      // ignore: deprecated_member_use
                       onChanged: (value) {
                         if (value != null) {
                           accessibilityProvider.setFontSize(value);
@@ -86,7 +87,9 @@ class AccessibilityScreen extends StatelessWidget {
             child: SwitchListTile(
               secondary: const Icon(Icons.record_voice_over),
               title: Text(l10n.screenReader),
-              subtitle: const Text('Activa la compatibilidad con lectores de pantalla'),
+              subtitle: const Text(
+                'Activa la compatibilidad con lectores de pantalla',
+              ),
               value: accessibilityProvider.screenReader,
               onChanged: (value) {
                 accessibilityProvider.setScreenReader(value);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/presentation_turista/widgets/chat_bubble.dart';
 import 'package:frontend/presentation_turista/widgets/message_input_field.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class ChatScreenGuia extends StatefulWidget {
   const ChatScreenGuia({super.key});
@@ -38,7 +38,7 @@ class _ChatScreenGuiaState extends State<ChatScreenGuia> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.chat),
@@ -48,7 +48,9 @@ class _ChatScreenGuiaState extends State<ChatScreenGuia> {
             tooltip: 'Enviar anuncio',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Funcionalidad de anuncio global próximamente')),
+                const SnackBar(
+                  content: Text('Funcionalidad de anuncio global próximamente'),
+                ),
               );
             },
           ),
@@ -61,7 +63,11 @@ class _ChatScreenGuiaState extends State<ChatScreenGuia> {
             color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
             child: Row(
               children: [
-                Icon(Icons.info_outline, size: 16, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -73,20 +79,19 @@ class _ChatScreenGuiaState extends State<ChatScreenGuia> {
             ),
           ),
           Expanded(
-            child: _messages.isEmpty
-                ? Center(
-                    child: Text(l10n.typeMessage),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      return ChatBubble(
-                        message: _messages[index],
-                        isSent: _isSentByMe[index],
-                      );
-                    },
-                  ),
+            child:
+                _messages.isEmpty
+                    ? Center(child: Text(l10n.typeMessage))
+                    : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        return ChatBubble(
+                          message: _messages[index],
+                          isSent: _isSentByMe[index],
+                        );
+                      },
+                    ),
           ),
           MessageInputField(controller: _controller, onSend: _sendMessage),
         ],

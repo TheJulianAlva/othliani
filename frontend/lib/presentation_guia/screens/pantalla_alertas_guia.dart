@@ -51,7 +51,7 @@ class _AlertsScreenGuiaState extends State<AlertsScreenGuia> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: severity,
+                initialValue: severity,
                 decoration: const InputDecoration(labelText: 'Tipo de Alerta'),
                 items: const [
                   DropdownMenuItem(value: 'info', child: Text('Información')),

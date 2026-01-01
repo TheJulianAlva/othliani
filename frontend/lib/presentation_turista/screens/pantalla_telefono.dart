@@ -4,7 +4,7 @@ import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/utils/e164_utils.dart';
 import 'package:frontend/core/widgets/info_modal.dart';
 import 'package:frontend/core/widgets/phone_number_field.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class PhoneScreen extends StatefulWidget {
   const PhoneScreen({super.key});
@@ -21,9 +21,9 @@ class _PhoneScreenState extends State<PhoneScreen> {
     final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
     if (_current == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.enterPhone)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.enterPhone)));
       return;
     }
 

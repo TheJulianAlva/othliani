@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/widgets/info_modal.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class FolioScreen extends StatefulWidget {
   const FolioScreen({super.key});

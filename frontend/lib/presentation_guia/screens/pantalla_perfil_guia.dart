@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class ProfileScreenGuia extends StatefulWidget {
   const ProfileScreenGuia({super.key});
@@ -34,7 +34,7 @@ class _ProfileScreenGuiaState extends State<ProfileScreenGuia> {
     await prefs.remove('isLoggedInGuia');
     await prefs.remove('userNameGuia');
     await prefs.remove('userEmailGuia');
-    
+
     if (mounted) {
       context.go(RoutesGuia.login);
     }
@@ -46,17 +46,12 @@ class _ProfileScreenGuiaState extends State<ProfileScreenGuia> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.profile),
-      ),
+      appBar: AppBar(title: Text(l10n.profile)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const CircleAvatar(
-              radius: 50,
-              child: Icon(Icons.person, size: 50),
-            ),
+            const CircleAvatar(radius: 50, child: Icon(Icons.person, size: 50)),
             const SizedBox(height: 16),
             Text(
               _userName,
@@ -69,7 +64,7 @@ class _ProfileScreenGuiaState extends State<ProfileScreenGuia> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            
+
             // Profile Actions
             ListTile(
               leading: const Icon(Icons.edit),
@@ -78,28 +73,32 @@ class _ProfileScreenGuiaState extends State<ProfileScreenGuia> {
               onTap: () {
                 // Mock edit profile
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Funcionalidad de editar perfil próximamente')),
+                  const SnackBar(
+                    content: Text(
+                      'Funcionalidad de editar perfil próximamente',
+                    ),
+                  ),
                 );
               },
             ),
             const Divider(),
-            
+
             ListTile(
               leading: const Icon(Icons.settings),
               title: Text(l10n.configuration),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                 // Navigate to config (reusing tourist config screen or creating a new one if needed)
-                 // For now, just a placeholder or we could reuse the existing config screen if it's generic enough
-                 ScaffoldMessenger.of(context).showSnackBar(
+                // Navigate to config (reusing tourist config screen or creating a new one if needed)
+                // For now, just a placeholder or we could reuse the existing config screen if it's generic enough
+                ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Configuración próximamente')),
                 );
               },
             ),
-            
+
             const Divider(),
             const SizedBox(height: 32),
-            
+
             // Logout
             ElevatedButton(
               onPressed: _logout,

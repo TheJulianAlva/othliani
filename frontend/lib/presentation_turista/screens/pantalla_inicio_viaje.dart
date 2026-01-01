@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_constants.dart';
 
 import 'pantalla_detalle_actividad.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class TripHomeScreen extends StatefulWidget {
   const TripHomeScreen({super.key});
@@ -143,8 +143,16 @@ class _TripHomeScreenState extends State<TripHomeScreen>
   }
 
   List<Map<String, dynamic>> _getFilteredActivities(String day) {
-    final activities = _activitiesByDay[day] ?? [];
+    final activities = List<Map<String, dynamic>>.from(
+      _activitiesByDay[day] ?? [],
+    );
     if (_selectedFilter == 'Todas') {
+      // Sort logic: 'en_curso' first
+      activities.sort((a, b) {
+        if (a['status'] == 'en_curso' && b['status'] != 'en_curso') return -1;
+        if (a['status'] != 'en_curso' && b['status'] == 'en_curso') return 1;
+        return 0;
+      });
       return activities;
     }
     return activities
@@ -166,9 +174,8 @@ class _TripHomeScreenState extends State<TripHomeScreen>
   double _getProgress(String day) {
     final activities = _activitiesByDay[day] ?? [];
     if (activities.isEmpty) return 0.0;
-    final completed = activities
-        .where((a) => a['status'] == 'terminada')
-        .length;
+    final completed =
+        activities.where((a) => a['status'] == 'terminada').length;
     return completed / activities.length;
   }
 
@@ -208,7 +215,11 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                   color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppBorderRadius.sm),
                 ),
-                child: Icon(Icons.image, size: 35, color: theme.iconTheme.color),
+                child: Icon(
+                  Icons.image,
+                  size: 35,
+                  color: theme.iconTheme.color,
+                ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -245,10 +256,7 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      l10n.allIncluded,
-                      style: theme.textTheme.bodySmall,
-                    ),
+                    Text(l10n.allIncluded, style: theme.textTheme.bodySmall),
                   ],
                 ),
               ),
@@ -274,19 +282,20 @@ class _TripHomeScreenState extends State<TripHomeScreen>
             indicatorSize: TabBarIndicatorSize.tab,
             dividerColor: Colors.transparent,
             onTap: (index) => setState(() {}),
-            tabs: _activitiesByDay.keys
-                .map(
-                  (day) => Tab(
-                    child: Text(
-                      day,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
+            tabs:
+                _activitiesByDay.keys
+                    .map(
+                      (day) => Tab(
+                        child: Text(
+                          day,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                )
-                .toList(),
+                    )
+                    .toList(),
           ),
         ),
 
@@ -330,7 +339,9 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                   value: progress,
                   minHeight: 8,
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    theme.colorScheme.primary,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -381,34 +392,35 @@ class _TripHomeScreenState extends State<TripHomeScreen>
 
         // Lista de actividades
         Expanded(
-          child: filteredActivities.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.filter_list_off,
-                        size: 48,
-                        color: theme.disabledColor,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.noActivities,
-                        style: TextStyle(color: theme.disabledColor),
-                      ),
-                    ],
+          child:
+              filteredActivities.isEmpty
+                  ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.filter_list_off,
+                          size: 48,
+                          color: theme.disabledColor,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.noActivities,
+                          style: TextStyle(color: theme.disabledColor),
+                        ),
+                      ],
+                    ),
+                  )
+                  : ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                    ),
+                    itemCount: filteredActivities.length,
+                    itemBuilder: (context, index) {
+                      final activity = filteredActivities[index];
+                      return ActivityCard(activity: activity);
+                    },
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                  ),
-                  itemCount: filteredActivities.length,
-                  itemBuilder: (context, index) {
-                    final activity = filteredActivities[index];
-                    return _buildActivityCard(activity, index);
-                  },
-                ),
         ),
       ],
     );
@@ -447,7 +459,10 @@ class _TripHomeScreenState extends State<TripHomeScreen>
       selectedColor: theme.colorScheme.primary.withValues(alpha: 0.2),
       checkmarkColor: theme.colorScheme.primary,
       labelStyle: TextStyle(
-        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+        color:
+            isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurface,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
         fontSize: 12,
       ),
@@ -457,11 +472,25 @@ class _TripHomeScreenState extends State<TripHomeScreen>
       ),
     );
   }
+}
 
-  Widget _buildActivityCard(Map<String, dynamic> activity, int index) {
+class ActivityCard extends StatefulWidget {
+  final Map<String, dynamic> activity;
+
+  const ActivityCard({super.key, required this.activity});
+
+  @override
+  State<ActivityCard> createState() => _ActivityCardState();
+}
+
+class _ActivityCardState extends State<ActivityCard> {
+  bool _showDescription = false;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final status = activity['status'] as String;
+    final status = widget.activity['status'] as String;
     Color statusColor;
     String statusLabel;
     IconData statusIcon;
@@ -492,11 +521,12 @@ class _TripHomeScreenState extends State<TripHomeScreen>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ActivityDetailScreen(
-                activityTitle: activity['title'],
-                activityTime: activity['time'],
-                activityDescription: activity['description'],
-              ),
+              builder:
+                  (context) => ActivityDetailScreen(
+                    activityTitle: widget.activity['title'],
+                    activityTime: widget.activity['time'],
+                    activityDescription: widget.activity['description'],
+                  ),
             ),
           );
         },
@@ -507,9 +537,10 @@ class _TripHomeScreenState extends State<TripHomeScreen>
             color: theme.cardColor,
             borderRadius: BorderRadius.circular(AppBorderRadius.md),
             border: Border.all(
-              color: status == 'en_curso'
-                  ? statusColor.withValues(alpha: 0.5)
-                  : theme.dividerColor,
+              color:
+                  status == 'en_curso'
+                      ? statusColor.withValues(alpha: 0.5)
+                      : theme.dividerColor,
               width: status == 'en_curso' ? 2 : 1,
             ),
             boxShadow: [
@@ -551,11 +582,13 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.1,
+                            ),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            activity['time'],
+                            widget.activity['time'],
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -585,27 +618,82 @@ class _TripHomeScreenState extends State<TripHomeScreen>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      activity['title'],
+                      widget.activity['title'],
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      activity['description'],
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall,
-                    ),
+                    if (_showDescription)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          Text(
+                            widget.activity['description'],
+                            style: theme.textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _showDescription = false;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4,
+                                horizontal: 8,
+                              ),
+                              child: Text(
+                                'Ver menos',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            // Prevent triggering the parent InkWell
+                            setState(() {
+                              _showDescription = true;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 4,
+                              horizontal: 0,
+                            ), // Added vertical padding for better hit area
+                            child: Text(
+                              'Ver más detalles...',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
 
               const SizedBox(width: AppSpacing.sm),
 
-              // Arrow icon
-              Icon(Icons.arrow_forward_ios, size: 14, color: theme.disabledColor),
+              // Arrow icon for navigation
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: theme.disabledColor,
+              ),
             ],
           ),
         ),

@@ -3,7 +3,7 @@ import 'package:frontend/core/widgets/info_modal.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/utils/mock_auth_data.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -66,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _handleRegister() {
     final l10n = AppLocalizations.of(context)!;
-    
+
     if (!_isValidInput()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -150,21 +150,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 'Términos y condiciones',
                 _termsAccepted,
                 (val) => setState(() => _termsAccepted = val ?? false),
-                onTapLink: () => InfoModal.show(
-                  context: context,
-                  title: 'Términos y condiciones',
-                  content: 'Contenido de los términos y condiciones...',
-                ),
+                onTapLink:
+                    () => InfoModal.show(
+                      context: context,
+                      title: 'Términos y condiciones',
+                      content: 'Contenido de los términos y condiciones...',
+                    ),
               ),
               _buildCheckbox(
                 'Aviso de privacidad',
                 _privacyAccepted,
                 (val) => setState(() => _privacyAccepted = val ?? false),
-                onTapLink: () => InfoModal.show(
-                  context: context,
-                  title: 'Aviso de Privacidad',
-                  content: 'Contenido del aviso de privacidad...',
-                ),
+                onTapLink:
+                    () => InfoModal.show(
+                      context: context,
+                      title: 'Aviso de Privacidad',
+                      content: 'Contenido del aviso de privacidad...',
+                    ),
               ),
               const SizedBox(height: 30),
               ElevatedButton(
@@ -190,10 +192,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: 4),
         TextField(
           controller: controller,

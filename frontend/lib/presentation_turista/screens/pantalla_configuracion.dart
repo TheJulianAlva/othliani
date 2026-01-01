@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/providers/locale_provider.dart';
 import '../../core/providers/theme_provider.dart';
 import 'pantalla_accesibilidad.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class ConfigScreen extends StatelessWidget {
   const ConfigScreen({super.key});
@@ -21,9 +21,9 @@ class ConfigScreen extends StatelessWidget {
           leading: const Icon(Icons.language),
           title: Text(l10n.language),
           subtitle: Text(
-            localeProvider.locale.languageCode == 'es' 
-              ? l10n.spanish 
-              : l10n.english
+            localeProvider.locale.languageCode == 'es'
+                ? l10n.spanish
+                : l10n.english,
           ),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           onTap: () {
@@ -31,15 +31,15 @@ class ConfigScreen extends StatelessWidget {
           },
         ),
         const Divider(),
-        
+
         // Theme
         SwitchListTile(
           secondary: Icon(
-            themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode
+            themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
           ),
           title: Text(l10n.theme),
           subtitle: Text(
-            themeProvider.isDarkMode ? l10n.darkTheme : l10n.lightTheme
+            themeProvider.isDarkMode ? l10n.darkTheme : l10n.lightTheme,
           ),
           value: themeProvider.isDarkMode,
           onChanged: (value) {
@@ -47,7 +47,7 @@ class ConfigScreen extends StatelessWidget {
           },
         ),
         const Divider(),
-        
+
         // Accessibility
         ListTile(
           leading: const Icon(Icons.accessibility),
@@ -58,7 +58,7 @@ class ConfigScreen extends StatelessWidget {
           },
         ),
         const Divider(),
-        
+
         // Notifications
         SwitchListTile(
           secondary: const Icon(Icons.notifications),
@@ -77,45 +77,46 @@ class ConfigScreen extends StatelessWidget {
   }
 
   void _showLanguageDialog(
-    BuildContext context, 
+    BuildContext context,
     LocaleProvider provider,
     AppLocalizations l10n,
   ) {
     showDialog(
       context: context,
-      builder: (context) => SimpleDialog(
-        title: Text(l10n.language),
-        children: [
-          SimpleDialogOption(
-            onPressed: () {
-              provider.setLocale(const Locale('es'));
-              Navigator.pop(context);
-            },
-            child: Row(
-              children: [
-                if (provider.locale.languageCode == 'es')
-                  const Icon(Icons.check, color: Colors.green),
-                const SizedBox(width: 8),
-                Text(l10n.spanish),
-              ],
-            ),
+      builder:
+          (context) => SimpleDialog(
+            title: Text(l10n.language),
+            children: [
+              SimpleDialogOption(
+                onPressed: () {
+                  provider.setLocale(const Locale('es'));
+                  Navigator.pop(context);
+                },
+                child: Row(
+                  children: [
+                    if (provider.locale.languageCode == 'es')
+                      const Icon(Icons.check, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Text(l10n.spanish),
+                  ],
+                ),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  provider.setLocale(const Locale('en'));
+                  Navigator.pop(context);
+                },
+                child: Row(
+                  children: [
+                    if (provider.locale.languageCode == 'en')
+                      const Icon(Icons.check, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Text(l10n.english),
+                  ],
+                ),
+              ),
+            ],
           ),
-          SimpleDialogOption(
-            onPressed: () {
-              provider.setLocale(const Locale('en'));
-              Navigator.pop(context);
-            },
-            child: Row(
-              children: [
-                if (provider.locale.languageCode == 'en')
-                  const Icon(Icons.check, color: Colors.green),
-                const SizedBox(width: 8),
-                Text(l10n.english),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 

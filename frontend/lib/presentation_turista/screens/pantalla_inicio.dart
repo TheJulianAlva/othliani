@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import '../widgets/walkie_talkie_button.dart';
 import 'pantalla_inicio_viaje.dart';
@@ -28,8 +28,6 @@ class _MainShellScreenState extends State<MainShellScreen>
     Icons.map_outlined,
   ];
 
-
-
   final List<Widget> _screens = [
     const TripHomeScreen(),
     const ChatScreen(),
@@ -41,7 +39,13 @@ class _MainShellScreenState extends State<MainShellScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final labelList = [l10n.itinerary, l10n.chat, l10n.currency, l10n.config, l10n.map];
+    final labelList = [
+      l10n.itinerary,
+      l10n.chat,
+      l10n.currency,
+      l10n.config,
+      l10n.map,
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -69,9 +73,12 @@ class _MainShellScreenState extends State<MainShellScreen>
       bottomNavigationBar: AnimatedBottomNavigationBar.builder(
         itemCount: _iconList.length,
         tabBuilder: (int index, bool isActive) {
-          final color = isActive 
-              ? Theme.of(context).bottomNavigationBarTheme.selectedItemColor 
-              : Theme.of(context).bottomNavigationBarTheme.unselectedItemColor;
+          final color =
+              isActive
+                  ? Theme.of(context).bottomNavigationBarTheme.selectedItemColor
+                  : Theme.of(
+                    context,
+                  ).bottomNavigationBarTheme.unselectedItemColor;
           return Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -87,7 +94,8 @@ class _MainShellScreenState extends State<MainShellScreen>
                     style: TextStyle(
                       color: color,
                       fontSize: 11,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight:
+                          isActive ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -101,7 +109,8 @@ class _MainShellScreenState extends State<MainShellScreen>
         leftCornerRadius: 16,
         rightCornerRadius: 16,
         onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        backgroundColor:
+            Theme.of(context).bottomNavigationBarTheme.backgroundColor,
         splashColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
         splashSpeedInMilliseconds: 300,
         elevation: 8,
