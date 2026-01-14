@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.frontend"
-    compileSdk = 36
+    compileSdk = 35
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -32,9 +32,17 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            
+            isMinifyEnabled = true 
+            
+            // NOTA: Si esto falla con ML Kit, cámbialo a 'false'
+            isShrinkResources = false 
+
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }
