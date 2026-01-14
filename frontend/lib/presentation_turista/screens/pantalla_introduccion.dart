@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -38,18 +38,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final pages = [
-      {
-        'title': l10n.onboardingTitle1,
-        'description': l10n.onboardingDesc1,
-      },
-      {
-        'title': l10n.onboardingTitle2,
-        'description': l10n.onboardingDesc2,
-      },
-      {
-        'title': l10n.onboardingTitle3,
-        'description': l10n.onboardingDesc3,
-      },
+      {'title': l10n.onboardingTitle1, 'description': l10n.onboardingDesc1},
+      {'title': l10n.onboardingTitle2, 'description': l10n.onboardingDesc2},
+      {'title': l10n.onboardingTitle3, 'description': l10n.onboardingDesc3},
     ];
 
     return Scaffold(
@@ -76,13 +67,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           height: 250,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Icon(
                             Icons.image,
                             size: 100,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 40),
@@ -117,9 +112,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         height: 10,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: _currentPage == index
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.surfaceContainerHighest,
+                          color:
+                              _currentPage == index
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
                         ),
                       ),
                     ),

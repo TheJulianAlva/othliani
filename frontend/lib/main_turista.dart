@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/navigation/enrutador_app_turista.dart';
@@ -15,7 +15,7 @@ import 'core/providers/accessibility_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   final prefs = await SharedPreferences.getInstance();
   final seenOnboarding = prefs.getBool('seenOnboarding') ?? false;
   final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
@@ -59,11 +59,17 @@ class _MainAppState extends State<MainApp> {
         ChangeNotifierProvider(create: (_) => AccessibilityProvider()),
       ],
       child: Consumer3<LocaleProvider, ThemeProvider, AccessibilityProvider>(
-        builder: (context, localeProvider, themeProvider, accessibilityProvider, child) {
+        builder: (
+          context,
+          localeProvider,
+          themeProvider,
+          accessibilityProvider,
+          child,
+        ) {
           return MaterialApp.router(
             title: 'OthliAni - Turista',
             debugShowCheckedModeBanner: false,
-            
+
             // Localization
             locale: localeProvider.locale,
             localizationsDelegates: const [
@@ -72,24 +78,23 @@ class _MainAppState extends State<MainApp> {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: const [
-              Locale('es'),
-              Locale('en'),
-            ],
-            
+            supportedLocales: const [Locale('es'), Locale('en')],
+
             // Theme
             theme: AppTheme.lightTheme,
             darkTheme: DarkTheme.theme,
             themeMode: themeProvider.themeMode,
-            
+
             // Router
             routerConfig: _router,
-            
+
             // Accessibility
             builder: (context, child) {
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.linear(accessibilityProvider.fontScale),
+                  textScaler: TextScaler.linear(
+                    accessibilityProvider.fontScale,
+                  ),
                 ),
                 child: child!,
               );

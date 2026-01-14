@@ -30,9 +30,9 @@ class _ItineraryScreenGuiaState extends State<ItineraryScreenGuia> {
 
   void _showEditEventDialog({int? index}) {
     final isEditing = index != null;
-    final timeController = TextEditingController(text: isEditing ? _events[index!]['time'] : '');
-    final titleController = TextEditingController(text: isEditing ? _events[index!]['title'] : '');
-    final descController = TextEditingController(text: isEditing ? _events[index!]['description'] : '');
+    final timeController = TextEditingController(text: isEditing ? _events[index]['time'] : '');
+    final titleController = TextEditingController(text: isEditing ? _events[index]['title'] : '');
+    final descController = TextEditingController(text: isEditing ? _events[index]['description'] : '');
 
     showDialog(
       context: context,
@@ -70,7 +70,7 @@ class _ItineraryScreenGuiaState extends State<ItineraryScreenGuia> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  _events.removeAt(index!);
+                  _events.removeAt(index);
                 });
                 Navigator.pop(context);
               },
@@ -87,7 +87,7 @@ class _ItineraryScreenGuiaState extends State<ItineraryScreenGuia> {
                     'description': descController.text,
                   };
                   if (isEditing) {
-                    _events[index!] = newEvent;
+                    _events[index] = newEvent;
                   } else {
                     _events.add(newEvent);
                     _events.sort((a, b) => a['time']!.compareTo(b['time']!));

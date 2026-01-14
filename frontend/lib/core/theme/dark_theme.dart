@@ -24,7 +24,7 @@ class DarkTheme {
           color: Colors.white,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: const Color(0xFF1E1E1E),
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -67,14 +67,8 @@ class DarkTheme {
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
-        bodyLarge: TextStyle(
-          fontSize: 16,
-          color: Colors.white70,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          color: Colors.white60,
-        ),
+        bodyLarge: TextStyle(fontSize: 16, color: Colors.white70),
+        bodyMedium: TextStyle(fontSize: 14, color: Colors.white60),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Color(0xFF1E1E1E),

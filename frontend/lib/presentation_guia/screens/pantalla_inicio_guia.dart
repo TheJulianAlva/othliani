@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:frontend/presentation_guia/screens/pantalla_mapa_guia.dart';
 import 'package:frontend/presentation_guia/screens/pantalla_chat_guia.dart';
 import 'package:frontend/presentation_guia/screens/pantalla_alertas_guia.dart';
 import 'package:frontend/presentation_guia/screens/pantalla_perfil_guia.dart';
-import 'package:frontend/presentation_guia/screens/pantalla_itinerario_guia.dart';
 
 // Placeholder for Home Tab content (Trip List)
 class HomeTabGuia extends StatelessWidget {
@@ -63,16 +62,16 @@ class _HomeScreenGuiaState extends State<HomeScreenGuia>
         centerTitle: true,
         automaticallyImplyLeading: false, // Don't show back button on Home
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: AnimatedBottomNavigationBar.builder(
         itemCount: _iconList.length,
         tabBuilder: (int index, bool isActive) {
-          final color = isActive 
-              ? Theme.of(context).bottomNavigationBarTheme.selectedItemColor 
-              : Theme.of(context).bottomNavigationBarTheme.unselectedItemColor;
+          final color =
+              isActive
+                  ? Theme.of(context).bottomNavigationBarTheme.selectedItemColor
+                  : Theme.of(
+                    context,
+                  ).bottomNavigationBarTheme.unselectedItemColor;
           return Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -88,7 +87,8 @@ class _HomeScreenGuiaState extends State<HomeScreenGuia>
                     style: TextStyle(
                       color: color,
                       fontSize: 11,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight:
+                          isActive ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -102,7 +102,8 @@ class _HomeScreenGuiaState extends State<HomeScreenGuia>
         leftCornerRadius: 16,
         rightCornerRadius: 16,
         onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        backgroundColor:
+            Theme.of(context).bottomNavigationBarTheme.backgroundColor,
         splashColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
         splashSpeedInMilliseconds: 300,
         elevation: 8,
@@ -118,15 +119,15 @@ class _HomeScreenGuiaState extends State<HomeScreenGuia>
   String _getTitle(AppLocalizations l10n) {
     switch (_currentIndex) {
       case 0:
-        return 'Mis Viajes'; // TODO: Add l10n key
+        return 'Mis Viajes';
       case 1:
         return l10n.map;
       case 2:
         return l10n.chat;
       case 3:
-        return 'Alertas'; // TODO: Add l10n key
+        return 'Alertas';
       case 4:
-        return l10n.profile; // TODO: Add l10n key
+        return l10n.profile;
       default:
         return 'OthliAni - Guía';
     }

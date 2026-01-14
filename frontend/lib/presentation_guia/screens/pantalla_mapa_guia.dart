@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MapScreenGuia extends StatefulWidget {
   const MapScreenGuia({super.key});
@@ -14,12 +13,6 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
   Position? _currentPosition;
   bool _isLoading = true;
   Position? _meetingPoint;
-
-  // Mock tourist locations
-  final List<Map<String, dynamic>> _touristLocations = [
-    {'id': '1', 'name': 'Juan', 'lat': 19.4326, 'lng': -99.1332, 'status': 'ok'},
-    {'id': '2', 'name': 'Maria', 'lat': 19.4340, 'lng': -99.1340, 'status': 'warning'}, // Far away
-  ];
 
   @override
   void initState() {
@@ -38,7 +31,9 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Se requieren permisos de ubicación para usar el mapa'),
+            content: Text(
+              'Se requieren permisos de ubicación para usar el mapa',
+            ),
             duration: Duration(seconds: 3),
           ),
         );
@@ -92,7 +87,9 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
         _meetingPoint = _currentPosition;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Punto de reunión establecido en tu ubicación actual')),
+        const SnackBar(
+          content: Text('Punto de reunión establecido en tu ubicación actual'),
+        ),
       );
       // In a real app, this would send a notification to all tourists
     }
@@ -100,7 +97,6 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -109,7 +105,7 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _buildMapPlaceholder(theme),
-          
+
           // Meeting Point Button
           Positioned(
             bottom: 16,
@@ -144,7 +140,7 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
       child: Stack(
         children: [
           CustomPaint(size: Size.infinite, painter: _GridPainter()),
-          
+
           // Guide Marker (Current Location)
           if (_currentPosition != null)
             Positioned(
@@ -152,14 +148,27 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
               left: MediaQuery.of(context).size.width * 0.5 - 20,
               child: Column(
                 children: [
-                  const Icon(Icons.person_pin_circle, size: 40, color: Colors.blue),
+                  const Icon(
+                    Icons.person_pin_circle,
+                    size: 40,
+                    color: Colors.blue,
+                  ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text('Tú (Guía)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Tú (Guía)',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -168,7 +177,9 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
           // Meeting Point Marker
           if (_meetingPoint != null)
             Positioned(
-              top: MediaQuery.of(context).size.height * 0.5 - 20, // Same as guide for demo
+              top:
+                  MediaQuery.of(context).size.height * 0.5 -
+                  20, // Same as guide for demo
               left: MediaQuery.of(context).size.width * 0.5 - 20,
               child: const Icon(Icons.flag, size: 40, color: Colors.red),
             ),
@@ -179,9 +190,16 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
             left: MediaQuery.of(context).size.width * 0.3,
             child: Column(
               children: [
-                const Icon(Icons.directions_walk, size: 30, color: Colors.green),
+                const Icon(
+                  Icons.directions_walk,
+                  size: 30,
+                  color: Colors.green,
+                ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(4),
@@ -191,19 +209,29 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
               ],
             ),
           ),
-           Positioned(
+          Positioned(
             top: MediaQuery.of(context).size.height * 0.6,
             left: MediaQuery.of(context).size.width * 0.7,
             child: Column(
               children: [
-                const Icon(Icons.directions_walk, size: 30, color: Colors.orange), // Warning color
+                const Icon(
+                  Icons.directions_walk,
+                  size: 30,
+                  color: Colors.orange,
+                ), // Warning color
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text('Maria (Lejos)', style: TextStyle(fontSize: 10)),
+                  child: const Text(
+                    'Maria (Lejos)',
+                    style: TextStyle(fontSize: 10),
+                  ),
                 ),
               ],
             ),
@@ -225,7 +253,10 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
                     ),
                     const SizedBox(height: 8),
                     const Text('2 Turistas conectados'),
-                    const Text('1 Turista fuera de rango (Simulado)', style: TextStyle(color: Colors.orange)),
+                    const Text(
+                      '1 Turista fuera de rango (Simulado)',
+                      style: TextStyle(color: Colors.orange),
+                    ),
                   ],
                 ),
               ),
@@ -240,9 +271,10 @@ class _MapScreenGuiaState extends State<MapScreenGuia> {
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.grey[300]!
-      ..strokeWidth = 1;
+    final paint =
+        Paint()
+          ..color = Colors.grey[300]!
+          ..strokeWidth = 1;
 
     const gridSize = 50.0;
 

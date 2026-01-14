@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../core/theme/app_constants.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -54,7 +54,9 @@ class _MapScreenState extends State<MapScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Se requieren permisos de ubicación para usar el mapa'),
+            content: Text(
+              'Se requieren permisos de ubicación para usar el mapa',
+            ),
             duration: Duration(seconds: 3),
           ),
         );
@@ -113,9 +115,9 @@ class _MapScreenState extends State<MapScreen> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.locationNotAvailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.locationNotAvailable)));
     }
   }
 
@@ -135,126 +137,144 @@ class _MapScreenState extends State<MapScreen> {
             top: 16,
             left: 16,
             right: 16,
-              child: Card(
-                elevation: 8,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.5,
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            setState(() {
-                              _activitiesExpanded = !_activitiesExpanded;
-                            });
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppSpacing.md),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.directions_walk,
-                                      color: theme.colorScheme.primary,
-                                      size: 20,
+            child: Card(
+              elevation: 8,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.5,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            _activitiesExpanded = !_activitiesExpanded;
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.directions_walk,
+                                    color: theme.colorScheme.primary,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Text(
+                                    l10n.currentActivities,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
                                     ),
-                                    const SizedBox(width: AppSpacing.sm),
-                                    Text(
-                                      l10n.currentActivities,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Icon(
-                                  _activitiesExpanded
-                                      ? Icons.expand_less
-                                      : Icons.expand_more,
-                                  size: 24,
-                                ),
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                              Icon(
+                                _activitiesExpanded
+                                    ? Icons.expand_less
+                                    : Icons.expand_more,
+                                size: 24,
+                              ),
+                            ],
                           ),
                         ),
-                        if (_activitiesExpanded)
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.md,
-                              0,
-                              AppSpacing.md,
-                              AppSpacing.md,
-                            ),
-                            child: Column(
-                              children: _currentActivities.map((activity) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: activity['status'] == 'En curso'
-                                                  ? Colors.green.withValues(alpha: 0.2)
-                                                  : Colors.grey.withValues(alpha: 0.2),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Text(
-                                              activity['time']!,
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                                color: activity['status'] == 'En curso'
-                                                    ? Colors.green
-                                                    : Colors.grey[700],
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              activity['title']!,
-                                              style: const TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        activity['description']!,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: theme.textTheme.bodySmall?.color,
-                                        ),
-                                      ),
-                                      if (activity != _currentActivities.last)
-                                        const Divider(height: 16),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                            ),
+                      ),
+                      if (_activitiesExpanded)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.md,
+                            0,
+                            AppSpacing.md,
+                            AppSpacing.md,
                           ),
-                      ],
-                    ),
+                          child: Column(
+                            children:
+                                _currentActivities.map((activity) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    activity['status'] ==
+                                                            'En curso'
+                                                        ? Colors.green
+                                                            .withValues(
+                                                              alpha: 0.2,
+                                                            )
+                                                        : Colors.grey
+                                                            .withValues(
+                                                              alpha: 0.2,
+                                                            ),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                activity['time']!,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color:
+                                                      activity['status'] ==
+                                                              'En curso'
+                                                          ? Colors.green
+                                                          : Colors.grey[700],
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                activity['title']!,
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          activity['description']!,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color:
+                                                theme
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.color,
+                                          ),
+                                        ),
+                                        if (activity != _currentActivities.last)
+                                          const Divider(height: 16),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
+            ),
           ),
 
         Positioned(
@@ -273,7 +293,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Widget _buildMapPlaceholder() {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Container(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Stack(
@@ -359,9 +379,10 @@ class _MapScreenState extends State<MapScreen> {
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.grey[300]!
-      ..strokeWidth = 1;
+    final paint =
+        Paint()
+          ..color = Colors.grey[300]!
+          ..strokeWidth = 1;
 
     const gridSize = 50.0;
 
