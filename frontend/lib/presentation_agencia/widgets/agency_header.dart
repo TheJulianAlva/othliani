@@ -38,49 +38,60 @@ class AgencyHeader extends StatelessWidget {
 
           // Breadcrumbs
           Expanded(
-            child: Row(
-              children: [
-                const Text(
-                  'Inicio',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-                const SizedBox(width: 8),
-                const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  'Dashboard', // This should be dynamic based on route
-                  style: TextStyle(
-                    color: Colors.grey.shade800,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  const Text(
+                    'Inicio',
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          // Search Field (Optional - Global Search)
-          SizedBox(
-            width: 300,
-            height: 40,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Buscar...',
-                prefixIcon: const Icon(Icons.search, size: 20),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade50,
+                  const SizedBox(width: 8),
+                  const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Dashboard', // This should be dynamic based on route
+                    style: TextStyle(
+                      color: Colors.grey.shade800,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
+
+          // Search Field (Responsive)
+          if (MediaQuery.of(context).size.width > 750)
+            SizedBox(
+              width: 300,
+              height: 40,
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Buscar...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                ),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.search, color: Colors.grey),
+              onPressed: () {
+                // Expand search or show modal
+              },
+            ),
 
           const SizedBox(width: 24),
 

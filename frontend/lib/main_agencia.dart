@@ -1,7 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 import 'core/navigation/app_router_agencia.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Ensure window manager is initialized
+  await windowManager.ensureInitialized();
+
+  WindowOptions windowOptions = const WindowOptions(
+    size: Size(1280, 720),
+    minimumSize: Size(1024, 600), // Minimum size to avoiding heavy overflows
+    center: true,
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.normal,
+  );
+
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+
   runApp(const AgencyApp());
 }
 

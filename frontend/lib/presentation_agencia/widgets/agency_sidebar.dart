@@ -37,91 +37,113 @@ class AgencySidebar extends StatelessWidget {
                     ),
           ),
 
-          // 2. User Widget
-          if (!isCollapsed)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const NeverScrollableScrollPhysics(),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundColor: Colors.grey,
-                      radius: 20,
-                      child: Icon(Icons.person, color: Colors.white),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Julian XD',
-                          style: TextStyle(color: Colors.white, fontSize: 14),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          'Super Admin',
-                          style: TextStyle(color: Colors.white54, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          const SizedBox(height: 10),
-
-          // 3. Navigation Menu
+          // Scrollable Content with Sticky Footer behavior
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _buildNavItem(
-                  context,
-                  icon: Icons.dashboard,
-                  label: 'Dashboard',
-                  path: RoutesAgencia.dashboard,
+            child: CustomScrollView(
+              slivers: [
+                // 2. User Widget
+                if (!isCollapsed)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: Row(
+                          children: [
+                            const CircleAvatar(
+                              backgroundColor: Colors.grey,
+                              radius: 20,
+                              child: Icon(Icons.person, color: Colors.white),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Julian XD',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  'Super Admin',
+                                  style: TextStyle(
+                                    color: Colors.white54,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Spacer if User Widget is hidden (Optional, or just styling)
+                if (isCollapsed)
+                  const SliverToBoxAdapter(child: SizedBox(height: 10)),
+
+                // 3. Navigation Menu
+                SliverList(
+                  delegate: SliverChildListDelegate([
+                    _buildNavItem(
+                      context,
+                      icon: Icons.dashboard,
+                      label: 'Dashboard',
+                      path: RoutesAgencia.dashboard,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.flight,
+                      label: 'Gestión Viajes',
+                      path: RoutesAgencia.viajes,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.people,
+                      label: 'Usuarios',
+                      path: RoutesAgencia.usuarios,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.assignment,
+                      label: 'Auditoría/Logs',
+                      path: RoutesAgencia.auditoria,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.settings,
+                      label: 'Configuración',
+                      path: RoutesAgencia.configuracion,
+                    ),
+                  ]),
                 ),
-                _buildNavItem(
-                  context,
-                  icon: Icons.flight,
-                  label: 'Gestión Viajes',
-                  path: RoutesAgencia.viajes,
-                ),
-                _buildNavItem(
-                  context,
-                  icon: Icons.people,
-                  label: 'Usuarios',
-                  path: RoutesAgencia.usuarios,
-                ),
-                _buildNavItem(
-                  context,
-                  icon: Icons.assignment,
-                  label: 'Auditoría/Logs',
-                  path: RoutesAgencia.auditoria,
-                ),
-                _buildNavItem(
-                  context,
-                  icon: Icons.settings,
-                  label: 'Configuración',
-                  path: RoutesAgencia.configuracion,
+
+                // 4. Sticky Footer (Logout)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: _buildSimpleItem(
+                          icon: Icons.logout,
+                          label: 'Cerrar Sesión',
+                          onTap: () {
+                            context.go(RoutesAgencia.login);
+                          },
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
-            ),
-          ),
-
-          // 4. Footer
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: _buildSimpleItem(
-              icon: Icons.logout,
-              label: 'Cerrar Sesión',
-              onTap: () {
-                context.go(RoutesAgencia.login);
-              },
-              color: Colors.redAccent,
             ),
           ),
         ],

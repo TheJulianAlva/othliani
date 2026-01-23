@@ -29,10 +29,13 @@ class IncidentPanel extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
-                Text(
-                  'PANEL DE INCIDENTES',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                Flexible(
+                  child: Text(
+                    'PANEL DE INCIDENTES',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
                 ),
+                SizedBox(width: 4),
                 Icon(Icons.filter_list, size: 18, color: Colors.grey),
               ],
             ),
@@ -121,12 +124,14 @@ class IncidentPanel extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          title,
-                          style: TextStyle(
-                            color: color,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                        Flexible(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              color: color,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ],
@@ -142,21 +147,20 @@ class IncidentPanel extends StatelessWidget {
 
                     if (actions.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
                         children:
                             actions.map((action) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 12.0),
-                                child: InkWell(
-                                  onTap: () {},
-                                  child: Text(
-                                    action,
-                                    style: TextStyle(
-                                      color: Colors.blue.shade700,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      decoration: TextDecoration.underline,
-                                    ),
+                              return InkWell(
+                                onTap: () {},
+                                child: Text(
+                                  action,
+                                  style: TextStyle(
+                                    color: Colors.blue.shade700,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
                                   ),
                                 ),
                               );

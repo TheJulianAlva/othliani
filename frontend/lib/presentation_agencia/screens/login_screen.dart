@@ -194,8 +194,8 @@ class _AgencyLoginScreenState extends State<AgencyLoginScreen> {
                   style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
                   children: [
                     TextButton(
                       onPressed: () {},
