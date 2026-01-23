@@ -119,7 +119,7 @@ class AgencySidebar extends StatelessWidget {
               icon: Icons.logout,
               label: 'Cerrar Sesión',
               onTap: () {
-                // Implement logout logic
+                context.go(RoutesAgencia.login);
               },
               color: Colors.redAccent,
             ),
