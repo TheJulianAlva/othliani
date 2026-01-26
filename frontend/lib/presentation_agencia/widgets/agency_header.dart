@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class AgencyHeader extends StatelessWidget {
   final VoidCallback onMenuPressed;
@@ -12,6 +13,12 @@ class AgencyHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Basic Breadcrumb Logic
+    final String currentPath = GoRouterState.of(context).uri.toString();
+    List<String> pathSegments =
+        currentPath.split('/').where((s) => s.isNotEmpty).toList();
+    if (pathSegments.isEmpty) pathSegments = ['Dashboard'];
+
     return Container(
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -44,56 +51,106 @@ class AgencyHeader extends StatelessWidget {
                 children: [
                   const Text(
                     'Inicio',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Dashboard', // This should be dynamic based on route
-                    style: TextStyle(
-                      color: Colors.grey.shade800,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                  for (var segment in pathSegments) ...[
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 14,
+                      color: Colors.grey,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _capitalize(segment),
+                      style: TextStyle(
+                        color:
+                            segment == pathSegments.last
+                                ? const Color(0xFF0F4C75)
+                                : Colors.grey.shade700,
+                        fontSize: 13,
+                        fontWeight:
+                            segment == pathSegments.last
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
 
+          // System Status (Cloud)
+          Tooltip(
+            message: 'Todos los datos sincronizados',
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.green.shade100),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.cloud_done,
+                    size: 16,
+                    color: Colors.green.shade700,
+                  ),
+                  if (MediaQuery.of(context).size.width > 900) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      'Sincronizado',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.green.shade800,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 16),
+
           // Search Field (Responsive)
           if (MediaQuery.of(context).size.width > 750)
             SizedBox(
-              width: 300,
-              height: 40,
+              width: 200,
+              height: 36,
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Buscar...',
-                  prefixIcon: const Icon(Icons.search, size: 20),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 0),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
                   filled: true,
                   fillColor: Colors.grey.shade50,
                 ),
+                style: const TextStyle(fontSize: 13),
               ),
             )
           else
             IconButton(
               icon: const Icon(Icons.search, color: Colors.grey),
-              onPressed: () {
-                // Expand search or show modal
-              },
+              onPressed: () {},
             ),
 
-          const SizedBox(width: 24),
+          const SizedBox(width: 16),
 
           // Notifications
           Stack(
@@ -101,7 +158,7 @@ class AgencyHeader extends StatelessWidget {
               IconButton(
                 icon: const Icon(
                   Icons.notifications_none,
-                  size: 28,
+                  size: 24,
                   color: Colors.grey,
                 ),
                 onPressed: () {
@@ -112,23 +169,11 @@ class AgencyHeader extends StatelessWidget {
                 right: 8,
                 top: 8,
                 child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
                     color: Colors.red,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
-                  child: const Text(
-                    '3',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
@@ -137,5 +182,10 @@ class AgencyHeader extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
   }
 }

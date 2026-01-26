@@ -94,73 +94,59 @@ class GuidesTab extends StatelessWidget {
           ),
         ),
 
-        // Table
+        // Sticky Header
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+          ),
+          child: Row(
+            children: [
+              Expanded(flex: 3, child: _buildHeaderCell('EMPLEADO')),
+              Expanded(flex: 2, child: _buildHeaderCell('VIAJES ASIG.')),
+              Expanded(flex: 2, child: _buildHeaderCell('LICENCIA ACTIVA?')),
+              Expanded(flex: 2, child: _buildHeaderCell('ULTIMO ACCESO')),
+              Expanded(flex: 2, child: _buildHeaderCell('ACCIONES')),
+            ],
+          ),
+        ),
+
+        // List Content (Scrollable)
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade200),
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              _GuideRow(
+                name: 'Marcos Ruiz',
+                initials: 'MR',
+                avatarColor: Colors.blue.shade100,
+                tripStatus: '🟢 En Ruta',
+                tripDetail: '(Viaje #204)',
+                isActiveSlot: true,
+                lastAccess: 'Hace 5 min\nApp Android',
               ),
-              child: Table(
-                columnWidths: const {
-                  0: FlexColumnWidth(2.5), // Empleado
-                  1: FlexColumnWidth(2), // Viajes Asig.
-                  2: FlexColumnWidth(1.5), // Licencia Activa
-                  3: FlexColumnWidth(2), // Ultimo Acceso
-                  4: FlexColumnWidth(1.5), // Acciones
-                },
-                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                border: TableBorder(
-                  horizontalInside: BorderSide(color: Colors.grey.shade100),
-                ),
-                children: [
-                  // Header
-                  TableRow(
-                    decoration: BoxDecoration(color: Colors.grey.shade50),
-                    children: [
-                      _buildHeaderCell('EMPLEADO'),
-                      _buildHeaderCell('VIAJES ASIG.'),
-                      _buildHeaderCell('LICENCIA ACTIVA?'),
-                      _buildHeaderCell('ULTIMO ACCESO'),
-                      _buildHeaderCell('ACCIONES'),
-                    ],
-                  ),
-                  // Row 1
-                  _buildGuideRow(
-                    name: 'Marcos Ruiz',
-                    initials: 'MR',
-                    avatarColor: Colors.blue.shade100,
-                    tripStatus: '🟢 En Ruta',
-                    tripDetail: '(Viaje #204)',
-                    isActiveSlot: true,
-                    lastAccess: 'Hace 5 min\nApp Android',
-                  ),
-                  // Row 2
-                  _buildGuideRow(
-                    name: 'Ana Paula G.',
-                    initials: 'AP',
-                    avatarColor: Colors.purple.shade100,
-                    tripStatus: '⚪ Inactiva',
-                    tripDetail: '',
-                    isActiveSlot: true,
-                    lastAccess: 'Ayer 18:00\nWeb',
-                  ),
-                  // Row 3
-                  _buildGuideRow(
-                    name: 'Pedro S.',
-                    initials: 'PS',
-                    avatarColor: Colors.orange.shade100,
-                    tripStatus: '⚪ Inactivo',
-                    tripDetail: '',
-                    isActiveSlot: false,
-                    lastAccess: 'Hace 1 mes\n--',
-                  ),
-                ],
+              const Divider(height: 1),
+              _GuideRow(
+                name: 'Ana Paula G.',
+                initials: 'AP',
+                avatarColor: Colors.purple.shade100,
+                tripStatus: '⚪ Inactiva',
+                tripDetail: '',
+                isActiveSlot: true,
+                lastAccess: 'Ayer 18:00\nWeb',
               ),
-            ),
+              const Divider(height: 1),
+              _GuideRow(
+                name: 'Pedro S.',
+                initials: 'PS',
+                avatarColor: Colors.orange.shade100,
+                tripStatus: '⚪ Inactivo',
+                tripDetail: '',
+                isActiveSlot: false,
+                lastAccess: 'Hace 1 mes\n--',
+              ),
+            ],
           ),
         ),
       ],
@@ -168,155 +154,181 @@ class GuidesTab extends StatelessWidget {
   }
 
   Widget _buildHeaderCell(String text) {
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: Colors.grey.shade600,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
+    return Text(
+      text,
+      style: TextStyle(
+        color: Colors.grey.shade600,
+        fontWeight: FontWeight.bold,
+        fontSize: 12,
       ),
     );
   }
+}
 
-  TableRow _buildGuideRow({
-    required String name,
-    required String initials,
-    required Color avatarColor,
-    required String tripStatus,
-    required String tripDetail,
-    required bool isActiveSlot,
-    required String lastAccess,
-  }) {
-    return TableRow(
-      children: [
-        // Empleado
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: avatarColor,
-                radius: 16,
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F4C75),
+class _GuideRow extends StatelessWidget {
+  final String name;
+  final String initials;
+  final Color avatarColor;
+  final String tripStatus;
+  final String tripDetail;
+  final bool isActiveSlot;
+  final String lastAccess;
+
+  const _GuideRow({
+    required this.name,
+    required this.initials,
+    required this.avatarColor,
+    required this.tripStatus,
+    required this.tripDetail,
+    required this.isActiveSlot,
+    required this.lastAccess,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {},
+      hoverColor: const Color(0xFFF5F5F5), // Hover Effect!
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            // Empleado
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: avatarColor,
+                    radius: 16,
+                    child: Text(
+                      initials,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F4C75),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F4C75),
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Viajes Asig
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                tripStatus,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color:
-                      tripStatus.contains('🟢')
-                          ? Colors.green.shade700
-                          : Colors.grey.shade600,
-                ),
-              ),
-              if (tripDetail.isNotEmpty)
-                Text(
-                  tripDetail,
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                ),
-            ],
-          ),
-        ),
-        // Licencia Activa
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Tooltip(
-            message:
-                isActiveSlot
-                    ? 'Ocupa Slot de Licencia. Puede loguearse.'
-                    : 'Pausado. No ocupa Slot. No puede loguearse.',
-            child: Row(
-              children: [
-                Icon(
-                  isActiveSlot ? Icons.check_circle : Icons.pause_circle_filled,
-                  color: isActiveSlot ? Colors.green : Colors.grey,
-                  size: 18,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  isActiveSlot ? 'SÍ' : 'NO',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color:
-                        isActiveSlot
-                            ? Colors.green.shade800
-                            : Colors.grey.shade700,
+                  const SizedBox(width: 12),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F4C75),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ),
-        // Ultimo Acceso
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(
-            lastAccess,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-        ),
-        // Acciones
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8, // Reduced horizontal padding
-                    vertical: 8,
+            // Viajes Asig
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tripStatus,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color:
+                          tripStatus.contains('🟢')
+                              ? Colors.green.shade700
+                              : Colors.grey.shade600,
+                    ),
                   ),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  isActiveSlot ? 'Editar' : 'Reactivar',
-                  style: const TextStyle(fontSize: 11), // Slightly smaller font
+                  if (tripDetail.isNotEmpty)
+                    Text(
+                      tripDetail,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // Licencia Activa
+            Expanded(
+              flex: 2,
+              child: Tooltip(
+                message:
+                    isActiveSlot
+                        ? 'Ocupa Slot de Licencia. Puede loguearse.'
+                        : 'Pausado. No ocupa Slot. No puede loguearse.',
+                child: Row(
+                  children: [
+                    Icon(
+                      isActiveSlot
+                          ? Icons.check_circle
+                          : Icons.pause_circle_filled,
+                      color: isActiveSlot ? Colors.green : Colors.grey,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      isActiveSlot ? 'SÍ' : 'NO',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color:
+                            isActiveSlot
+                                ? Colors.green.shade800
+                                : Colors.grey.shade700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.more_vert, size: 18, color: Colors.grey),
-                onPressed: () {},
-                tooltip: 'Más Acciones',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+            ),
+            // Ultimo Acceso
+            Expanded(
+              flex: 2,
+              child: Text(
+                lastAccess,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
-            ],
-          ),
+            ),
+            // Acciones
+            Expanded(
+              flex: 2,
+              child: Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () {},
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 8,
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      isActiveSlot ? 'Editar' : 'Reactivar',
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.more_vert,
+                      size: 18,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {},
+                    tooltip: 'Más Acciones',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

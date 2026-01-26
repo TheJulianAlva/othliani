@@ -11,6 +11,28 @@ class _SecuritySettingsState extends State<SecuritySettings> {
   double _geofenceRadius = 50;
   double _timeoutMinutes = 5;
   bool _stopDetection = true;
+  bool _isSaving = false;
+
+  void _handleSave() async {
+    setState(() {
+      _isSaving = true;
+    });
+
+    // Simulate API call
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🛑 Configuración de Seguridad Actualizada'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      setState(() {
+        _isSaving = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,29 +85,63 @@ class _SecuritySettingsState extends State<SecuritySettings> {
               ),
             ],
           ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.amber.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.amber.shade200),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, color: Colors.amber.shade800),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Nota: Un radio menor a 20m puede generar falsas alarmas en zonas montañosas debido a la imprecisión del GPS.',
-                    style: TextStyle(
-                      color: Colors.amber.shade900,
-                      fontSize: 13,
+
+          // Real-time Validation Feedback
+          if (_geofenceRadius < 20)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.amber.shade800,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Precaución: Un radio menor a 20m puede generar falsas alarmas en zonas montañosas debido a la imprecisión del GPS.',
+                      style: TextStyle(
+                        color: Colors.amber.shade900,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+
+          if (_geofenceRadius > 100)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.gpp_bad_outlined, color: Colors.red.shade800),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      '⚠️ Un radio tan amplio podría anular la seguridad del turista.',
+                      style: TextStyle(
+                        color: Colors.red.shade900,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           const SizedBox(height: 32),
 
@@ -143,11 +199,25 @@ class _SecuritySettingsState extends State<SecuritySettings> {
           Align(
             alignment: Alignment.centerRight,
             child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.save),
-              label: const Text('Guardar Configuración'),
+              onPressed: _isSaving ? null : _handleSave,
+              icon:
+                  _isSaving
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                      : const Icon(Icons.save),
+              label: Text(_isSaving ? 'Guardando...' : 'Guardar Configuración'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
+                disabledBackgroundColor: Theme.of(
+                  context,
+                ).primaryColor.withValues(alpha: 0.6),
+                disabledForegroundColor: Colors.white,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
