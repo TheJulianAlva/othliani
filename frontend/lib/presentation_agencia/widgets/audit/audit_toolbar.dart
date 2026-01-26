@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
 
-class AuditToolbar extends StatelessWidget {
+class AuditToolbar extends StatefulWidget {
   const AuditToolbar({super.key});
+
+  @override
+  State<AuditToolbar> createState() => _AuditToolbarState();
+}
+
+class _AuditToolbarState extends State<AuditToolbar> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,65 +26,74 @@ class AuditToolbar extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Row 1: Filters
-          Row(
-            children: [
-              _buildFilterMenu(
-                context,
-                icon: Icons.calendar_today,
-                label: 'Rango',
-                value: 'Últimos 7 días',
-                options: [
-                  'Hoy (00:00 - Actualidad)',
-                  'Ayer',
-                  'Últimos 7 días',
-                  'Últimos 30 días',
-                  'Este año',
-                  '--divider--',
-                  'Rango Personalizado...',
+          // Row 1: Filters (Scrollable)
+          Scrollbar(
+            controller: _scrollController,
+            thumbVisibility: true,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(bottom: 12), // Space for scrollbar
+              child: Row(
+                children: [
+                  _buildFilterMenu(
+                    context,
+                    icon: Icons.calendar_today,
+                    label: 'Rango',
+                    value: 'Últimos 7 días',
+                    options: [
+                      'Hoy (00:00 - Actualidad)',
+                      'Ayer',
+                      'Últimos 7 días',
+                      'Últimos 30 días',
+                      'Este año',
+                      '--divider--',
+                      'Rango Personalizado...',
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  _buildFilterMenu(
+                    context,
+                    icon: Icons.person,
+                    label: 'Actor',
+                    value: 'Todos',
+                    options: [
+                      'Todos los Actores',
+                      'Sistema (Automático)',
+                      'Administradores',
+                      'Guías',
+                      'Turistas',
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  _buildFilterMenu(
+                    context,
+                    icon: Icons.label,
+                    label: 'Evento',
+                    value: 'Seguridad / SOS',
+                    options: [
+                      'Todos los Eventos',
+                      '🚨 Seguridad / SOS',
+                      '🔐 Acceso y Auth',
+                      '⚙️ Configuración',
+                      '💾 Datos (CRUD)',
+                      '📡 Conectividad',
+                    ],
+                  ),
+                  const SizedBox(width: 24), // Gap before export button
+                  // Export Button
+                  ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.download, size: 16),
+                    label: const Text('Exportar CSV/PDF (Legal)'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey.shade800,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(width: 12),
-              _buildFilterMenu(
-                context,
-                icon: Icons.person,
-                label: 'Actor',
-                value: 'Todos',
-                options: [
-                  'Todos los Actores',
-                  'Sistema (Automático)',
-                  'Administradores',
-                  'Guías',
-                  'Turistas',
-                ],
-              ),
-              const SizedBox(width: 12),
-              _buildFilterMenu(
-                context,
-                icon: Icons.label,
-                label: 'Evento',
-                value: 'Seguridad / SOS',
-                options: [
-                  'Todos los Eventos',
-                  '🚨 Seguridad / SOS',
-                  '🔐 Acceso y Auth',
-                  '⚙️ Configuración',
-                  '💾 Datos (CRUD)',
-                  '📡 Conectividad',
-                ],
-              ),
-              const Spacer(),
-              // Export Button
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.download, size: 16),
-                label: const Text('Exportar CSV/PDF (Legal)'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey.shade800,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 16),
           // Row 2: Search
