@@ -176,6 +176,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 child: Text(l10n.createAccount),
               ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  InfoModal.show(
+                    context: context,
+                    title: l10n.incorrectDataTitle,
+                    content: l10n.incorrectDataContent,
+                  );
+                },
+                child: Text(
+                  l10n.incorrectDataButton,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: 14,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
