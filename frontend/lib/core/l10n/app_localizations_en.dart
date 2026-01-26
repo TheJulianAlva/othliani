@@ -377,4 +377,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gallery => 'Gallery';
+
+  @override
+  String get incorrectDataButton => 'Are your data incorrect?';
+
+  @override
+  String get incorrectDataTitle => 'Incorrect Data?';
+
+  @override
+  String get incorrectDataContent =>
+      'Contact the company or person who registered you if you believe an error may have occurred when registering your data.';
 }
