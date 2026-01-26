@@ -122,5 +122,8 @@
   "invalidAmount": "Invalid amount",
   "noNumberFound": "No number found",
   "takePhoto": "Take photo",
-  "gallery": "Gallery"
+  "gallery": "Gallery",
+  "incorrectDataButton": "Are your data incorrect?",
+  "incorrectDataTitle": "Incorrect Data?",
+  "incorrectDataContent": "Contact the company or person who registered you if you believe an error may have occurred when registering your data."
 }

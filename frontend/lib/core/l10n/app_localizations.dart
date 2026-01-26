@@ -835,6 +835,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Galería'**
   String get gallery;
+
+  /// No description provided for @incorrectDataButton.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Tus datos son incorrectos?'**
+  String get incorrectDataButton;
+
+  /// No description provided for @incorrectDataTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Datos incorrectos?'**
+  String get incorrectDataTitle;
+
+  /// No description provided for @incorrectDataContent.
+  ///
+  /// In es, this message translates to:
+  /// **'Comunicate con la empresa o persona que te registró si crees que pudo haber ocurrido un error al registrar tus datos.'**
+  String get incorrectDataContent;
 }
 
 class _AppLocalizationsDelegate
