@@ -1,11 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/mock/mock_database.dart';
 import '../widgets/kpi_card.dart';
 import '../widgets/agency_map_widget.dart';
 import '../widgets/incident_panel.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final MockDatabase _mockDB = MockDatabase();
+
+  late Map<String, dynamic> stats;
+  late List<dynamic> incidentesRecientes;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatosSimulados();
+  }
+
+  void _cargarDatosSimulados() {
+    setState(() {
+      stats = _mockDB.getDashboardStats();
+      incidentesRecientes = _mockDB.alertas;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +40,7 @@ class DashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Row 1: Header / Title with Date Filter (Mock)
+            // Row 1: Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -40,38 +64,49 @@ class DashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Row 2: KPI Cards
+            // Row 2: KPI Cards (Using Mock Data)
             Row(
               children: [
-                KPICard(
-                  title: 'Viajes',
-                  icon: Icons.directions_bus,
-                  value: '12',
-                  subtitle: '5 Programados',
-                  onTap: () => context.go('/viajes?status=active'),
+                Expanded(
+                  child: KPICard(
+                    title: 'Viajes',
+                    icon: Icons.directions_bus,
+                    value: '${stats['viajes']}',
+                    subtitle: '5 Programados',
+                    onTap: () => context.go('/viajes?status=active'),
+                  ),
                 ),
-                KPICard(
-                  title: 'Turistas',
-                  icon: Icons.groups,
-                  value: '145',
-                  subtitle: '3 Sin Red',
-                  onTap: () => context.go('/usuarios?tab=clients'),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: KPICard(
+                    title: 'Turistas',
+                    icon: Icons.groups,
+                    value: '${stats['turistas']}',
+                    subtitle: '3 Sin Red',
+                    onTap: () => context.go('/usuarios?tab=clients'),
+                  ),
                 ),
-                KPICard(
-                  title: 'Alertas',
-                  icon: Icons.warning,
-                  value: '02',
-                  subtitle: 'Críticas',
-                  isAlert: true,
-                  onTap: () => context.go('/auditoria?filter=critical'),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: KPICard(
+                    title: 'Alertas',
+                    icon: Icons.warning,
+                    value: '${stats['alertas']}'.padLeft(2, '0'),
+                    subtitle: 'Críticas',
+                    isAlert: stats['alertas'] > 0,
+                    onTap: () => context.go('/auditoria?filter=critical'),
+                  ),
                 ),
-                KPICard(
-                  title: 'Guías',
-                  icon: Icons.support_agent,
-                  value: '10',
-                  subtitle: '2 Offline',
-                  onTap:
-                      () => context.go('/usuarios?tab=guides&status=offline'),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: KPICard(
+                    title: 'Guías',
+                    icon: Icons.support_agent,
+                    value: '${stats['guias']}',
+                    subtitle: '2 Offline',
+                    onTap:
+                        () => context.go('/usuarios?tab=guides&status=offline'),
+                  ),
                 ),
               ],
             ),
@@ -79,16 +114,22 @@ class DashboardScreen extends StatelessWidget {
 
             // Row 3: Map & Incident Panel
             SizedBox(
-              height: 500, // Fixed height for the main operational view
+              height: 500,
               child: Row(
-                children: const [
+                children: [
                   // Map (70%)
-                  Expanded(flex: 7, child: AgencyMapWidget()),
+                  Expanded(
+                    flex: 7,
+                    child: AgencyMapWidget(),
+                  ), // Could pass _mockDB.viajes here
 
-                  SizedBox(width: 24),
+                  const SizedBox(width: 24),
 
                   // Incident Panel (30%)
-                  Expanded(flex: 3, child: IncidentPanel()),
+                  Expanded(
+                    flex: 3,
+                    child: IncidentPanel(incidentes: _mockDB.alertas),
+                  ),
                 ],
               ),
             ),

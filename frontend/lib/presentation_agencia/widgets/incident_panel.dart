@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/mock/mock_models.dart';
+import 'package:intl/intl.dart';
 
 class IncidentPanel extends StatelessWidget {
-  const IncidentPanel({super.key});
+  final List<MockAlerta>? incidentes;
+
+  const IncidentPanel({super.key, this.incidentes});
 
   @override
   Widget build(BuildContext context) {
+    // If no incidents provided, show empty state or default list
+    final alerts = incidentes ?? [];
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -44,46 +51,20 @@ class IncidentPanel extends StatelessWidget {
 
           // List
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(0),
-              children: [
-                _buildIncidentItem(
-                  context: context,
-                  severity: IncidentSeverity.critical,
-                  time: '10:42 AM',
-                  title: 'PÁNICO - Viaje #204',
-                  description: 'Turista: Ana G. activó SOS.',
-                  actions: ['Ver Ubicación', 'Llamar Guía'],
-                  destinationPath:
-                      '/viajes/204/detalle?focus_user=Ana+G.&open_modal=true',
-                ),
-                _buildIncidentItem(
-                  context: context,
-                  severity: IncidentSeverity.warning,
-                  time: '10:35 AM',
-                  title: 'ALEJAMIENTO - Viaje #110',
-                  description: 'Turista: Luis P. fuera de rango (50m).',
-                  actions: ['Ver Detalle'],
-                  destinationPath: '/viajes/110/detalle?focus_user=Luis+P.',
-                ),
-                _buildIncidentItem(
-                  context: context,
-                  severity: IncidentSeverity.info,
-                  time: '09:00 AM',
-                  title: 'SISTEMA',
-                  description: 'Sincronización completada (Offline data).',
-                  actions: [],
-                ),
-                _buildIncidentItem(
-                  context: context,
-                  severity: IncidentSeverity.info,
-                  time: '08:45 AM',
-                  title: 'INICIO DE GUARDIA',
-                  description: 'Supervisor Julián inició sesión.',
-                  actions: [],
-                ),
-              ],
-            ),
+            child:
+                alerts.isEmpty
+                    ? const Center(child: Text("No hay incidentes recientes"))
+                    : ListView.builder(
+                      padding: const EdgeInsets.all(0),
+                      itemCount: alerts.length,
+                      itemBuilder: (context, index) {
+                        final alerta = alerts[index];
+                        return _buildIncidentItem(
+                          context: context,
+                          alerta: alerta,
+                        );
+                      },
+                    ),
           ),
         ],
       ),
@@ -92,18 +73,18 @@ class IncidentPanel extends StatelessWidget {
 
   Widget _buildIncidentItem({
     required BuildContext context,
-    required IncidentSeverity severity,
-    required String time,
-    required String title,
-    required String description,
-    required List<String> actions,
-    String? destinationPath,
+    required MockAlerta alerta,
   }) {
+    final severity = _mapSeverity(alerta.tipo);
     final color = _getColor(severity);
+    final timeStr = DateFormat('hh:mm a').format(alerta.hora);
 
     return InkWell(
-      onTap: destinationPath != null ? () => context.go(destinationPath) : null,
-      hoverColor: color.withValues(alpha: 0.05),
+      onTap:
+          () => context.go(
+            '/viajes/${alerta.idViaje}/detalle?focus_user=${Uri.encodeComponent(alerta.nombreTurista)}',
+          ),
+      hoverColor: color.withOpacity(0.05),
       child: Container(
         decoration: const BoxDecoration(
           border: Border(bottom: BorderSide(color: Color(0xFFF5F5F5))),
@@ -124,7 +105,7 @@ class IncidentPanel extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          if (severity == IncidentSeverity.critical)
+                          if (alerta.esCritica)
                             Padding(
                               padding: const EdgeInsets.only(right: 6),
                               child: Icon(
@@ -134,7 +115,7 @@ class IncidentPanel extends StatelessWidget {
                               ),
                             ),
                           Text(
-                            time,
+                            timeStr,
                             style: TextStyle(
                               color: Colors.grey.shade500,
                               fontSize: 11,
@@ -143,7 +124,7 @@ class IncidentPanel extends StatelessWidget {
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              title,
+                              '${alerta.tipo.name} - Viaje #${alerta.idViaje}',
                               style: TextStyle(
                                 color: color,
                                 fontWeight: FontWeight.bold,
@@ -155,59 +136,67 @@ class IncidentPanel extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        description,
+                        'Turista: ${alerta.nombreTurista}.',
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black87,
                         ),
                       ),
 
-                      if (actions.isNotEmpty) ...[
+                      if (alerta.esCritica) ...[
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
                           runSpacing: 4,
-                          children:
-                              actions.map((action) {
-                                return InkWell(
-                                  onTap: () {
-                                    if (action == 'Llamar Guía') {
-                                      // Mock Call Modal
-                                      showDialog(
-                                        context: context,
-                                        builder:
-                                            (ctx) => AlertDialog(
-                                              title: const Text(
-                                                '📞 Iniciando Llamada VoIP',
-                                              ),
-                                              content: const Text(
-                                                'Conectando con Guía Marcos...',
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed:
-                                                      () => Navigator.pop(ctx),
-                                                  child: const Text('Colgar'),
-                                                ),
-                                              ],
-                                            ),
-                                      );
-                                    } else if (destinationPath != null) {
-                                      // Default action behavior (navigate)
-                                      context.go(destinationPath);
-                                    }
-                                  },
-                                  child: Text(
-                                    action,
-                                    style: TextStyle(
-                                      color: Colors.blue.shade700,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                // Mock Call Modal
+                                showDialog(
+                                  context: context,
+                                  builder:
+                                      (ctx) => AlertDialog(
+                                        title: const Text(
+                                          '📞 Iniciando Llamada VoIP',
+                                        ),
+                                        content: const Text(
+                                          'Conectando con Guía...',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(ctx),
+                                            child: const Text('Colgar'),
+                                          ),
+                                        ],
+                                      ),
                                 );
-                              }).toList(),
+                              },
+                              child: Text(
+                                'Llamar Guía',
+                                style: TextStyle(
+                                  color: Colors.blue.shade700,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            InkWell(
+                              onTap:
+                                  () => context.go(
+                                    '/viajes/${alerta.idViaje}/detalle',
+                                  ),
+                              child: Text(
+                                'Ver Ubicación',
+                                style: TextStyle(
+                                  color: Colors.blue.shade700,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ],
@@ -219,6 +208,17 @@ class IncidentPanel extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IncidentSeverity _mapSeverity(TipoAlerta tipo) {
+    switch (tipo) {
+      case TipoAlerta.PANICO:
+        return IncidentSeverity.critical;
+      case TipoAlerta.DESCONEXION:
+        return IncidentSeverity.warning;
+      case TipoAlerta.LEJANIA:
+        return IncidentSeverity.warning;
+    }
   }
 
   Color _getColor(IncidentSeverity severity) {
