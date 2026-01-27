@@ -192,7 +192,7 @@ class _SecuritySettingsState extends State<SecuritySettings> {
             ),
             value: _stopDetection,
             onChanged: (val) => setState(() => _stopDetection = val),
-            activeThumbColor: Theme.of(context).primaryColor,
+            activeTrackColor: Theme.of(context).primaryColor,
           ),
 
           const SizedBox(height: 40),
