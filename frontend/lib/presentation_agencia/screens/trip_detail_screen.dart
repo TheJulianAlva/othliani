@@ -4,10 +4,40 @@ import '../widgets/trip_detail/trip_control_panel.dart';
 import '../widgets/trip_detail/trip_map_viewer.dart';
 import '../widgets/trip_detail/trip_passenger_list.dart';
 
-class TripDetailScreen extends StatelessWidget {
+class TripDetailScreen extends StatefulWidget {
   final String tripId;
 
   const TripDetailScreen({super.key, required this.tripId});
+
+  @override
+  State<TripDetailScreen> createState() => _TripDetailScreenState();
+}
+
+class _TripDetailScreenState extends State<TripDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final focusUser =
+          GoRouterState.of(context).uri.queryParameters['focus_user'];
+      if (focusUser != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.my_location, color: Colors.white),
+                const SizedBox(width: 12),
+                Text('📍 Focalizando mapa en: $focusUser'),
+              ],
+            ),
+            backgroundColor: Colors.blue.shade800,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +54,7 @@ class TripDetailScreen extends StatelessWidget {
           children: [
             Flexible(
               child: Text(
-                'VIAJE #$tripId: EXPEDICIÓN NEVADO DE TOLUCA',
+                'VIAJE #${widget.tripId}: EXPEDICIÓN NEVADO DE TOLUCA',
                 style: const TextStyle(
                   color: Color(0xFF0F4C75),
                   fontWeight: FontWeight.bold,

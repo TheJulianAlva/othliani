@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class IncidentPanel extends StatelessWidget {
   const IncidentPanel({super.key});
@@ -47,20 +48,26 @@ class IncidentPanel extends StatelessWidget {
               padding: const EdgeInsets.all(0),
               children: [
                 _buildIncidentItem(
+                  context: context,
                   severity: IncidentSeverity.critical,
                   time: '10:42 AM',
                   title: 'PÁNICO - Viaje #204',
                   description: 'Turista: Ana G. activó SOS.',
                   actions: ['Ver Ubicación', 'Llamar Guía'],
+                  destinationPath:
+                      '/viajes/204/detalle?focus_user=Ana+G.&open_modal=true',
                 ),
                 _buildIncidentItem(
+                  context: context,
                   severity: IncidentSeverity.warning,
                   time: '10:35 AM',
                   title: 'ALEJAMIENTO - Viaje #110',
                   description: 'Turista: Luis P. fuera de rango (50m).',
                   actions: ['Ver Detalle'],
+                  destinationPath: '/viajes/110/detalle?focus_user=Luis+P.',
                 ),
                 _buildIncidentItem(
+                  context: context,
                   severity: IncidentSeverity.info,
                   time: '09:00 AM',
                   title: 'SISTEMA',
@@ -68,6 +75,7 @@ class IncidentPanel extends StatelessWidget {
                   actions: [],
                 ),
                 _buildIncidentItem(
+                  context: context,
                   severity: IncidentSeverity.info,
                   time: '08:45 AM',
                   title: 'INICIO DE GUARDIA',
@@ -83,95 +91,131 @@ class IncidentPanel extends StatelessWidget {
   }
 
   Widget _buildIncidentItem({
+    required BuildContext context,
     required IncidentSeverity severity,
     required String time,
     required String title,
     required String description,
     required List<String> actions,
+    String? destinationPath,
   }) {
     final color = _getColor(severity);
 
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFF5F5F5))),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Severity Indicator
-            Container(width: 4, color: color),
+    return InkWell(
+      onTap: destinationPath != null ? () => context.go(destinationPath) : null,
+      hoverColor: color.withValues(alpha: 0.05),
+      child: Container(
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: Color(0xFFF5F5F5))),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Severity Indicator
+              Container(width: 4, color: color),
 
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        if (severity == IncidentSeverity.critical)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: Icon(Icons.warning, size: 14, color: color),
-                          ),
-                        Text(
-                          time,
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            title,
+              // Content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          if (severity == IncidentSeverity.critical)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: Icon(
+                                Icons.warning,
+                                size: 14,
+                                color: color,
+                              ),
+                            ),
+                          Text(
+                            time,
                             style: TextStyle(
-                              color: color,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                              fontSize: 11,
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                color: color,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        description,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black87,
+                        ),
+                      ),
+
+                      if (actions.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children:
+                              actions.map((action) {
+                                return InkWell(
+                                  onTap: () {
+                                    if (action == 'Llamar Guía') {
+                                      // Mock Call Modal
+                                      showDialog(
+                                        context: context,
+                                        builder:
+                                            (ctx) => AlertDialog(
+                                              title: const Text(
+                                                '📞 Iniciando Llamada VoIP',
+                                              ),
+                                              content: const Text(
+                                                'Conectando con Guía Marcos...',
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed:
+                                                      () => Navigator.pop(ctx),
+                                                  child: const Text('Colgar'),
+                                                ),
+                                              ],
+                                            ),
+                                      );
+                                    } else if (destinationPath != null) {
+                                      // Default action behavior (navigate)
+                                      context.go(destinationPath);
+                                    }
+                                  },
+                                  child: Text(
+                                    action,
+                                    style: TextStyle(
+                                      color: Colors.blue.shade700,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black87,
-                      ),
-                    ),
-
-                    if (actions.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        children:
-                            actions.map((action) {
-                              return InkWell(
-                                onTap: () {},
-                                child: Text(
-                                  action,
-                                  style: TextStyle(
-                                    color: Colors.blue.shade700,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                      ),
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -47,36 +47,87 @@ class AgencyHeader extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  const Text(
-                    'Inicio',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-                  for (var segment in pathSegments) ...[
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.chevron_right,
-                      size: 14,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _capitalize(segment),
-                      style: TextStyle(
-                        color:
-                            segment == pathSegments.last
-                                ? const Color(0xFF0F4C75)
-                                : Colors.grey.shade700,
-                        fontSize: 13,
-                        fontWeight:
-                            segment == pathSegments.last
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+              child: Builder(
+                builder: (context) {
+                  final String currentPath =
+                      GoRouterState.of(context).uri.toString();
+                  // Remove leading slash and split
+                  final segments =
+                      currentPath
+                          .split('/')
+                          .where((s) => s.isNotEmpty)
+                          .toList();
+
+                  String matchingPath = ''; // To build cumulative path
+
+                  return Row(
+                    children: [
+                      InkWell(
+                        onTap: () => context.go('/'),
+                        borderRadius: BorderRadius.circular(4),
+                        hoverColor: Colors.grey.shade100,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          child: Text(
+                            'Inicio',
+                            style: TextStyle(color: Colors.grey, fontSize: 13),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ],
+                      for (var i = 0; i < segments.length; i++) ...[
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.chevron_right,
+                          size: 14,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 4),
+                        Builder(
+                          builder: (context) {
+                            final segment = segments[i];
+                            matchingPath += '/$segment';
+                            final isLast = i == segments.length - 1;
+                            final targetPath =
+                                matchingPath; // Capture for closure
+
+                            // Clean display text (remove query params)
+                            final displaySegment = segment.split('?')[0];
+
+                            return InkWell(
+                              onTap:
+                                  isLast ? null : () => context.go(targetPath),
+                              borderRadius: BorderRadius.circular(4),
+                              hoverColor: isLast ? null : Colors.grey.shade100,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 2,
+                                ),
+                                child: Text(
+                                  _capitalize(displaySegment),
+                                  style: TextStyle(
+                                    color:
+                                        isLast
+                                            ? const Color(0xFF0F4C75)
+                                            : Colors.grey.shade700,
+                                    fontSize: 13,
+                                    fontWeight:
+                                        isLast
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
             ),
           ),

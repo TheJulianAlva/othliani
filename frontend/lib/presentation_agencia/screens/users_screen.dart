@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/users/guides_tab.dart';
 import '../widgets/users/clients_tab.dart';
 import '../widgets/users/new_guide_modal.dart';
@@ -8,8 +9,13 @@ class UsersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Read Query Param for Tab Selection
+    final tabParam = GoRouterState.of(context).uri.queryParameters['tab'];
+    int initialIndex = (tabParam == 'clients') ? 1 : 0;
+
     return DefaultTabController(
       length: 2,
+      initialIndex: initialIndex,
       child: Scaffold(
         backgroundColor: const Color(0xFFF4F6F8),
         body: Column(
