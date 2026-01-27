@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/kpi_card.dart';
 import '../widgets/agency_map_widget.dart';
 import '../widgets/incident_panel.dart';
@@ -41,18 +42,20 @@ class DashboardScreen extends StatelessWidget {
 
             // Row 2: KPI Cards
             Row(
-              children: const [
+              children: [
                 KPICard(
                   title: 'Viajes',
                   icon: Icons.directions_bus,
                   value: '12',
                   subtitle: '5 Programados',
+                  onTap: () => context.go('/viajes?status=active'),
                 ),
                 KPICard(
                   title: 'Turistas',
                   icon: Icons.groups,
                   value: '145',
                   subtitle: '3 Sin Red',
+                  onTap: () => context.go('/usuarios?tab=clients'),
                 ),
                 KPICard(
                   title: 'Alertas',
@@ -60,12 +63,15 @@ class DashboardScreen extends StatelessWidget {
                   value: '02',
                   subtitle: 'Críticas',
                   isAlert: true,
+                  onTap: () => context.go('/auditoria?filter=critical'),
                 ),
                 KPICard(
                   title: 'Guías',
                   icon: Icons.support_agent,
                   value: '10',
                   subtitle: '2 Offline',
+                  onTap:
+                      () => context.go('/usuarios?tab=guides&status=offline'),
                 ),
               ],
             ),

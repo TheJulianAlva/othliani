@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class TripsDatagrid extends StatefulWidget {
   const TripsDatagrid({super.key});
@@ -206,6 +207,14 @@ class _TripsDatagridState extends State<TripsDatagrid> {
           DataCell(
             PopupMenuButton(
               icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                if (value == 'view') {
+                  context.pushNamed(
+                    'agencia_viaje_detalle',
+                    pathParameters: {'id': trip.folio},
+                  );
+                }
+              },
               itemBuilder:
                   (context) => [
                     const PopupMenuItem(
