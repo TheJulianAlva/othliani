@@ -6,5 +6,5 @@ class RoutesAgencia {
   static const String configuracion = '/configuracion';
   static const String login = '/login';
   static const String recoverPassword = '/recover-password';
-  static const String tripDetail = '/viajes/detalle/:id';
+  static const String tripDetail = '/viajes/:id/detalle';
 }
