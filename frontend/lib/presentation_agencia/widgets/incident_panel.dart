@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/mock/mock_models.dart';
 import 'package:intl/intl.dart';
+import 'voice_call_dialog.dart';
 
 class IncidentPanel extends StatelessWidget {
   final List<MockAlerta>? incidentes;
@@ -19,7 +20,7 @@ class IncidentPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -84,7 +85,7 @@ class IncidentPanel extends StatelessWidget {
           () => context.go(
             '/viajes/${alerta.idViaje}/detalle?focus_user=${Uri.encodeComponent(alerta.nombreTurista)}',
           ),
-      hoverColor: color.withOpacity(0.05),
+      hoverColor: color.withValues(alpha: 0.05),
       child: Container(
         decoration: const BoxDecoration(
           border: Border(bottom: BorderSide(color: Color(0xFFF5F5F5))),
@@ -151,23 +152,13 @@ class IncidentPanel extends StatelessWidget {
                           children: [
                             InkWell(
                               onTap: () {
-                                // Mock Call Modal
                                 showDialog(
                                   context: context,
                                   builder:
-                                      (ctx) => AlertDialog(
-                                        title: const Text(
-                                          '📞 Iniciando Llamada VoIP',
-                                        ),
-                                        content: const Text(
-                                          'Conectando con Guía...',
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(ctx),
-                                            child: const Text('Colgar'),
-                                          ),
-                                        ],
+                                      (ctx) => VoiceCallDialog(
+                                        contactName:
+                                            'Guía del Viaje #${alerta.idViaje}',
+                                        role: 'Guía Certificado',
                                       ),
                                 );
                               },

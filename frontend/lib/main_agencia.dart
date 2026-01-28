@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'core/navigation/app_router_agencia.dart';
+import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Ensure window manager is initialized
   await windowManager.ensureInitialized();
+  await di.init(); // Initialize Dependency Injection
 
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
