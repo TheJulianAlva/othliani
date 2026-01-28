@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../core/mock/mock_models.dart';
 import 'package:intl/intl.dart';
-import 'voice_call_dialog.dart';
+import '../../core/mock/mock_models.dart';
+// import 'voice_call_dialog.dart'; // Mantener si se usará
 
 class IncidentPanel extends StatelessWidget {
   final List<MockAlerta>? incidentes;
+  final Function(MockAlerta) onIncidentTap;
 
-  const IncidentPanel({super.key, this.incidentes});
+  const IncidentPanel({
+    super.key,
+    this.incidentes,
+    required this.onIncidentTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // If no incidents provided, show empty state or default list
     final alerts = incidentes ?? [];
 
     return Container(
@@ -29,7 +32,6 @@ class IncidentPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
@@ -49,8 +51,6 @@ class IncidentPanel extends StatelessWidget {
               ],
             ),
           ),
-
-          // List
           Expanded(
             child:
                 alerts.isEmpty
@@ -59,11 +59,7 @@ class IncidentPanel extends StatelessWidget {
                       padding: const EdgeInsets.all(0),
                       itemCount: alerts.length,
                       itemBuilder: (context, index) {
-                        final alerta = alerts[index];
-                        return _buildIncidentItem(
-                          context: context,
-                          alerta: alerta,
-                        );
+                        return _buildIncidentItem(context, alerts[index]);
                       },
                     ),
           ),
@@ -72,19 +68,13 @@ class IncidentPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildIncidentItem({
-    required BuildContext context,
-    required MockAlerta alerta,
-  }) {
+  Widget _buildIncidentItem(BuildContext context, MockAlerta alerta) {
     final severity = _mapSeverity(alerta.tipo);
     final color = _getColor(severity);
     final timeStr = DateFormat('hh:mm a').format(alerta.hora);
 
     return InkWell(
-      onTap:
-          () => context.go(
-            '/viajes/${alerta.idViaje}/detalle?focus_user=${Uri.encodeComponent(alerta.nombreTurista)}',
-          ),
+      onTap: () => onIncidentTap(alerta),
       hoverColor: color.withValues(alpha: 0.05),
       child: Container(
         decoration: const BoxDecoration(
@@ -94,10 +84,7 @@ class IncidentPanel extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Severity Indicator
               Container(width: 4, color: color),
-
-              // Content
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
@@ -137,59 +124,12 @@ class IncidentPanel extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Turista: ${alerta.nombreTurista}.',
+                        alerta.mensaje, // Using new message field
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black87,
                         ),
                       ),
-
-                      if (alerta.esCritica) ...[
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder:
-                                      (ctx) => VoiceCallDialog(
-                                        contactName:
-                                            'Guía del Viaje #${alerta.idViaje}',
-                                        role: 'Guía Certificado',
-                                      ),
-                                );
-                              },
-                              child: Text(
-                                'Llamar Guía',
-                                style: TextStyle(
-                                  color: Colors.blue.shade700,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap:
-                                  () => context.go(
-                                    '/viajes/${alerta.idViaje}/detalle',
-                                  ),
-                              child: Text(
-                                'Ver Ubicación',
-                                style: TextStyle(
-                                  color: Colors.blue.shade700,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -206,7 +146,6 @@ class IncidentPanel extends StatelessWidget {
       case TipoAlerta.PANICO:
         return IncidentSeverity.critical;
       case TipoAlerta.DESCONEXION:
-        return IncidentSeverity.warning;
       case TipoAlerta.LEJANIA:
         return IncidentSeverity.warning;
     }

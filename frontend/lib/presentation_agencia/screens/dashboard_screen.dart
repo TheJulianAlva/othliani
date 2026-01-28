@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/mock/mock_database.dart'; // Mantener para incidentes por ahora
-import '../../injection_container.dart';
+import '../../injection_container.dart' as di;
+import '../../core/navigation/routes_agencia.dart';
 import '../blocs/dashboard/dashboard_bloc.dart';
 import '../widgets/kpi_card.dart';
-import '../widgets/agency_map_widget.dart';
 import '../widgets/incident_panel.dart';
+import '../widgets/agency_map_widget.dart'; // Verify this widget exists and accepts trips
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -14,127 +14,130 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<DashboardBloc>()..add(LoadDashboardStats()),
+      create: (_) => di.sl<DashboardBloc>()..add(LoadDashboardData()),
       child: Scaffold(
         backgroundColor: const Color(0xFFF4F6F8),
         body: SingleChildScrollView(
+          // Added ScrollView to prevent overflow on smaller screens
           padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Row 1: Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Resumen Operativo',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F4C75),
-                    ),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.calendar_today, size: 16),
-                    label: const Text('Hoy: 22 Enero 2026'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.grey.shade700,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+          child: BlocBuilder<DashboardBloc, DashboardState>(
+            builder: (context, state) {
+              if (state is DashboardLoading) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (state is DashboardLoaded) {
+                final data = state.data;
 
-              // Row 2: KPI Cards (Using BLoC)
-              BlocBuilder<DashboardBloc, DashboardState>(
-                builder: (context, state) {
-                  if (state is DashboardLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is DashboardLoaded) {
-                    final stats = state.stats;
-                    return Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Resumen Operativo',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F4C75),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // --- 1. TARJETAS KPI (Con Navegación) ---
+                    Row(
                       children: [
                         Expanded(
                           child: KPICard(
-                            title: 'Viajes',
+                            title: 'VIAJES',
+                            value: '${data.viajesActivos}',
+                            subtitle: '${data.viajesProgramados} Programados',
                             icon: Icons.directions_bus,
-                            value: '${stats.viajesActivos}',
-                            subtitle: '5 Programados',
-                            onTap: () => context.go('/viajes?status=active'),
+                            onTap:
+                                () => context.go(
+                                  '${RoutesAgencia.viajes}?filter=en_curso',
+                                ),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: KPICard(
-                            title: 'Turistas',
+                            title: 'TURISTAS',
+                            value: '${data.turistasEnCampo}',
+                            subtitle: 'En campo',
                             icon: Icons.groups,
-                            value: '${stats.turistasEnCampo}',
-                            subtitle: '3 Sin Red',
-                            onTap: () => context.go('/usuarios?tab=clients'),
+                            onTap:
+                                () => context.go(
+                                  '${RoutesAgencia.usuarios}?tab=clientes',
+                                ),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: KPICard(
-                            title: 'Alertas',
-                            icon: Icons.warning,
-                            value: '${stats.alertasCriticas}'.padLeft(2, '0'),
+                            title: 'ALERTAS',
+                            value: '${data.alertasCriticas}'.padLeft(2, '0'),
                             subtitle: 'Críticas',
-                            isAlert: stats.alertasCriticas > 0,
+                            icon: Icons.warning_amber_rounded,
+                            isAlert: data.alertasCriticas > 0,
                             onTap:
-                                () => context.go('/auditoria?filter=critical'),
+                                () => context.go(
+                                  '${RoutesAgencia.auditoria}?nivel=critico',
+                                ),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: KPICard(
-                            title: 'Guías',
-                            icon: Icons.support_agent,
-                            value: '${stats.guiasOffline}',
-                            subtitle: '2 Offline',
+                            title: 'GUÍAS',
+                            value: '10', // Total hardcoded for now
+                            subtitle: '${data.guiasOffline} Offline',
+                            icon: Icons.map,
                             onTap:
-                                () =>
-                                    context.go('/usuarios?tab=guides&status=offline'),
+                                () => context.go(
+                                  '${RoutesAgencia.usuarios}?tab=guias',
+                                ),
                           ),
                         ),
                       ],
-                    );
-                  } else if (state is DashboardError) {
-                    return Center(child: Text(state.message));
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // Row 3: Map & Incident Panel
-              SizedBox(
-                height: 500,
-                child: Row(
-                  children: [
-                    // Map (70%)
-                    Expanded(
-                      flex: 7,
-                      child: AgencyMapWidget(),
                     ),
 
-                    const SizedBox(width: 24),
+                    const SizedBox(height: 24),
 
-                    // Incident Panel (30%)
-                    // Nota: IncidentPanel sigue usando MockDatabase directamente por ahora
-                    // ya que DashboardStats solo tiene contadores.
-                    Expanded(
-                      flex: 3,
-                      child: IncidentPanel(incidentes: MockDatabase().alertas),
+                    // --- 2. SECCIÓN CENTRAL (Mapa y Alertas) ---
+                    SizedBox(
+                      height: 500, // Fixed height for map/sidebar area
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // MAPA INTERACTIVO
+                          Expanded(
+                            flex: 2,
+                            child: AgencyMapWidget(viajes: data.viajesEnMapa),
+                          ),
+
+                          const SizedBox(width: 24),
+
+                          // PANEL DE INCIDENTES
+                          Expanded(
+                            flex: 1,
+                            child: IncidentPanel(
+                              incidentes: data.alertasRecientes,
+                              onIncidentTap: (alerta) {
+                                // Navegación Inteligente:
+                                // Va al detalle del viaje y abre el foco en la alerta
+                                context.go(
+                                  '/viajes/${alerta.idViaje}?alert_focus=${alerta.id}',
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-            ],
+                );
+              } else if (state is DashboardError) {
+                return Center(child: Text(state.message));
+              }
+              return const SizedBox.shrink();
+            },
           ),
         ),
       ),

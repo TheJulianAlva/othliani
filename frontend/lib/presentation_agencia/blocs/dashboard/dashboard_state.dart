@@ -7,9 +7,9 @@ class DashboardInitial extends DashboardState {}
 class DashboardLoading extends DashboardState {}
 
 class DashboardLoaded extends DashboardState {
-  final DashboardStats stats;
+  final DashboardData data;
 
-  DashboardLoaded(this.stats);
+  DashboardLoaded(this.data);
 }
 
 class DashboardError extends DashboardState {

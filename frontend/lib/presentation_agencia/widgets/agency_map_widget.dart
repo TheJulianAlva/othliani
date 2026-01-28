@@ -2,14 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/mock/mock_models.dart';
 
 class AgencyMapWidget extends StatelessWidget {
-  const AgencyMapWidget({super.key});
+  final List<MockViaje> viajes;
+
+  const AgencyMapWidget({super.key, this.viajes = const []});
 
   @override
   Widget build(BuildContext context) {
-    // Center: Mexico City (Example)
-    final center = LatLng(19.4326, -99.1332);
+    // Default Center: Mexico City if no trips, else center on first trip
+    final center =
+        viajes.isNotEmpty
+            ? LatLng(viajes.first.latitudActual, viajes.first.longitudActual)
+            : LatLng(19.4326, -99.1332);
 
     return Container(
       decoration: BoxDecoration(
@@ -27,57 +33,26 @@ class AgencyMapWidget extends StatelessWidget {
       child: Stack(
         children: [
           FlutterMap(
-            options: MapOptions(initialCenter: center, initialZoom: 13.0),
+            options: MapOptions(initialCenter: center, initialZoom: 10.0),
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.othliani.app',
               ),
               MarkerLayer(
-                markers: [
-                  // Normal Trip
-                  _buildMarker(
-                    point: LatLng(19.4326, -99.1332),
-                    color: Colors.green,
-                    icon: Icons.directions_bus,
-                    onTap: () => context.go('/viajes/305/detalle'),
-                  ),
-                  // Warning Trip (Low Battery)
-                  _buildMarker(
-                    point: LatLng(19.4200, -99.1500),
-                    color: Colors.amber,
-                    icon: Icons.battery_alert,
-                    onTap:
-                        () => context.go(
-                          '/viajes/110/detalle?focus_user=Luis+P.',
+                markers:
+                    viajes.map((viaje) {
+                      return _buildMarker(
+                        point: LatLng(
+                          viaje.latitudActual,
+                          viaje.longitudActual,
                         ),
-                  ),
-                  // Critical SOS
-                  _buildMarker(
-                    point: LatLng(19.4400, -99.1200),
-                    color: Colors.red,
-                    icon: Icons.warning,
-                    onTap:
-                        () => context.go(
-                          '/viajes/204/detalle?focus_user=Ana+G.&open_modal=true',
-                        ),
-                  ),
-                  // Cluster (Simulated visually as a bigger marker for now)
-                  _buildMarker(
-                    point: LatLng(19.4100, -99.1600),
-                    color: const Color(0xFF0F4C75),
-                    icon: Icons.filter_9_plus,
-                    isCluster: true,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('🔍 Acercando vista de clúster...'),
-                          duration: Duration(seconds: 1),
-                        ),
+                        color: _getColorForStatus(viaje.estado),
+                        icon: Icons.directions_bus,
+                        onTap: () => context.go('/viajes/${viaje.id}/detalle'),
+                        tooltip: 'Viaje #${viaje.id} - ${viaje.destino}',
                       );
-                    },
-                  ),
-                ],
+                    }).toList(),
               ),
             ],
           ),
@@ -98,11 +73,11 @@ class AgencyMapWidget extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildLegendItem(Colors.green, 'Normal'),
+                  _buildLegendItem(Colors.green, 'En Curso'),
                   const SizedBox(height: 4),
-                  _buildLegendItem(Colors.amber, 'Riesgo'),
+                  _buildLegendItem(Colors.blue, 'Programado'),
                   const SizedBox(height: 4),
-                  _buildLegendItem(Colors.red, 'SOS'),
+                  _buildLegendItem(Colors.grey, 'Finalizado'),
                 ],
               ),
             ),
@@ -112,11 +87,22 @@ class AgencyMapWidget extends StatelessWidget {
     );
   }
 
+  Color _getColorForStatus(EstadoViaje estado) {
+    switch (estado) {
+      case EstadoViaje.EN_CURSO:
+        return Colors.green;
+      case EstadoViaje.PROGRAMADO:
+        return Colors.blue;
+      case EstadoViaje.FINALIZADO:
+        return Colors.grey;
+    }
+  }
+
   Marker _buildMarker({
     required LatLng point,
     required Color color,
     required IconData icon,
-    bool isCluster = false,
+    required String tooltip,
     VoidCallback? onTap,
   }) {
     return Marker(
@@ -126,7 +112,7 @@ class AgencyMapWidget extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Tooltip(
-          message: isCluster ? '5 Viajes en Zona' : 'Ver Detalles',
+          message: tooltip,
           child: Container(
             decoration: BoxDecoration(
               color: color,

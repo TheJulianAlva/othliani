@@ -48,7 +48,13 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/viajes');
+            }
+          },
         ),
         title: Row(
           children: [

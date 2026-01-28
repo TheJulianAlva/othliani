@@ -1,8 +1,8 @@
 import '../../core/mock/mock_database.dart';
-import '../models/dashboard_stats_model.dart';
+import '../../data/models/dashboard_data_model.dart';
 
 abstract class AgenciaDataSource {
-  Future<DashboardStatsModel> getStats();
+  Future<DashboardDataModel> getDashboardData();
 }
 
 class AgenciaMockDataSourceImpl implements AgenciaDataSource {
@@ -11,10 +11,10 @@ class AgenciaMockDataSourceImpl implements AgenciaDataSource {
   AgenciaMockDataSourceImpl(this.db);
 
   @override
-  Future<DashboardStatsModel> getStats() async {
+  Future<DashboardDataModel> getDashboardData() async {
     try {
-      final data = await db.getDashboardStats();
-      return DashboardStatsModel.fromJson(data);
+      final data = await db.getDashboardFullData();
+      return DashboardDataModel.fromJson(data);
     } catch (e) {
       throw Exception('Error en base de datos simulada');
     }

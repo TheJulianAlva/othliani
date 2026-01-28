@@ -3,7 +3,7 @@ import 'core/mock/mock_database.dart';
 import 'data/datasources/agencia_mock_data_source.dart';
 import 'data/repositories/agencia_repository_impl.dart';
 import 'domain/repositories/agencia_repository.dart';
-import 'domain/usecases/get_dashboard_stats.dart';
+import 'domain/usecases/get_dashboard_data.dart';
 import 'presentation_agencia/blocs/dashboard/dashboard_bloc.dart';
 
 final sl = GetIt.instance;
@@ -11,10 +11,10 @@ final sl = GetIt.instance;
 Future<void> init() async {
   //! Features - Dashboard
   // Bloc
-  sl.registerFactory(() => DashboardBloc(getDashboardStats: sl()));
+  sl.registerFactory(() => DashboardBloc(getDashboardData: sl()));
 
   // Use cases
-  sl.registerLazySingleton(() => GetDashboardStats(sl()));
+  sl.registerLazySingleton(() => GetDashboardData(sl()));
 
   // Repository
   sl.registerLazySingleton<AgenciaRepository>(
