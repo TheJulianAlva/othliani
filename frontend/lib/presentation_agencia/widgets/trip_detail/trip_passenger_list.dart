@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../widgets/trip_detail/passenger_detail_modal.dart';
 
 class TripPassengerList extends StatelessWidget {
-  const TripPassengerList({super.key});
+  final int totalPax;
+
+  const TripPassengerList({super.key, this.totalPax = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +21,9 @@ class TripPassengerList extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'NÓMINA (PAX)',
-                  style: TextStyle(
+                Text(
+                  'NÓMINA (PAX: $totalPax)',
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: Colors.grey,

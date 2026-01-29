@@ -86,7 +86,7 @@ class DashboardScreen extends StatelessWidget {
                         Expanded(
                           child: KPICard(
                             title: 'GUÍAS',
-                            value: '10', // Total hardcoded for now
+                            value: '${data.guiasTotal}',
                             subtitle: '${data.guiasOffline} Offline',
                             icon: Icons.map,
                             onTap:
@@ -123,7 +123,7 @@ class DashboardScreen extends StatelessWidget {
                                 // Navegación Inteligente:
                                 // Va al detalle del viaje y abre el foco en la alerta
                                 context.go(
-                                  '/viajes/${alerta.idViaje}?alert_focus=${alerta.id}',
+                                  '/viajes/${alerta.viajeId}?alert_focus=${alerta.id}',
                                 );
                               },
                             ),

@@ -4,8 +4,13 @@ import '../../core/navigation/routes_agencia.dart';
 
 class AgencySidebar extends StatelessWidget {
   final bool isCollapsed;
+  final String activeItem;
 
-  const AgencySidebar({super.key, required this.isCollapsed});
+  const AgencySidebar({
+    super.key,
+    this.isCollapsed = false,
+    this.activeItem = '',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -95,30 +100,35 @@ class AgencySidebar extends StatelessWidget {
                       icon: Icons.dashboard,
                       label: 'Dashboard',
                       path: RoutesAgencia.dashboard,
+                      labelToCheck: 'Dashboard',
                     ),
                     _buildNavItem(
                       context,
                       icon: Icons.flight,
                       label: 'Gestión Viajes',
                       path: RoutesAgencia.viajes,
+                      labelToCheck: 'Viajes',
                     ),
                     _buildNavItem(
                       context,
                       icon: Icons.people,
                       label: 'Usuarios',
                       path: RoutesAgencia.usuarios,
+                      labelToCheck: 'Usuarios',
                     ),
                     _buildNavItem(
                       context,
                       icon: Icons.assignment,
                       label: 'Auditoría/Logs',
                       path: RoutesAgencia.auditoria,
+                      labelToCheck: 'Auditoría',
                     ),
                     _buildNavItem(
                       context,
                       icon: Icons.settings,
                       label: 'Configuración',
                       path: RoutesAgencia.configuracion,
+                      labelToCheck: 'Configuración',
                     ),
                   ]),
                 ),
@@ -156,8 +166,9 @@ class AgencySidebar extends StatelessWidget {
     required IconData icon,
     required String label,
     required String path,
+    required String labelToCheck, // New param to match activeItem
   }) {
-    final bool isActive = GoRouterState.of(context).uri.toString() == path;
+    final bool isActive = activeItem == labelToCheck;
 
     return Material(
       color:

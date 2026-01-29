@@ -59,13 +59,16 @@ class MockAgencia {
 class MockGuia {
   final String id;
   final String nombre;
-  final bool isOnline;
-  final String idAgencia;
+  final String status; // 'ONLINE', 'OFFLINE', 'EN_RUTA'
+  final int viajesAsignados;
+  MockGuia(this.id, this.nombre, this.status, this.viajesAsignados);
+}
 
-  MockGuia(
-    this.id,
-    this.nombre, {
-    this.isOnline = false,
-    required this.idAgencia,
-  });
+class MockLog {
+  final String id;
+  final String fecha;
+  final String nivel; // 'CRT', 'INF', 'WRN'
+  final String actor;
+  final String accion;
+  MockLog(this.id, this.fecha, this.nivel, this.actor, this.accion);
 }

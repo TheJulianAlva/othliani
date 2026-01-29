@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 class TripControlPanel extends StatelessWidget {
-  const TripControlPanel({super.key});
+  final String? guideName;
+  final String? tripStatus;
+
+  const TripControlPanel({super.key, this.guideName, this.tripStatus});
 
   @override
   Widget build(BuildContext context) {
@@ -12,6 +15,29 @@ class TripControlPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Status Banner if available
+            if (tripStatus != null) ...[
+              Container(
+                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.blue.shade100),
+                ),
+                child: Center(
+                  child: Text(
+                    'ESTADO: $tripStatus',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+
             // 1. Guide Card
             const Text(
               'GUÍA RESPONSABLE',
@@ -43,16 +69,16 @@ class TripControlPanel extends StatelessWidget {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
-                              'Marcos R.',
-                              style: TextStyle(
+                              guideName ?? 'Sin Asignar',
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
-                            Text(
+                            const Text(
                               'Líder',
                               style: TextStyle(
                                 fontSize: 11,

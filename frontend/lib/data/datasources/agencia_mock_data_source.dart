@@ -1,8 +1,16 @@
+import '../../core/mock/mock_models.dart';
 import '../../core/mock/mock_database.dart';
-import '../../data/models/dashboard_data_model.dart';
+import '../../domain/entities/dashboard_data.dart';
+import '../../domain/entities/viaje.dart';
+import '../../domain/entities/guia.dart';
+import '../../domain/entities/alerta.dart';
 
 abstract class AgenciaDataSource {
-  Future<DashboardDataModel> getDashboardData();
+  Future<DashboardData> getDashboardData();
+  Future<List<Viaje>> getListaViajes();
+  Future<Viaje?> getDetalleViaje(String id);
+  Future<List<Guia>> getListaGuias();
+  Future<List<MockLog>> getAuditLogs();
 }
 
 class AgenciaMockDataSourceImpl implements AgenciaDataSource {
@@ -11,12 +19,44 @@ class AgenciaMockDataSourceImpl implements AgenciaDataSource {
   AgenciaMockDataSourceImpl(this.db);
 
   @override
-  Future<DashboardDataModel> getDashboardData() async {
+  Future<DashboardData> getDashboardData() async {
     try {
       final data = await db.getDashboardFullData();
-      return DashboardDataModel.fromJson(data);
+      final stats = data['stats'] as Map<String, dynamic>;
+
+      return DashboardData(
+        viajesActivos: stats['viajes_activos'] as int,
+        viajesProgramados: stats['viajes_prog'] as int,
+        turistasEnCampo: stats['turistas_campo'] as int,
+        turistasSinRed: stats['turistas_sin_red'] as int,
+        alertasCriticas: stats['alertas_criticas'] as int,
+        guiasOffline: stats['guias_offline'] as int,
+        guiasTotal: stats['guias_total'] as int,
+        viajesEnMapa: data['active_trips'] as List<Viaje>,
+        alertasRecientes: data['alertas_recientes'] as List<Alerta>,
+      );
     } catch (e) {
-      throw Exception('Error en base de datos simulada');
+      throw Exception('Error en base de datos simulada: $e');
     }
+  }
+
+  @override
+  Future<List<Viaje>> getListaViajes() {
+    return db.getAllViajes();
+  }
+
+  @override
+  Future<Viaje?> getDetalleViaje(String id) {
+    return db.getViajeById(id);
+  }
+
+  @override
+  Future<List<Guia>> getListaGuias() {
+    return db.getAllGuias();
+  }
+
+  @override
+  Future<List<MockLog>> getAuditLogs() {
+    return db.getAuditLogs();
   }
 }

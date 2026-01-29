@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/mock/mock_models.dart';
+import '../../domain/entities/viaje.dart';
 
 class AgencyMapWidget extends StatelessWidget {
-  final List<MockViaje> viajes;
+  final List<Viaje> viajes;
 
   const AgencyMapWidget({super.key, this.viajes = const []});
 
@@ -14,7 +14,7 @@ class AgencyMapWidget extends StatelessWidget {
     // Default Center: Mexico City if no trips, else center on first trip
     final center =
         viajes.isNotEmpty
-            ? LatLng(viajes.first.latitudActual, viajes.first.longitudActual)
+            ? LatLng(viajes.first.latitud, viajes.first.longitud)
             : LatLng(19.4326, -99.1332);
 
     return Container(
@@ -43,13 +43,10 @@ class AgencyMapWidget extends StatelessWidget {
                 markers:
                     viajes.map((viaje) {
                       return _buildMarker(
-                        point: LatLng(
-                          viaje.latitudActual,
-                          viaje.longitudActual,
-                        ),
+                        point: LatLng(viaje.latitud, viaje.longitud),
                         color: _getColorForStatus(viaje.estado),
                         icon: Icons.directions_bus,
-                        onTap: () => context.go('/viajes/${viaje.id}/detalle'),
+                        onTap: () => context.go('/viajes/${viaje.id}'),
                         tooltip: 'Viaje #${viaje.id} - ${viaje.destino}',
                       );
                     }).toList(),
@@ -87,13 +84,15 @@ class AgencyMapWidget extends StatelessWidget {
     );
   }
 
-  Color _getColorForStatus(EstadoViaje estado) {
+  Color _getColorForStatus(String estado) {
     switch (estado) {
-      case EstadoViaje.EN_CURSO:
+      case 'EN_CURSO':
         return Colors.green;
-      case EstadoViaje.PROGRAMADO:
+      case 'PROGRAMADO':
         return Colors.blue;
-      case EstadoViaje.FINALIZADO:
+      case 'FINALIZADO':
+        return Colors.grey;
+      default:
         return Colors.grey;
     }
   }

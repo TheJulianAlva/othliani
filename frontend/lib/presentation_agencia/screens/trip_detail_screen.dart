@@ -5,9 +5,10 @@ import '../widgets/trip_detail/trip_map_viewer.dart';
 import '../widgets/trip_detail/trip_passenger_list.dart';
 
 class TripDetailScreen extends StatefulWidget {
-  final String tripId;
+  final String viajeId;
+  final String? focusAlertId;
 
-  const TripDetailScreen({super.key, required this.tripId});
+  const TripDetailScreen({super.key, required this.viajeId, this.focusAlertId});
 
   @override
   State<TripDetailScreen> createState() => _TripDetailScreenState();
@@ -18,19 +19,17 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final focusUser =
-          GoRouterState.of(context).uri.queryParameters['focus_user'];
-      if (focusUser != null) {
+      if (widget.focusAlertId != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.my_location, color: Colors.white),
+                const Icon(Icons.warning, color: Colors.white),
                 const SizedBox(width: 12),
-                Text('📍 Focalizando mapa en: $focusUser'),
+                Text('⚠️ Focalizando en alerta: ${widget.focusAlertId}'),
               ],
             ),
-            backgroundColor: Colors.blue.shade800,
+            backgroundColor: Colors.orange.shade800,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
           ),
@@ -60,7 +59,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           children: [
             Flexible(
               child: Text(
-                'VIAJE #${widget.tripId}: EXPEDICIÓN NEVADO DE TOLUCA',
+                'VIAJE #${widget.viajeId}: EXPEDICIÓN NEVADO DE TOLUCA',
                 style: const TextStyle(
                   color: Color(0xFF0F4C75),
                   fontWeight: FontWeight.bold,

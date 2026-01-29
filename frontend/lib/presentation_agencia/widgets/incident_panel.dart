@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../core/mock/mock_models.dart';
-// import 'voice_call_dialog.dart'; // Mantener si se usará
+import '../../domain/entities/alerta.dart';
 
 class IncidentPanel extends StatelessWidget {
-  final List<MockAlerta>? incidentes;
-  final Function(MockAlerta) onIncidentTap;
+  final List<Alerta>? incidentes;
+  final Function(Alerta) onIncidentTap;
 
   const IncidentPanel({
     super.key,
@@ -68,7 +67,7 @@ class IncidentPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildIncidentItem(BuildContext context, MockAlerta alerta) {
+  Widget _buildIncidentItem(BuildContext context, Alerta alerta) {
     final severity = _mapSeverity(alerta.tipo);
     final color = _getColor(severity);
     final timeStr = DateFormat('hh:mm a').format(alerta.hora);
@@ -112,7 +111,7 @@ class IncidentPanel extends StatelessWidget {
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              '${alerta.tipo.name} - Viaje #${alerta.idViaje}',
+                              '${alerta.tipo} - Viaje #${alerta.viajeId}',
                               style: TextStyle(
                                 color: color,
                                 fontWeight: FontWeight.bold,
@@ -134,6 +133,19 @@ class IncidentPanel extends StatelessWidget {
                   ),
                 ),
               ),
+              // Call Action
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: IconButton(
+                    icon: const Icon(Icons.call, color: Colors.green),
+                    tooltip: 'Llamar al Guía',
+                    onPressed: () {
+                      _simulateCall(context, alerta);
+                    },
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -141,13 +153,66 @@ class IncidentPanel extends StatelessWidget {
     );
   }
 
-  IncidentSeverity _mapSeverity(TipoAlerta tipo) {
+  void _simulateCall(BuildContext context, Alerta alerta) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (ctx) => AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                const CircularProgressIndicator(),
+                const SizedBox(height: 24),
+                Text(
+                  'Conectando llamada con guía del Viaje #${alerta.viajeId}...',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Simulación VoIP',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'CANCELAR',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+    );
+
+    // Auto-close simulation after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (context.mounted && Navigator.canPop(context)) {
+        Navigator.pop(context); // Close connecting dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('📞 Llamada simulada finalizada'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    });
+  }
+
+  IncidentSeverity _mapSeverity(String tipo) {
     switch (tipo) {
-      case TipoAlerta.PANICO:
+      case 'PANICO':
         return IncidentSeverity.critical;
-      case TipoAlerta.DESCONEXION:
-      case TipoAlerta.LEJANIA:
+      case 'DESCONEXION':
+      case 'LEJANIA':
         return IncidentSeverity.warning;
+      default:
+        return IncidentSeverity.info;
     }
   }
 

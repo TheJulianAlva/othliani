@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/navigation/routes_agencia.dart';
 
 class AgencyHeader extends StatelessWidget {
   final VoidCallback onMenuPressed;
@@ -63,7 +64,7 @@ class AgencyHeader extends StatelessWidget {
                   return Row(
                     children: [
                       InkWell(
-                        onTap: () => context.go('/'),
+                        onTap: () => context.go(RoutesAgencia.dashboard),
                         borderRadius: BorderRadius.circular(4),
                         hoverColor: Colors.grey.shade100,
                         child: const Padding(

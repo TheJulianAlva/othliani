@@ -4,8 +4,13 @@ import 'agency_header.dart';
 
 class AgencyLayout extends StatefulWidget {
   final Widget child;
+  final String activeItem;
 
-  const AgencyLayout({super.key, required this.child});
+  const AgencyLayout({
+    super.key,
+    required this.child,
+    this.activeItem = 'Dashboard',
+  });
 
   @override
   State<AgencyLayout> createState() => _AgencyLayoutState();
@@ -25,23 +30,23 @@ class _AgencyLayoutState extends State<AgencyLayout> {
     return Scaffold(
       body: Row(
         children: [
-          // Sidebar
-          AgencySidebar(isCollapsed: _isSidebarCollapsed),
+          // 1. Sidebar Fijo
+          AgencySidebar(
+            activeItem: widget.activeItem,
+            isCollapsed: _isSidebarCollapsed,
+          ),
 
-          // Main Content Area
+          // 2. Contenido Variable
           Expanded(
             child: Column(
               children: [
-                // Header
                 AgencyHeader(
                   onMenuPressed: _toggleSidebar,
                   isSidebarCollapsed: _isSidebarCollapsed,
-                ),
-
-                // Dynamic Content (Router View)
+                ), // Header fijo también
                 Expanded(
                   child: Container(
-                    color: const Color(0xFFF4F6F8), // Background Color
+                    color: const Color(0xFFF4F6F8),
                     padding: const EdgeInsets.all(24.0),
                     child: widget.child,
                   ),

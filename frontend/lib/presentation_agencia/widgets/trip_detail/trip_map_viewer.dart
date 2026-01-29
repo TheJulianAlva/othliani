@@ -3,12 +3,19 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 class TripMapViewer extends StatelessWidget {
-  const TripMapViewer({super.key});
+  final double centerLat;
+  final double centerLng;
+
+  const TripMapViewer({
+    super.key,
+    this.centerLat = 19.4326, // Default CDMX
+    this.centerLng = -99.1332,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Mock Center Location (Nevado de Toluca ish)
-    final center = LatLng(19.106, -99.761);
+    // Center Location from props
+    final center = LatLng(centerLat, centerLng);
 
     return Stack(
       children: [
