@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../domain/entities/viaje.dart';
 
 class TripControlPanel extends StatelessWidget {
-  final String? guideName;
-  final String? tripStatus;
+  final Viaje viaje;
 
-  const TripControlPanel({super.key, this.guideName, this.tripStatus});
+  const TripControlPanel({super.key, required this.viaje});
 
   @override
   Widget build(BuildContext context) {
@@ -15,28 +15,26 @@ class TripControlPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Status Banner if available
-            if (tripStatus != null) ...[
-              Container(
-                padding: const EdgeInsets.all(8),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.blue.shade100),
-                ),
-                child: Center(
-                  child: Text(
-                    'ESTADO: $tripStatus',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: Colors.blue,
-                    ),
+            // Status Banner
+            Container(
+              padding: const EdgeInsets.all(8),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.blue.shade100),
+              ),
+              child: Center(
+                child: Text(
+                  'DESTINO: ${viaje.destino}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: Colors.blue,
                   ),
                 ),
               ),
-            ],
+            ),
 
             // 1. Guide Card
             const Text(
@@ -71,7 +69,7 @@ class TripControlPanel extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              guideName ?? 'Sin Asignar',
+                              'Guía Asignado',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,

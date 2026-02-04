@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../domain/entities/viaje.dart';
+import '../../../domain/entities/turista.dart';
 
 class TripMapViewer extends StatelessWidget {
-  final double centerLat;
-  final double centerLng;
+  final Viaje viaje;
+  final List<Turista> turistas;
 
-  const TripMapViewer({
-    super.key,
-    this.centerLat = 19.4326, // Default CDMX
-    this.centerLng = -99.1332,
-  });
+  const TripMapViewer({super.key, required this.viaje, required this.turistas});
 
   @override
   Widget build(BuildContext context) {
-    // Center Location from props
-    final center = LatLng(centerLat, centerLng);
+    // Center Location from viaje entity
+    final center = LatLng(viaje.latitud, viaje.longitud);
 
     return Stack(
       children: [

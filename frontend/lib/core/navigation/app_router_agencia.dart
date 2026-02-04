@@ -94,26 +94,13 @@ class AppRouterAgencia {
                 path: ':id', // Parámetro dinámico
                 builder: (context, state) {
                   final viajeId = state.pathParameters['id']!;
-                  final focusAlertId = state.uri.queryParameters['alert_focus'];
+                  final section = state.uri.queryParameters['section'];
 
                   return BlocProvider(
                     create: (_) => di.sl<DetalleViajeBloc>(),
-                    // Event dispatch is handled in TripDetailScreen.initState now, OR we can do it here.
-                    // User requested injected here. But I modified initState. Let's keep it clean.
-                    // Actually, the request said: create: (_) => di.sl<DetalleViajeBloc>()..add(LoadDetalleViajeEvent(id: viajeId)),
-                    // But I kept logic in initState for safety? No, let's follow user request for best practice.
-                    // However, I already edited initState to read from widget.
-                    // Let's do it in create as well or ensure it's not double calling.
-                    // Better pattern: Inject Bloc, let UI trigger event or Bloc trigger event immediately.
-                    // I will inject it without event here if the UI does it, OR I remove it from UI.
-                    // User code sample: create: (_) => di.sl<DetalleViajeBloc>()..add(LoadDetalleViajeEvent(id: viajeId)),
-                    // I will follow user code sample. (It mimics the specific ID loading).
-                    // Wait, if I do "..add" here, the UI "initState" might double add.
-                    // I will trust the BLoC provider here.
                     child: TripDetailScreen(
                       viajeId: viajeId,
-                      focusAlertId:
-                          focusAlertId, // Para abrir el modal automáticamente
+                      highlightSection: section,
                     ),
                   );
                 },

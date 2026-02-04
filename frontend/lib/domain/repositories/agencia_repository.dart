@@ -4,6 +4,7 @@ import '../../core/error/failures.dart';
 import '../entities/dashboard_data.dart';
 import '../entities/viaje.dart';
 import '../entities/guia.dart';
+import '../entities/turista.dart';
 import '../entities/log_auditoria.dart';
 
 abstract class AgenciaRepository {
@@ -15,4 +16,8 @@ abstract class AgenciaRepository {
   Future<Either<Failure, Viaje>> getDetalleViaje(String id);
   Future<Either<Failure, List<Guia>>> getListaGuias();
   Future<Either<Failure, List<LogAuditoria>>> getAuditLogs();
+
+  // Nuevos métodos para gestión de viajes
+  Future<Either<Failure, List<Turista>>> getTuristasPorViaje(String id);
+  Future<Either<Failure, void>> cancelarViaje(String id);
 }

@@ -210,37 +210,132 @@ class _TripsDatagridState extends State<TripsDatagrid> {
           DataCell(Text(trip.pax)),
           DataCell(_buildStatusBadge(trip.status)),
           DataCell(
-            PopupMenuButton(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (value) {
-                if (value == 'view') {
-                  context.go('/viajes/${trip.folio}');
-                }
+            Builder(
+              builder: (ctx) {
+                // Determine if trip is active for intelligent UI
+                final esActivo = trip.status == 'EN_CURSO';
+
+                return PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, size: 20),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'ver':
+                        // Navigate with section parameter for highlighting
+                        context.go('/viajes/${trip.folio}?section=turistas');
+                        break;
+                      case 'editar':
+                        // Show edit simulation
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              '🔧 Edición simulada: Los datos están precargados.',
+                            ),
+                            backgroundColor: Colors.blue,
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        break;
+                      case 'cancelar':
+                        // Show cancel confirmation dialog
+                        _mostrarDialogoCancelar(context, trip);
+                        break;
+                    }
+                  },
+                  itemBuilder:
+                      (context) => [
+                        PopupMenuItem(
+                          value: 'ver',
+                          child: Row(
+                            children: [
+                              Icon(
+                                esActivo
+                                    ? Icons.monitor_heart
+                                    : Icons.description,
+                                size: 18,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                esActivo
+                                    ? 'Monitorear en Vivo'
+                                    : 'Ver Expediente / Lista',
+                              ),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'editar',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, size: 18, color: Colors.grey),
+                              SizedBox(width: 8),
+                              Text('Editar Datos'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'cancelar',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.cancel,
+                                size: 18,
+                                color: Colors.redAccent,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Cancelar Viaje',
+                                style: TextStyle(color: Colors.redAccent),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                );
               },
-              itemBuilder:
-                  (context) => [
-                    const PopupMenuItem(
-                      value: 'view',
-                      child: Text('👁️ Ver Tablero'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Text('✏️ Editar'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'pax',
-                      child: Text('👥 Ver Turistas'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'cancel',
-                      child: Text('🗑️ Cancelar'),
-                    ),
-                  ],
             ),
           ),
         ],
       );
     }).toList();
+  }
+
+  void _mostrarDialogoCancelar(BuildContext context, TripData trip) {
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('¿Cancelar Viaje?'),
+            content: Text(
+              'Estás a punto de cancelar el viaje a ${trip.name}.\nEsta acción es irreversible en producción.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Volver'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () {
+                  Navigator.pop(ctx); // Close dialog
+                  // Here you would call: context.read<ViajesBloc>().add(DeleteViaje(id));
+
+                  // Visual feedback for simulation
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '🚫 Viaje a ${trip.name} cancelado (Simulación)',
+                      ),
+                      backgroundColor: Colors.red[700],
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                child: const Text('Confirmar Cancelación'),
+              ),
+            ],
+          ),
+    );
   }
 
   Widget _buildStatusBadge(TripStatus status) {

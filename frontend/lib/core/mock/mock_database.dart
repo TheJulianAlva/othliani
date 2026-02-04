@@ -755,6 +755,15 @@ class MockDatabase {
     return _alertas.where((a) => a.viajeId == viajeId).toList();
   }
 
+  // 7. Simulate Trip Cancellation/Deletion
+  Future<bool> simularDeleteViaje(String id) async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    // In a real app, this would make a DELETE request to the API
+    // For the mock, we return true to simulate success
+    // You could also remove the trip from _viajes list if you want to persist the change
+    return true;
+  }
+
   // Legacy getters for backward compatibility (will be removed)
   List<MockAlerta> get alertas =>
       _alertas

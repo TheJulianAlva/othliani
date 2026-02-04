@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/alerta.dart';
+import 'connected_call_dialog.dart';
 
 class IncidentPanel extends StatelessWidget {
   final List<Alerta>? incidentes;
@@ -158,50 +159,11 @@ class IncidentPanel extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder:
-          (ctx) => AlertDialog(
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 16),
-                const CircularProgressIndicator(),
-                const SizedBox(height: 24),
-                Text(
-                  'Conectando llamada con guía del Viaje #${alerta.viajeId}...',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Simulación VoIP',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text(
-                  'CANCELAR',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
+          (ctx) => ConnectedCallDialog(
+            tripId: alerta.viajeId.toString(),
+            guideName: 'Guía del Viaje #${alerta.viajeId}',
           ),
     );
-
-    // Auto-close simulation after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
-      if (context.mounted && Navigator.canPop(context)) {
-        Navigator.pop(context); // Close connecting dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('📞 Llamada simulada finalizada'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    });
   }
 
   IncidentSeverity _mapSeverity(String tipo) {

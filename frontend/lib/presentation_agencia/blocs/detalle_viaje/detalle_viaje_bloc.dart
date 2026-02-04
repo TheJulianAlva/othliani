@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../domain/entities/viaje.dart';
+import '../../../../domain/entities/turista.dart';
 import '../../../../domain/repositories/agencia_repository.dart';
 
 // Events
@@ -28,9 +29,12 @@ class DetalleViajeLoading extends DetalleViajeState {}
 
 class DetalleViajeLoaded extends DetalleViajeState {
   final Viaje viaje;
-  DetalleViajeLoaded(this.viaje);
+  final List<Turista> turistas;
+
+  DetalleViajeLoaded({required this.viaje, required this.turistas});
+
   @override
-  List<Object> get props => [viaje];
+  List<Object> get props => [viaje, turistas];
 }
 
 class DetalleViajeError extends DetalleViajeState {
@@ -53,10 +57,25 @@ class DetalleViajeBloc extends Bloc<DetalleViajeEvent, DetalleViajeState> {
     Emitter<DetalleViajeState> emit,
   ) async {
     emit(DetalleViajeLoading());
-    final result = await repository.getDetalleViaje(event.id);
-    result.fold(
-      (failure) => emit(DetalleViajeError('Error al cargar detalle del viaje')),
-      (viaje) => emit(DetalleViajeLoaded(viaje)),
+
+    // Load trip details
+    final viajeResult = await repository.getDetalleViaje(event.id);
+
+    await viajeResult.fold(
+      (failure) async {
+        emit(DetalleViajeError('Error al cargar detalle del viaje'));
+      },
+      (viaje) async {
+        // Load tourists for this trip
+        final turistasResult = await repository.getTuristasPorViaje(event.id);
+
+        turistasResult.fold(
+          (failure) =>
+              emit(DetalleViajeError('Error al cargar turistas del viaje')),
+          (turistas) =>
+              emit(DetalleViajeLoaded(viaje: viaje, turistas: turistas)),
+        );
+      },
     );
   }
 }
