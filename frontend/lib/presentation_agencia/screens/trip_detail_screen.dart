@@ -240,7 +240,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             decoration: BoxDecoration(
               color:
                   highlightTuristas
-                      ? Colors.blue.withOpacity(0.05)
+                      ? Colors.blue.withValues(alpha: 0.05)
                       : Colors.white,
               border: Border(
                 top:
@@ -259,6 +259,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             ),
             child: TripPassengerList(
               turistas: turistas,
+              estadoViaje: viaje.estado,
               isLive: true,
               searchFocusNode: _searchFocusNode,
               highlightSearch: highlightTuristas,
@@ -313,6 +314,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           Expanded(
             child: TripPassengerList(
               turistas: turistas,
+              estadoViaje: viaje.estado,
               isLive: false,
               searchFocusNode: _searchFocusNode,
               highlightSearch: false,

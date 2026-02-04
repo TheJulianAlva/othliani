@@ -14,6 +14,10 @@ abstract class AgenciaDataSource {
   Future<List<MockLog>> getAuditLogs();
   Future<List<Turista>> getTuristasByViajeId(String viajeId);
   Future<bool> simularDeleteViaje(String id);
+
+  // New methods for User Management
+  Future<List<Guia>> getGuias();
+  Future<List<Turista>> getTuristas();
 }
 
 class AgenciaMockDataSourceImpl implements AgenciaDataSource {
@@ -71,5 +75,15 @@ class AgenciaMockDataSourceImpl implements AgenciaDataSource {
   @override
   Future<bool> simularDeleteViaje(String id) {
     return db.simularDeleteViaje(id);
+  }
+
+  @override
+  Future<List<Guia>> getGuias() {
+    return db.getAllGuias();
+  }
+
+  @override
+  Future<List<Turista>> getTuristas() {
+    return db.getAllTuristas();
   }
 }

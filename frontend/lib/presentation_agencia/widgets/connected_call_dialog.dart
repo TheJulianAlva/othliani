@@ -6,10 +6,10 @@ class ConnectedCallDialog extends StatefulWidget {
   final String guideName;
 
   const ConnectedCallDialog({
-    Key? key,
+    super.key,
     required this.tripId,
     required this.guideName,
-  }) : super(key: key);
+  });
 
   @override
   State<ConnectedCallDialog> createState() => _ConnectedCallDialogState();
@@ -90,7 +90,7 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -113,7 +113,7 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Center(
@@ -137,7 +137,7 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
           Text(
             'Simulación VoIP',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
               fontSize: 14,
             ),
           ),
@@ -173,10 +173,10 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withOpacity(0.2),
+              color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFF4CAF50).withOpacity(0.5),
+                color: const Color(0xFF4CAF50).withValues(alpha: 0.5),
                 width: 1,
               ),
             ),
@@ -217,13 +217,13 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withOpacity(0.3),
-                    Colors.white.withOpacity(0.1),
+                    Colors.white.withValues(alpha: 0.3),
+                    Colors.white.withValues(alpha: 0.1),
                   ],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     blurRadius: 20,
                     spreadRadius: 5,
                   ),
@@ -235,7 +235,7 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
                   height: 110,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                   ),
                   child: const Icon(
                     Icons.person,
@@ -263,7 +263,7 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
           Text(
             'Guía del Viaje #${widget.tripId}',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 15,
             ),
           ),
@@ -273,7 +273,7 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
           Text(
             _formatDuration(_callDuration),
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 18,
               fontWeight: FontWeight.w500,
               letterSpacing: 2,
@@ -320,13 +320,13 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               'Simulación VoIP',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 fontSize: 12,
               ),
             ),
@@ -358,11 +358,11 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
                 color:
                     backgroundColor ??
                     (isActive
-                        ? Colors.white.withOpacity(0.3)
-                        : Colors.white.withOpacity(0.15)),
+                        ? Colors.white.withValues(alpha: 0.3)
+                        : Colors.white.withValues(alpha: 0.15)),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
               ),
@@ -373,7 +373,10 @@ class _ConnectedCallDialogState extends State<ConnectedCallDialog>
         const SizedBox(height: 8),
         Text(
           label,
-          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12),
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.8),
+            fontSize: 12,
+          ),
         ),
       ],
     );

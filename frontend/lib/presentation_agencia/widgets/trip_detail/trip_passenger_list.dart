@@ -4,6 +4,7 @@ import '../../widgets/trip_detail/passenger_detail_modal.dart';
 
 class TripPassengerList extends StatelessWidget {
   final List<Turista> turistas;
+  final String estadoViaje; // 'PROGRAMADO', 'EN_CURSO', 'FINALIZADO'
   final bool isLive;
   final FocusNode? searchFocusNode;
   final bool highlightSearch;
@@ -11,6 +12,7 @@ class TripPassengerList extends StatelessWidget {
   const TripPassengerList({
     super.key,
     required this.turistas,
+    required this.estadoViaje,
     this.isLive = true,
     this.searchFocusNode,
     this.highlightSearch = false,
@@ -150,7 +152,8 @@ class TripPassengerList extends StatelessWidget {
               context: context,
               builder:
                   (context) => PassengerDetailModal(
-                    passenger: {'name': turista.nombre, 'status': status},
+                    turista: turista,
+                    estadoViaje: estadoViaje,
                   ),
             );
           },

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/connected_call_dialog.dart';
 
 class CallDemoScreen extends StatelessWidget {
-  const CallDemoScreen({Key? key}) : super(key: key);
+  const CallDemoScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class CallDemoScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               const Color(0xFF1a237e),
-              const Color(0xFF0d47a1).withOpacity(0.8),
+              const Color(0xFF0d47a1).withValues(alpha: 0.8),
             ],
           ),
         ),
@@ -79,7 +79,7 @@ class CallDemoScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(30),
                   ),
                   elevation: 8,
-                  shadowColor: const Color(0xFF4CAF50).withOpacity(0.5),
+                  shadowColor: const Color(0xFF4CAF50).withValues(alpha: 0.5),
                 ),
               ),
               const SizedBox(height: 24),
@@ -87,10 +87,10 @@ class CallDemoScreen extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 40),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),

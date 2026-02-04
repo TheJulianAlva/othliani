@@ -20,4 +20,7 @@ abstract class AgenciaRepository {
   // Nuevos métodos para gestión de viajes
   Future<Either<Failure, List<Turista>>> getTuristasPorViaje(String id);
   Future<Either<Failure, void>> cancelarViaje(String id);
+
+  // Métodos para gestión de usuarios
+  Future<Either<Failure, List<Turista>>> getListaClientes();
 }

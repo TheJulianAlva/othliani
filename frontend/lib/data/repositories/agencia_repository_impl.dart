@@ -92,6 +92,16 @@ class AgenciaRepositoryImpl implements AgenciaRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, List<Turista>>> getListaClientes() async {
+    try {
+      final result = await dataSource.getTuristas();
+      return Right(result);
+    } catch (e) {
+      return Left(ServerFailure());
+    }
+  }
+
   // Mapper for LogAuditoria (still needed since MockLog is used)
   LogAuditoria _mapLogToEntity(MockLog model) {
     // Basic parsing for "YYYY-MM-DD HH:mm".
