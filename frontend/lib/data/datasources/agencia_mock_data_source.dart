@@ -1,17 +1,17 @@
-import '../../core/mock/mock_models.dart';
 import '../../core/mock/mock_database.dart';
 import '../../domain/entities/dashboard_data.dart';
 import '../../domain/entities/viaje.dart';
 import '../../domain/entities/guia.dart';
 import '../../domain/entities/turista.dart';
 import '../../domain/entities/alerta.dart';
+import '../../domain/entities/log_auditoria.dart';
 
 abstract class AgenciaDataSource {
   Future<DashboardData> getDashboardData();
   Future<List<Viaje>> getListaViajes();
   Future<Viaje?> getDetalleViaje(String id);
   Future<List<Guia>> getListaGuias();
-  Future<List<MockLog>> getAuditLogs();
+  Future<List<LogAuditoria>> getAuditLogs();
   Future<List<Turista>> getTuristasByViajeId(String viajeId);
   Future<bool> simularDeleteViaje(String id);
 
@@ -63,7 +63,7 @@ class AgenciaMockDataSourceImpl implements AgenciaDataSource {
   }
 
   @override
-  Future<List<MockLog>> getAuditLogs() {
+  Future<List<LogAuditoria>> getAuditLogs() {
     return db.getAuditLogs();
   }
 

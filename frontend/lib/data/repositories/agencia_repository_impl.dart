@@ -3,7 +3,6 @@ import '../../domain/repositories/agencia_repository.dart';
 import '../../domain/entities/dashboard_data.dart';
 import '../datasources/agencia_mock_data_source.dart';
 import '../../core/error/failures.dart';
-import '../../core/mock/mock_models.dart';
 import '../../domain/entities/viaje.dart';
 import '../../domain/entities/guia.dart';
 import '../../domain/entities/turista.dart';
@@ -62,7 +61,7 @@ class AgenciaRepositoryImpl implements AgenciaRepository {
   Future<Either<Failure, List<LogAuditoria>>> getAuditLogs() async {
     try {
       final result = await dataSource.getAuditLogs();
-      return Right(result.map(_mapLogToEntity).toList());
+      return Right(result);
     } catch (e) {
       return Left(ServerFailure());
     }
@@ -100,29 +99,5 @@ class AgenciaRepositoryImpl implements AgenciaRepository {
     } catch (e) {
       return Left(ServerFailure());
     }
-  }
-
-  // Mapper for LogAuditoria (still needed since MockLog is used)
-  LogAuditoria _mapLogToEntity(MockLog model) {
-    // Basic parsing for "YYYY-MM-DD HH:mm".
-    // If format changes, this might break, but good for now.
-    DateTime fecha;
-    try {
-      // Assuming Mock uses "2026-01-25 10:42"
-      fecha =
-          DateTime.tryParse('${model.fecha.replaceAll(' ', 'T')}:00') ??
-          DateTime.now();
-      // .replaceAll to make it ISO-8601 like: 2026-01-25T10:42:00
-    } catch (e) {
-      fecha = DateTime.now();
-    }
-
-    return LogAuditoria(
-      id: model.id,
-      fecha: fecha,
-      nivel: model.nivel,
-      actor: model.actor,
-      accion: model.accion,
-    );
   }
 }

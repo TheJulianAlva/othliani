@@ -213,7 +213,7 @@ class _TripsDatagridState extends State<TripsDatagrid> {
             Builder(
               builder: (ctx) {
                 // Determine if trip is active for intelligent UI
-                final esActivo = trip.status == 'EN_CURSO';
+                final esActivo = trip.status == TripStatus.active;
 
                 return PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert, size: 20),

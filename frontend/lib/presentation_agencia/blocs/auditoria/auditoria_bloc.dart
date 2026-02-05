@@ -5,21 +5,23 @@ import '../../../../domain/repositories/agencia_repository.dart';
 
 // Events
 abstract class AuditoriaEvent extends Equatable {
+  const AuditoriaEvent();
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class LoadAuditoriaEvent extends AuditoriaEvent {
-  final String? filterNivel;
-  LoadAuditoriaEvent({this.filterNivel});
+  final String? filterNivel; // Opcional: 'CRITICO', 'INFO', etc.
+  const LoadAuditoriaEvent({this.filterNivel});
   @override
-  List<Object> get props => [filterNivel ?? ''];
+  List<Object?> get props => [filterNivel];
 }
 
 // States
 abstract class AuditoriaState extends Equatable {
+  const AuditoriaState();
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class AuditoriaInitial extends AuditoriaState {}
@@ -27,15 +29,17 @@ class AuditoriaInitial extends AuditoriaState {}
 class AuditoriaLoading extends AuditoriaState {}
 
 class AuditoriaLoaded extends AuditoriaState {
-  final List<LogAuditoria> logs;
-  AuditoriaLoaded(this.logs);
+  final List<LogAuditoria> logs; // Lista filtrada
+  final String? activeFilter;
+
+  const AuditoriaLoaded({required this.logs, this.activeFilter});
   @override
-  List<Object> get props => [logs];
+  List<Object?> get props => [logs, activeFilter];
 }
 
 class AuditoriaError extends AuditoriaState {
   final String message;
-  AuditoriaError(this.message);
+  const AuditoriaError(this.message);
   @override
   List<Object> get props => [message];
 }
@@ -44,7 +48,7 @@ class AuditoriaError extends AuditoriaState {
 class AuditoriaBloc extends Bloc<AuditoriaEvent, AuditoriaState> {
   final AgenciaRepository repository;
 
-  AuditoriaBloc({required this.repository}) : super(AuditoriaInitial()) {
+  AuditoriaBloc({required this.repository}) : super(AuditoriaLoading()) {
     on<LoadAuditoriaEvent>(_onLoadAuditoria);
   }
 
@@ -53,10 +57,28 @@ class AuditoriaBloc extends Bloc<AuditoriaEvent, AuditoriaState> {
     Emitter<AuditoriaState> emit,
   ) async {
     emit(AuditoriaLoading());
+
     final result = await repository.getAuditLogs();
+
     result.fold(
-      (failure) => emit(AuditoriaError('Error al cargar auditoría')),
-      (logs) => emit(AuditoriaLoaded(logs)),
+      (failure) => emit(const AuditoriaError("Error cargando logs")),
+      (allLogs) {
+        // Lógica de Filtrado Local
+        List<LogAuditoria> filteredLogs = allLogs;
+
+        if (event.filterNivel != null && event.filterNivel!.isNotEmpty) {
+          // Normalizamos a mayúsculas para comparar
+          final filter = event.filterNivel!.toUpperCase();
+          filteredLogs = allLogs.where((log) => log.nivel == filter).toList();
+        }
+
+        // Ordenamos por fecha descendente (lo más nuevo arriba)
+        filteredLogs.sort((a, b) => b.fecha.compareTo(a.fecha));
+
+        emit(
+          AuditoriaLoaded(logs: filteredLogs, activeFilter: event.filterNivel),
+        );
+      },
     );
   }
 }

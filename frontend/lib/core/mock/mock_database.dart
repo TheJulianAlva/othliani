@@ -2,6 +2,7 @@ import '../../domain/entities/viaje.dart';
 import '../../domain/entities/guia.dart';
 import '../../domain/entities/turista.dart';
 import '../../domain/entities/alerta.dart';
+import '../../domain/entities/log_auditoria.dart';
 import 'mock_models.dart'; // Keep for backward compatibility during transition
 
 class MockDatabase {
@@ -1482,33 +1483,89 @@ class MockDatabase {
     return _guias;
   }
 
-  // 4. Para Pantalla "Auditoría" - Keep MockLog for now
-  Future<List<MockLog>> getAuditLogs() async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    final logs = [
-      MockLog(
-        'L-01',
-        '2026-01-25 10:42',
-        'CRT',
-        'Sys_Algorithm',
-        'Detectado Alejamiento',
-      ),
-      MockLog(
-        'L-02',
-        '2026-01-25 10:40',
-        'INF',
-        'Admin: Juan',
-        'Modificó Geocerca',
-      ),
-      MockLog(
-        'L-03',
-        '2026-01-25 09:15',
-        'WRN',
-        'Guía: Marcos',
-        'Pérdida Conexión',
-      ),
-    ];
-    return logs;
+  // --- 4. LISTA DE LOGS (Auditoría) ---
+  final List<LogAuditoria> _logs = [
+    LogAuditoria(
+      id: 'LOG-9021',
+      fecha: DateTime.now().subtract(const Duration(minutes: 2)),
+      nivel: 'CRITICO',
+      actor: 'Sistema',
+      accion: 'Detectado patrón de pánico en Turista T-01 (Ana G.)',
+      ip: '192.168.1.10',
+      metadata: {
+        'bpm': 140,
+        'velocidad': '12 km/h',
+        'bateria': '15%',
+        'coords': '19.4326, -99.1332',
+        'dispositivo': 'Android SM-G990',
+        'alert_id': 'ALT-9921',
+        'distance': '120m',
+        'threshold': '50m',
+      },
+      relatedRoute: '/viajes/204?alert_focus=T-01',
+    ),
+    LogAuditoria(
+      id: 'LOG-9020',
+      fecha: DateTime.now().subtract(const Duration(minutes: 15)),
+      nivel: 'ADVERTENCIA',
+      actor: 'Guía: Marcos R.',
+      accion: 'Reporte de alejamiento temporal (falsa alarma)',
+      ip: 'App Móvil (4G)',
+      metadata: {
+        'device_id': 'ANDROID-X82',
+        'signal_strength': '45%',
+        'last_known_loc': 'Checkpoint 2',
+        'duration': '120s',
+      },
+      relatedRoute: '/viajes/204',
+    ),
+    LogAuditoria(
+      id: 'LOG-9019',
+      fecha: DateTime.now().subtract(const Duration(hours: 1)),
+      nivel: 'INFO',
+      actor: 'Admin: Juan',
+      accion: 'Modificación de Geocerca en Viaje #204',
+      ip: '10.0.0.5',
+      metadata: {
+        'previous_value': '50m',
+        'new_value': '20m',
+        'reason': 'Niebla reportada',
+        'timestamp_server':
+            DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
+      },
+      relatedRoute: '/viajes/204',
+    ),
+    LogAuditoria(
+      id: 'LOG-9018',
+      fecha: DateTime.now().subtract(const Duration(hours: 2)),
+      nivel: 'INFO',
+      actor: 'Sistema',
+      accion: 'Sincronización automática de itinerarios completada',
+      ip: 'Server CronJob',
+      metadata: {'trips_synced': 12, 'duration_ms': 3420, 'status': 'success'},
+    ),
+    LogAuditoria(
+      id: 'LOG-9017',
+      fecha: DateTime.now().subtract(const Duration(hours: 5)),
+      nivel: 'CRITICO',
+      actor: 'Guía: Pedro S.',
+      accion: 'Pérdida total de conexión por 10 minutos',
+      ip: 'App Móvil (Offline)',
+      metadata: {
+        'device_id': 'IOS-P42',
+        'signal_strength': '0%',
+        'last_known_loc': 'Zona Montañosa',
+        'offline_duration': '600s',
+        'battery_level': '22%',
+      },
+      relatedRoute: '/viajes/205',
+    ),
+  ];
+
+  // 4. Para Pantalla "Auditoría"
+  Future<List<LogAuditoria>> getAuditLogs() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    return _logs; // Retorna la lista ordenada por defecto
   }
 
   // 5. Get Turistas by Viaje ID
