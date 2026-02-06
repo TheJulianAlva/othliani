@@ -84,6 +84,9 @@ class MockDatabase {
       turistas: 15,
       latitud: 19.4326,
       longitud: -99.1332,
+      guiaNombre: 'Marcos Ruiz',
+      horaInicio: '09:00 AM',
+      alertasActivas: 1, // Ana G. en pánico
     ),
     const Viaje(
       id: '205',
@@ -92,6 +95,9 @@ class MockDatabase {
       turistas: 8,
       latitud: 19.3117,
       longitud: -99.3147,
+      guiaNombre: 'Pedro Sánchez',
+      horaInicio: '08:30 AM',
+      alertasActivas: 2, // Batería baja + Conectividad
     ),
     const Viaje(
       id: '110',
@@ -100,6 +106,9 @@ class MockDatabase {
       turistas: 40,
       latitud: 19.6925,
       longitud: -98.8439,
+      guiaNombre: 'Ana Torres',
+      horaInicio: '07:00 AM',
+      alertasActivas: 1, // Luis P. alejado
     ),
 
     // Viajes Futuros
@@ -110,6 +119,9 @@ class MockDatabase {
       turistas: 12,
       latitud: 19.108,
       longitud: -99.759,
+      guiaNombre: 'Carlos Vega',
+      horaInicio: 'Mañana 06:00 AM',
+      alertasActivas: 0,
     ),
     const Viaje(
       id: '306',
@@ -118,6 +130,9 @@ class MockDatabase {
       turistas: 8,
       latitud: 19.192,
       longitud: -100.131,
+      guiaNombre: 'Luisa Lane',
+      horaInicio: 'En 2 días',
+      alertasActivas: 0,
     ),
     const Viaje(
       id: '307',
@@ -126,6 +141,9 @@ class MockDatabase {
       turistas: 20,
       latitud: 19.295,
       longitud: -99.099,
+      guiaNombre: 'Roberto Gómez',
+      horaInicio: 'Sábado 10:00 AM',
+      alertasActivas: 0,
     ),
     const Viaje(
       id: '308',
@@ -134,6 +152,9 @@ class MockDatabase {
       turistas: 10,
       latitud: 18.986,
       longitud: -99.100,
+      guiaNombre: 'María López',
+      horaInicio: 'Domingo 08:00 AM',
+      alertasActivas: 0,
     ),
     const Viaje(
       id: '309',
@@ -142,6 +163,9 @@ class MockDatabase {
       turistas: 15,
       latitud: 18.556,
       longitud: -99.605,
+      guiaNombre: 'Sin asignar',
+      horaInicio: 'Próxima semana',
+      alertasActivas: 0,
     ),
 
     // Viajes Pasados
@@ -152,6 +176,9 @@ class MockDatabase {
       turistas: 25,
       latitud: 16.835,
       longitud: -93.033,
+      guiaNombre: 'Jorge Ramírez',
+      horaInicio: 'Hace 3 horas',
+      alertasActivas: 0, // Sin incidentes
     ),
   ];
 
@@ -1546,7 +1573,7 @@ class MockDatabase {
         'guias_offline': guiasOffline,
       },
       // Listas completas para pintar mapas y tablas
-      'active_trips': viajesActivos,
+      'active_trips': _viajes, // ← TODOS los viajes para que el mapa filtre
       'alertas_recientes': _alertas,
     };
   }
