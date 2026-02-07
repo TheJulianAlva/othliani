@@ -21,8 +21,8 @@ class MockDatabase {
     const Guia(
       id: 'G-02',
       nombre: 'Ana Paula G.',
-      status: 'ONLINE',
-      viajesAsignados: 0,
+      status: 'EN_RUTA',
+      viajesAsignados: 1,
     ),
     const Guia(
       id: 'G-03',
@@ -106,7 +106,7 @@ class MockDatabase {
       turistas: 40,
       latitud: 19.6925,
       longitud: -98.8439,
-      guiaNombre: 'Ana Torres',
+      guiaNombre: 'Ana Paula G.',
       horaInicio: '07:00 AM',
       alertasActivas: 1, // Luis P. alejado
     ),
@@ -1578,6 +1578,71 @@ class MockDatabase {
     };
   }
 
+  // Método de búsqueda universal para autocomplete
+  Future<List<Map<String, dynamic>>> searchAll(String query) async {
+    await Future.delayed(const Duration(milliseconds: 100)); // Simular latencia
+
+    if (query.trim().isEmpty) return [];
+
+    final lowerQuery = query.toLowerCase();
+    final results = <Map<String, dynamic>>[];
+
+    // PRIORIDAD 1: Buscar en viajes PRIMERO (por ID exacto o destino)
+    for (final viaje in _viajes) {
+      // Coincidencia exacta de ID tiene máxima prioridad
+      if (viaje.id == query ||
+          viaje.id.toLowerCase().contains(lowerQuery) ||
+          viaje.destino.toLowerCase().contains(lowerQuery)) {
+        results.add({
+          'type': 'trip',
+          'id': viaje.id,
+          'destino': viaje.destino,
+          'estado': viaje.estado,
+          'turistas': viaje.turistas,
+        });
+      }
+    }
+
+    // PRIORIDAD 2: Buscar en guías
+    for (final guia in _guias) {
+      if (guia.nombre.toLowerCase().contains(lowerQuery) ||
+          guia.id.toLowerCase().contains(lowerQuery)) {
+        results.add({
+          'type': 'guide',
+          'id': guia.id,
+          'nombre': guia.nombre,
+          'status': guia.status,
+          'viajesAsignados': guia.viajesAsignados,
+        });
+      }
+    }
+
+    // PRIORIDAD 3: Buscar en turistas
+    // Solo buscar por NOMBRE, no por ID (los IDs son T-01, T-02, etc. y causan falsos positivos)
+    for (final turista in _turistas) {
+      if (turista.nombre.toLowerCase().contains(lowerQuery)) {
+        results.add({
+          'type': 'tourist',
+          'id': turista.id,
+          'nombre': turista.nombre,
+          'viajeId': turista.viajeId,
+          'status': turista.status,
+        });
+      }
+    }
+
+    // Limitar resultados de forma balanceada: máximo 5 de cada tipo
+    final trips = results.where((r) => r['type'] == 'trip').take(5).toList();
+    final guides = results.where((r) => r['type'] == 'guide').take(5).toList();
+    final tourists =
+        results.where((r) => r['type'] == 'tourist').take(5).toList();
+
+    // Combinar manteniendo prioridad: trips, guides, tourists
+    final balancedResults = [...trips, ...guides, ...tourists];
+
+    return balancedResults.take(15).toList();
+  }
+
   // --- MÉTODOS API SIMULADOS (CRUD) ---
 
   // 1. Para Pantalla "Gestión de Viajes"
@@ -1697,6 +1762,16 @@ class MockDatabase {
   Future<List<Alerta>> getAlertasByViajeId(String viajeId) async {
     await Future.delayed(const Duration(milliseconds: 300));
     return _alertas.where((a) => a.viajeId == viajeId).toList();
+  }
+
+  // 6.1. Get Recent Alertas (sorted by timestamp, most recent first)
+  Future<List<Alerta>> getRecentAlertas({int limit = 3}) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final sortedAlertas = List<Alerta>.from(_alertas);
+    sortedAlertas.sort(
+      (a, b) => b.hora.compareTo(a.hora),
+    ); // Más reciente primero
+    return sortedAlertas.take(limit).toList();
   }
 
   // 7. Simulate Trip Cancellation/Deletion

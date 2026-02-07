@@ -109,7 +109,10 @@ class DashboardScreen extends StatelessWidget {
                           // MAPA INTERACTIVO
                           Expanded(
                             flex: 2,
-                            child: AgencyMapWidget(viajes: data.viajesEnMapa),
+                            child: AgencyMapWidget(
+                              viajes: data.viajesEnMapa,
+                              alertas: data.alertasRecientes,
+                            ),
                           ),
 
                           const SizedBox(width: 24),
@@ -119,13 +122,6 @@ class DashboardScreen extends StatelessWidget {
                             flex: 1,
                             child: IncidentPanel(
                               incidentes: data.alertasRecientes,
-                              onIncidentTap: (alerta) {
-                                // Navegación Inteligente:
-                                // Va al detalle del viaje y abre el foco en la alerta
-                                context.go(
-                                  '/viajes/${alerta.viajeId}?alert_focus=${alerta.id}',
-                                );
-                              },
                             ),
                           ),
                         ],

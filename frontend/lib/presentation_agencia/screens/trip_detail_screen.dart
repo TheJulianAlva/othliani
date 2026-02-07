@@ -42,6 +42,17 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   }
 
   @override
+  void didUpdateWidget(TripDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Si el viajeId cambió, recargar los datos
+    if (oldWidget.viajeId != widget.viajeId) {
+      context.read<DetalleViajeBloc>().add(
+        LoadDetalleViajeEvent(id: widget.viajeId),
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _searchFocusNode.dispose();
     super.dispose();

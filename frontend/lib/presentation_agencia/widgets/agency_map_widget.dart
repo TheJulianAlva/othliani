@@ -4,11 +4,17 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/viaje.dart';
+import '../../domain/entities/alerta.dart';
 
 class AgencyMapWidget extends StatefulWidget {
   final List<Viaje> viajes;
+  final List<Alerta> alertas;
 
-  const AgencyMapWidget({super.key, this.viajes = const []});
+  const AgencyMapWidget({
+    super.key,
+    this.viajes = const [],
+    this.alertas = const [],
+  });
 
   @override
   State<AgencyMapWidget> createState() => _AgencyMapWidgetState();
@@ -242,12 +248,12 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
               children: [
                 Expanded(
                   child: Text(
-                    viaje.destino,
+                    "Viaje #${viaje.id} - ${viaje.destino}",
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 14,
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -326,45 +332,62 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
                   ),
                 ),
 
+                const SizedBox(width: 8),
+
+                // Indicador de Alertas (Solo si existen) - COLOR DINÁMICO
+                if (hasAlerts) ...[
+                  () {
+                    // Determinar severidad máxima de las alertas de este viaje
+                    final alertasDelViaje =
+                        widget.alertas
+                            .where((a) => a.viajeId == viaje.id)
+                            .toList();
+                    final maxSeverity = _getMaxSeverity(alertasDelViaje);
+                    final severityColor = _getSeverityColor(maxSeverity);
+                    final severityBgColor = _getSeverityBgColor(maxSeverity);
+
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: severityBgColor,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: severityColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.warning_amber,
+                            size: 12,
+                            color: severityColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            "${viaje.alertasActivas} ${viaje.alertasActivas == 1 ? 'Alerta' : 'Alertas'}",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: severityColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }(),
+                ],
+
                 const Spacer(),
 
-                // Indicador de Alertas (Solo si existen) o botón Ver detalle
-                if (hasAlerts)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.red.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.warning_amber,
-                          size: 12,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          "${viaje.alertasActivas} ${viaje.alertasActivas == 1 ? 'Alerta' : 'Alertas'}",
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  GestureDetector(
-                    onTap: () => context.go('/viajes/${viaje.id}'),
+                // Botón "Ver detalle" - SIEMPRE visible con cursor pointer
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => context.push('/viajes/${viaje.id}'),
                     child: Text(
                       "Ver detalle →",
                       style: TextStyle(
@@ -374,6 +397,7 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
                       ),
                     ),
                   ),
+                ),
               ],
             ),
           ],
@@ -508,5 +532,52 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
       padding: EdgeInsets.zero,
       visualDensity: VisualDensity.compact,
     );
+  }
+
+  // --- MÉTODOS PARA SEVERIDAD DE ALERTAS ---
+
+  String _getMaxSeverity(List<Alerta> alertas) {
+    if (alertas.isEmpty) return 'info';
+
+    // Prioridad: critical > warning > info
+    bool hasCritical = false;
+    bool hasWarning = false;
+
+    for (final alerta in alertas) {
+      final tipo = alerta.tipo;
+      if (tipo == 'PANICO' || tipo == 'CONECTIVIDAD') {
+        hasCritical = true;
+      } else if (tipo == 'DESCONEXION' ||
+          tipo == 'LEJANIA' ||
+          tipo == 'BATERIA') {
+        hasWarning = true;
+      }
+    }
+
+    if (hasCritical) return 'critical';
+    if (hasWarning) return 'warning';
+    return 'info';
+  }
+
+  Color _getSeverityColor(String severity) {
+    switch (severity) {
+      case 'critical':
+        return Colors.red;
+      case 'warning':
+        return Colors.amber.shade800;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  Color _getSeverityBgColor(String severity) {
+    switch (severity) {
+      case 'critical':
+        return Colors.red[50]!;
+      case 'warning':
+        return Colors.amber[50]!;
+      default:
+        return Colors.blue[50]!;
+    }
   }
 }
