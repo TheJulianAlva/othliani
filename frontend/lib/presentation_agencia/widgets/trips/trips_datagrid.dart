@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../blocs/viajes/viajes_bloc.dart';
+import '../../../../domain/entities/viaje.dart';
 
 class TripsDatagrid extends StatefulWidget {
-  const TripsDatagrid({super.key});
+  final List<Viaje> viajes; // Recibe la datos desde el padre
+
+  const TripsDatagrid({super.key, required this.viajes});
 
   @override
   State<TripsDatagrid> createState() => _TripsDatagridState();
@@ -23,134 +24,122 @@ class _TripsDatagridState extends State<TripsDatagrid> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ViajesBloc, ViajesState>(
-      builder: (context, state) {
-        if (state is ViajesLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    // Mapeo de datos (Entity -> ViewModel local)
+    final List<TripData> trips =
+        widget.viajes.map((v) {
+          return TripData(
+            v.id,
+            v.destino,
+            'N/A', // idGuia removed from Entity per user spec
+            "22/01 - 23/01",
+            v.turistas.toString(),
+            _mapStatus(v.estado),
+          );
+        }).toList();
 
-        List<TripData> trips = [];
-        if (state is ViajesLoaded) {
-          trips =
-              state.viajes.map((v) {
-                return TripData(
-                  v.id,
-                  v.destino,
-                  'N/A', // idGuia removed from Entity per user spec
-                  "22/01 - 23/01",
-                  v.turistas.toString(),
-                  _mapStatus(v.estado),
-                );
-              }).toList();
-        } else if (state is ViajesError) {
-          return Center(child: Text(state.message));
-        }
-
-        return Card(
-          margin: const EdgeInsets.all(24),
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          child: Column(
-            children: [
-              Expanded(
+    return Card(
+      margin: const EdgeInsets.all(24),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Column(
+        children: [
+          Expanded(
+            child: Scrollbar(
+              controller: _verticalScrollController,
+              thumbVisibility: true,
+              trackVisibility: true,
+              child: SingleChildScrollView(
+                controller: _verticalScrollController,
+                scrollDirection: Axis.vertical,
                 child: Scrollbar(
-                  controller: _verticalScrollController,
+                  controller: _horizontalScrollController,
                   thumbVisibility: true,
                   trackVisibility: true,
+                  notificationPredicate:
+                      (notification) => notification.depth == 0,
                   child: SingleChildScrollView(
-                    controller: _verticalScrollController,
-                    scrollDirection: Axis.vertical,
-                    child: Scrollbar(
-                      controller: _horizontalScrollController,
-                      thumbVisibility: true,
-                      trackVisibility: true,
-                      notificationPredicate:
-                          (notification) => notification.depth == 0,
-                      child: SingleChildScrollView(
-                        controller: _horizontalScrollController,
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          headingRowColor: WidgetStateProperty.all(
-                            Colors.grey.shade50,
-                          ),
-                          columns: const [
-                            DataColumn(
-                              label: Text(
-                                'FOLIO',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                'DESTINO / NOMBRE',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                'GUÍA ASIGNADO',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                'FECHAS',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                'PAX',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Text(
-                                'ESTADO',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            DataColumn(label: Text('')), // Actions
-                          ],
-                          rows: _buildDataRows(context, trips),
-                        ),
+                    controller: _horizontalScrollController,
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor: WidgetStateProperty.all(
+                        Colors.grey.shade50,
                       ),
+                      columns: const [
+                        DataColumn(
+                          label: Text(
+                            'FOLIO',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'DESTINO / NOMBRE',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'GUÍA ASIGNADO',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'FECHAS',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'PAX',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'ESTADO',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        DataColumn(label: Text('')), // Actions
+                      ],
+                      rows: _buildDataRows(context, trips),
                     ),
                   ),
                 ),
               ),
-              // Simple Pagination Footer
-              const Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 16,
-                  runSpacing: 8,
+            ),
+          ),
+          // Simple Pagination Footer
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 16,
+              runSpacing: 8,
+              children: [
+                Text('Mostrando ${trips.length} filas'),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Mostrando ${trips.length} filas'),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          onPressed: () {},
-                          icon: const Icon(Icons.chevron_left),
-                        ),
-                        const Text('Página 1 de 1'),
-                        IconButton(
-                          onPressed: () {},
-                          icon: const Icon(Icons.chevron_right),
-                        ),
-                      ],
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.chevron_left),
+                    ),
+                    const Text('Página 1 de 1'),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.chevron_right),
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 

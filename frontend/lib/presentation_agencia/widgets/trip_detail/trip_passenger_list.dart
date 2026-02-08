@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import '../../../domain/entities/turista.dart';
 import '../../widgets/trip_detail/passenger_detail_modal.dart';
 
-class TripPassengerList extends StatelessWidget {
+class TripPassengerList extends StatefulWidget {
   final List<Turista> turistas;
   final String estadoViaje; // 'PROGRAMADO', 'EN_CURSO', 'FINALIZADO'
   final bool isLive;
   final FocusNode? searchFocusNode;
   final bool highlightSearch;
+  final String? focusAlertId; // ← NUEVO: ID de alerta para resaltar
 
   const TripPassengerList({
     super.key,
@@ -16,8 +17,53 @@ class TripPassengerList extends StatelessWidget {
     this.isLive = true,
     this.searchFocusNode,
     this.highlightSearch = false,
+    this.focusAlertId, // ← NUEVO
   });
 
+  @override
+  State<TripPassengerList> createState() => _TripPassengerListState();
+}
+
+class _TripPassengerListState extends State<TripPassengerList> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-scroll al turista enfocado si hay un alert_focus
+    if (widget.focusAlertId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToFocusedItem();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToFocusedItem() {
+    // Buscar el índice del turista que coincide con el focusAlertId
+    final index = widget.turistas.indexWhere(
+      (t) => t.id == widget.focusAlertId,
+    );
+
+    if (index != -1 && _scrollController.hasClients) {
+      // Altura estimada de cada item (ajustar según diseño real)
+      const double itemHeight = 80.0;
+      final double targetPosition = index * itemHeight;
+
+      _scrollController.animateTo(
+        targetPosition,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -34,9 +80,9 @@ class TripPassengerList extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  isLive
-                      ? 'NÓMINA (PAX: ${turistas.length})'
-                      : 'LISTA DE PARTICIPANTES (${turistas.length} personas)',
+                  widget.isLive
+                      ? 'NÓMINA (PAX: ${widget.turistas.length})'
+                      : 'LISTA DE PARTICIPANTES (${widget.turistas.length} personas)',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -45,13 +91,13 @@ class TripPassengerList extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 TextField(
-                  focusNode: searchFocusNode,
+                  focusNode: widget.searchFocusNode,
                   decoration: InputDecoration(
                     hintText: 'Buscar Turista...',
                     prefixIcon: Icon(
                       Icons.search,
                       size: 18,
-                      color: highlightSearch ? Colors.blue : Colors.grey,
+                      color: widget.highlightSearch ? Colors.blue : Colors.grey,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 0,
@@ -79,14 +125,19 @@ class TripPassengerList extends StatelessWidget {
           // List
           Expanded(
             child: ListView.builder(
+              controller: _scrollController, // ← Conectar ScrollController
               padding: EdgeInsets.zero,
-              itemCount: turistas.length,
+              itemCount: widget.turistas.length,
               itemBuilder: (context, index) {
-                final turista = turistas[index];
+                final turista = widget.turistas[index];
+                final bool isFocused =
+                    turista.id == widget.focusAlertId; // ← Detectar foco
+
                 return _buildPaxItem(
                   context: context,
                   turista: turista,
-                  isLive: isLive,
+                  isLive: widget.isLive,
+                  isFocused: isFocused, // ← Pasar estado de foco
                 );
               },
             ),
@@ -116,6 +167,7 @@ class TripPassengerList extends StatelessWidget {
     required BuildContext context,
     required Turista turista,
     required bool isLive,
+    required bool isFocused, // ← NUEVO: Indica si este item debe resaltarse
   }) {
     final status = _mapEstadoToStatus(turista.status);
     Color statusColor;
@@ -140,9 +192,15 @@ class TripPassengerList extends StatelessWidget {
         break;
     }
 
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFF5F5F5))),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        color: isFocused ? Colors.orange.withValues(alpha: 0.15) : Colors.white,
+        border:
+            isFocused
+                ? Border.all(color: Colors.orange, width: 3)
+                : const Border(bottom: BorderSide(color: Color(0xFFF5F5F5))),
       ),
       child: Material(
         color: Colors.transparent,
@@ -153,7 +211,7 @@ class TripPassengerList extends StatelessWidget {
               builder:
                   (context) => PassengerDetailModal(
                     turista: turista,
-                    estadoViaje: estadoViaje,
+                    estadoViaje: widget.estadoViaje, // ← Corregido
                   ),
             );
           },

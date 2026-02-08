@@ -3,8 +3,13 @@ import '../../../domain/entities/viaje.dart';
 
 class TripControlPanel extends StatelessWidget {
   final Viaje viaje;
+  final bool guideHasAlert; // ← Nuevo parámetro
 
-  const TripControlPanel({super.key, required this.viaje});
+  const TripControlPanel({
+    super.key,
+    required this.viaje,
+    this.guideHasAlert = false, // Por defecto false
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +54,17 @@ class TripControlPanel extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color:
+                    guideHasAlert
+                        ? Colors.red.shade50
+                        : Colors.grey.shade50, // Fondo rojo si alerta
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(
+                  color:
+                      guideHasAlert
+                          ? Colors.red.shade200
+                          : Colors.grey.shade200, // Borde rojo si alerta
+                ),
               ),
               child: Column(
                 children: [
@@ -76,13 +89,33 @@ class TripControlPanel extends StatelessWidget {
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const Text(
-                              'Líder',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                            Row(
+                              children: [
+                                Text(
+                                  'Líder',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                if (guideHasAlert) ...[
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.warning_rounded,
+                                    color: Colors.red,
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  const Text(
+                                    'SIN CONEXIÓN',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ],
                         ),
@@ -94,7 +127,11 @@ class TripControlPanel extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildStat(Icons.battery_full, '85%', Colors.green),
+                      _buildStat(
+                        Icons.battery_full,
+                        guideHasAlert ? '?' : '85%',
+                        guideHasAlert ? Colors.grey : Colors.green,
+                      ),
                       Container(
                         height: 16,
                         width: 1,

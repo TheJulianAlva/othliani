@@ -11,11 +11,15 @@ import '../../domain/entities/turista.dart';
 class TripDetailScreen extends StatefulWidget {
   final String viajeId;
   final String? highlightSection;
+  final String? returnTo; // <--- Para navegación contextual
+  final String? alertFocus; // <--- NUEVO: ID de alerta para resaltar turista
 
   const TripDetailScreen({
     super.key,
     required this.viajeId,
     this.highlightSection,
+    this.returnTo,
+    this.alertFocus, // <--- Recibimos el parámetro
   });
 
   @override
@@ -106,10 +110,17 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.black87),
         onPressed: () {
-          if (context.canPop()) {
-            context.pop();
+          // NAVEGACIÓN CONTEXTUAL INTELIGENTE
+          if (widget.returnTo == 'dashboard') {
+            // Si vino del dashboard, forzamos la vuelta allá
+            context.go('/dashboard');
           } else {
-            context.go('/viajes');
+            // Comportamiento normal (volver a la lista de viajes)
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/viajes');
+            }
           }
         },
       ),
@@ -228,7 +239,14 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // 1. Control Panel (Left - 20%)
-        Expanded(flex: 20, child: TripControlPanel(viaje: viaje)),
+        Expanded(
+          flex: 20,
+          child: TripControlPanel(
+            viaje: viaje,
+            guideHasAlert:
+                viaje.id == '205', // Mock logic: Viaje 205 tiene alerta de Guía
+          ),
+        ),
 
         // Divider
         VerticalDivider(width: 1, color: Colors.grey.shade300),
@@ -274,6 +292,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
               isLive: true,
               searchFocusNode: _searchFocusNode,
               highlightSearch: highlightTuristas,
+              focusAlertId:
+                  widget.alertFocus, // ← Pasar ID de alerta para resaltar
             ),
           ),
         ),
@@ -329,6 +349,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
               isLive: false,
               searchFocusNode: _searchFocusNode,
               highlightSearch: false,
+              focusAlertId:
+                  widget.alertFocus, // ← Pasar ID de alerta para resaltar
             ),
           ),
         ],

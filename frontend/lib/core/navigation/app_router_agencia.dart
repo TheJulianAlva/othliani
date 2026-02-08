@@ -82,8 +82,14 @@ class AppRouterAgencia {
                 child: BlocProvider(
                   create:
                       (_) =>
-                          di.sl<ViajesBloc>()
-                            ..add(LoadViajesEvent(filter: filter)),
+                          di.sl<ViajesBloc>()..add(
+                            LoadViajesEvent(
+                              filterStatus:
+                                  filter != null
+                                      ? filter.toUpperCase()
+                                      : 'TODOS',
+                            ),
+                          ),
                   child: const TripsScreen(),
                 ),
               );
@@ -95,12 +101,17 @@ class AppRouterAgencia {
                 builder: (context, state) {
                   final viajeId = state.pathParameters['id']!;
                   final section = state.uri.queryParameters['section'];
+                  final returnTo = state.uri.queryParameters['return_to'];
+                  final alertFocus =
+                      state.uri.queryParameters['alert_focus']; // <--- NUEVO
 
                   return BlocProvider(
                     create: (_) => di.sl<DetalleViajeBloc>(),
                     child: TripDetailScreen(
                       viajeId: viajeId,
                       highlightSection: section,
+                      returnTo: returnTo,
+                      alertFocus: alertFocus, // <--- Pasamos al widget
                     ),
                   );
                 },

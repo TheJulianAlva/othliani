@@ -158,9 +158,14 @@ class _IncidentPanelState extends State<IncidentPanel> {
                           ),
                           onTap: () {
                             // Navegación inteligente al contexto
-                            context.push(
-                              '/viajes/${item.viajeId}?alert_focus=${item.id}',
-                            );
+                            // Si la alerta tiene turistaId, resaltar ese turista
+                            // Si no (alerta de sistema), solo navegar al viaje
+                            final focusParam =
+                                item.turistaId != null
+                                    ? '?alert_focus=${item.turistaId}&return_to=dashboard'
+                                    : '?return_to=dashboard';
+
+                            context.push('/viajes/${item.viajeId}$focusParam');
                           },
                         );
                       },

@@ -601,7 +601,7 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 decoration: InputDecoration(
-                  hintText: 'Buscar guía, turista o ID de viaje...',
+                  hintText: 'Buscar guía, turista o destino...',
                   prefixIcon: const Icon(
                     Icons.search,
                     size: 20,
@@ -688,8 +688,15 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                         // Usar Future.microtask para navegar después de que el popup se cierre
                         Future.microtask(() {
                           if (mounted) {
+                            // Navegación inteligente con resaltado contextual
+                            // Si la alerta tiene turistaId, resaltar ese turista
+                            final focusParam =
+                                alerta.turistaId != null
+                                    ? '?alert_focus=${alerta.turistaId}&return_to=dashboard'
+                                    : '?return_to=dashboard';
+
                             // ignore: use_build_context_synchronously
-                            context.go('/viajes/${alerta.viajeId}');
+                            context.go('/viajes/${alerta.viajeId}$focusParam');
                           }
                         });
                       },

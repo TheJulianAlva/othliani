@@ -58,10 +58,10 @@ class DashboardScreen extends StatelessWidget {
                         const SizedBox(width: 16),
                         Expanded(
                           child: KPICard(
-                            title: 'TURISTAS',
+                            title: 'EN RUTA',
                             value: '${data.turistasEnCampo}',
-                            subtitle: 'En campo',
-                            icon: Icons.groups,
+                            subtitle: '${data.turistasSinRed} Sin Red',
+                            icon: Icons.hiking,
                             onTap:
                                 () => context.go(
                                   '${RoutesAgencia.usuarios}?tab=clientes',

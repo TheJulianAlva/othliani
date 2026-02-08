@@ -370,7 +370,7 @@ class MockDatabase {
       id: 'T-205-08',
       nombre: 'Sofía Morales',
       viajeId: '205',
-      status: 'OK',
+      status: 'ADVERTENCIA', // ← CORREGIDO: Para que salga amarillo
       bateria: 0.22,
       enCampo: true,
     ),
@@ -700,6 +700,8 @@ class MockDatabase {
     ),
 
     // --- Turistas Offline (Sin red, pero en campo) ---
+    // COMENTADO PARA CUADRAR KPI: Suman 3 extra y dan 66 en vez de 63.
+    /*
     const Turista(
       id: 'T-OFF-1',
       nombre: 'Pepe L.',
@@ -724,6 +726,7 @@ class MockDatabase {
       bateria: 0.20,
       enCampo: true,
     ),
+    */
 
     // --- Grupo Viaje 305: Nevado de Toluca (12 pax) - PROGRAMADO ---
     const Turista(
@@ -1500,6 +1503,7 @@ class MockDatabase {
       id: 'A-01',
       viajeId: '204',
       nombreTurista: 'Ana G.',
+      turistaId: 'T-01', // ← NUEVO: ID del turista
       tipo: 'PANICO',
       hora: DateTime.now().subtract(const Duration(minutes: 5)),
       esCritica: true,
@@ -1509,6 +1513,7 @@ class MockDatabase {
       id: 'A-02',
       viajeId: '110',
       nombreTurista: 'Luis P.',
+      turistaId: 'T-110-01', // ← CORREGIDO: ID real de Luis P.
       tipo: 'LEJANIA',
       hora: DateTime.now().subtract(const Duration(minutes: 15)),
       esCritica: false,
@@ -1518,6 +1523,7 @@ class MockDatabase {
       id: 'A-03',
       viajeId: '205',
       nombreTurista: 'Sofía Morales',
+      turistaId: 'T-205-08', // ← CORREGIDO: ID real de Sofía Morales
       tipo: 'BATERIA',
       hora: DateTime.now().subtract(const Duration(hours: 1)),
       esCritica: false,
@@ -1527,10 +1533,33 @@ class MockDatabase {
       id: 'A-04',
       viajeId: '205',
       nombreTurista: 'Guía: Pedro S.',
+      turistaId: null, // ← NUEVO: null porque es alerta del guía, no turista
       tipo: 'CONECTIVIDAD',
       hora: DateTime.now().subtract(const Duration(hours: 5)),
       esCritica: true,
       mensaje: 'PÉRDIDA DE CONEXIÓN - Guía sin señal por 10 minutos',
+    ),
+    // Alerta INFO - Sincronización automática
+    Alerta(
+      id: 'A-05',
+      viajeId: '110',
+      nombreTurista: 'Sistema',
+      turistaId: null, // ← NUEVO: null porque es alerta de sistema
+      tipo: 'SINCRONIZACION',
+      hora: DateTime.now().subtract(const Duration(minutes: 40)),
+      esCritica: false,
+      mensaje: 'Sincronización automática de itinerarios completada',
+    ),
+    // Alerta INFO - Modificación de geocerca
+    Alerta(
+      id: 'A-06',
+      viajeId: '204',
+      nombreTurista: 'Admin Juan',
+      turistaId: null, // ← NUEVO: null porque es alerta de sistema
+      tipo: 'MODIFICACION',
+      hora: DateTime.now().subtract(const Duration(hours: 2)),
+      esCritica: false,
+      mensaje: 'Modificación de Geocerca en Viaje #204',
     ),
   ];
 

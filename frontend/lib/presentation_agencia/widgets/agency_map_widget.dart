@@ -213,9 +213,8 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
 
     return GestureDetector(
       onTap: () {
-        // Al tocar la tarjeta, solo movemos el mapa a esa ubicación
-        _animateCameraTo(viaje);
-        setState(() => _selectedIndex = pageIndex);
+        // Al tocar la tarjeta, navegamos al detalle del viaje
+        context.go('/viajes/${viaje.id}?return_to=dashboard');
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
@@ -387,7 +386,10 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
-                    onTap: () => context.push('/viajes/${viaje.id}'),
+                    onTap:
+                        () => context.go(
+                          '/viajes/${viaje.id}?return_to=dashboard',
+                        ),
                     child: Text(
                       "Ver detalle →",
                       style: TextStyle(
