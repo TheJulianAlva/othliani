@@ -388,4 +388,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get incorrectDataContent =>
       'Comunicate con la empresa o persona que te registró si crees que pudo haber ocurrido un error al registrar tus datos.';
+
+  @override
+  String get supportChat => 'Chat de Soporte';
+
+  @override
+  String get noMessages => 'No hay mensajes';
+
+  @override
+  String get writeMessage => 'Escribe un mensaje...';
 }
