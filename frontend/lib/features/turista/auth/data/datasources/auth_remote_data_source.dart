@@ -4,9 +4,35 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> login(String email, String password);
   Future<UserModel> register(String name, String email, String password);
   Future<void> sendPasswordResetEmail(String email);
+  Future<bool> verifyFolio(String folio);
+  Future<void> requestPhoneCode(String phoneNumber);
+  Future<bool> verifyPhoneCode(String phoneNumber, String code);
+  Future<void> resendEmailVerification(String email);
 }
 
 class AuthMockDataSource implements AuthRemoteDataSource {
+  @override
+  Future<bool> verifyFolio(String folio) async {
+    await Future.delayed(const Duration(seconds: 1));
+    return folio.isNotEmpty && folio != 'invalid';
+  }
+
+  @override
+  Future<void> requestPhoneCode(String phoneNumber) async {
+    await Future.delayed(const Duration(seconds: 1));
+  }
+
+  @override
+  Future<bool> verifyPhoneCode(String phoneNumber, String code) async {
+    await Future.delayed(const Duration(seconds: 1));
+    return code == '123456';
+  }
+
+  @override
+  Future<void> resendEmailVerification(String email) async {
+    await Future.delayed(const Duration(seconds: 1));
+  }
+
   @override
   Future<UserModel> login(String email, String password) async {
     // Simulate network delay

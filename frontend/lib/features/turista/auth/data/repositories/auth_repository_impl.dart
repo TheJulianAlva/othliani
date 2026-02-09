@@ -62,6 +62,49 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, bool>> verifyFolio(String folio) async {
+    try {
+      final isValid = await remoteDataSource.verifyFolio(folio);
+      return Right(isValid);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> requestPhoneCode(String phoneNumber) async {
+    try {
+      await remoteDataSource.requestPhoneCode(phoneNumber);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> verifyPhoneCode(
+    String phoneNumber,
+    String code,
+  ) async {
+    try {
+      final isValid = await remoteDataSource.verifyPhoneCode(phoneNumber, code);
+      return Right(isValid);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> resendEmailVerification(String email) async {
+    try {
+      await remoteDataSource.resendEmailVerification(email);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, User?>> checkAuthStatus() async {
     try {
       final userModel = await localDataSource.getLastUser();

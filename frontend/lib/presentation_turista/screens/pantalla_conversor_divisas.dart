@@ -1,48 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:io';
 import '../../core/theme/app_constants.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
+import 'package:frontend/core/di/service_locator.dart';
+import 'package:frontend/features/turista/tools/currency/presentation/cubit/currency_cubit.dart';
+import 'package:frontend/features/turista/tools/currency/presentation/cubit/currency_state.dart';
 
-class CurrencyConverterScreen extends StatefulWidget {
+class CurrencyConverterScreen extends StatelessWidget {
   const CurrencyConverterScreen({super.key});
 
   @override
-  State<CurrencyConverterScreen> createState() =>
-      _CurrencyConverterScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<CurrencyCubit>()..init(),
+      child: const _CurrencyConverterView(),
+    );
+  }
 }
 
-class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
+class _CurrencyConverterView extends StatefulWidget {
+  const _CurrencyConverterView();
+
+  @override
+  State<_CurrencyConverterView> createState() => _CurrencyConverterViewState();
+}
+
+class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
   final TextEditingController _amountController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
-  String _fromCurrency = 'USD';
-  String _toCurrency = 'MXN';
-  double _result = 0.0;
+  // Local state for OCR image and loading, as these are UI specific
   bool _isLoading = false;
   File? _selectedImage;
-
-  final Map<String, Map<String, double>> _exchangeRates = {
-    'USD': {'MXN': 17.5, 'EUR': 0.92, 'GBP': 0.79, 'JPY': 149.5, 'CAD': 1.36},
-    'MXN': {
-      'USD': 0.057,
-      'EUR': 0.052,
-      'GBP': 0.045,
-      'JPY': 8.54,
-      'CAD': 0.078,
-    },
-    'EUR': {'USD': 1.09, 'MXN': 19.1, 'GBP': 0.86, 'JPY': 162.8, 'CAD': 1.48},
-    'GBP': {'USD': 1.27, 'MXN': 22.2, 'EUR': 1.16, 'JPY': 189.5, 'CAD': 1.72},
-    'JPY': {
-      'USD': 0.0067,
-      'MXN': 0.117,
-      'EUR': 0.0061,
-      'GBP': 0.0053,
-      'CAD': 0.0091,
-    },
-    'CAD': {'USD': 0.74, 'MXN': 12.9, 'EUR': 0.68, 'GBP': 0.58, 'JPY': 109.9},
-  };
 
   final List<Map<String, String>> _currencies = [
     {
@@ -64,12 +56,10 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     super.dispose();
   }
 
-  void _convertCurrency() {
+  void _convertCurrency(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     if (_amountController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.enterAmount)));
+      // Allow empty to just reset result or do nothing
       return;
     }
 
@@ -81,21 +71,11 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
       return;
     }
 
-    setState(() {
-      final rate = _exchangeRates[_fromCurrency]?[_toCurrency] ?? 1.0;
-      _result = amount * rate;
-    });
-  }
-
-  void _swapCurrencies() {
-    setState(() {
-      final temp = _fromCurrency;
-      _fromCurrency = _toCurrency;
-      _toCurrency = temp;
-      if (_amountController.text.isNotEmpty) {
-        _convertCurrency();
-      }
-    });
+    final cubit = context.read<CurrencyCubit>();
+    if (cubit.state is CurrencyLoaded) {
+      final state = cubit.state as CurrencyLoaded;
+      cubit.convert(amount, state.fromCurrency, state.toCurrency);
+    }
   }
 
   Future<void> _takePicture() async {
@@ -175,7 +155,8 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
         _isLoading = false;
         if (foundNumber != null) {
           _amountController.text = foundNumber;
-          _convertCurrency();
+
+          _convertCurrency(context);
         }
       });
 
@@ -199,233 +180,279 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (_selectedImage != null)
-                      Container(
-                        height: 200,
-                        margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                            AppBorderRadius.md,
-                          ),
-                          border: Border.all(color: theme.colorScheme.primary),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            AppBorderRadius.md,
-                          ),
-                          child: Image.file(_selectedImage!, fit: BoxFit.cover),
-                        ),
-                      ),
+    return BlocBuilder<CurrencyCubit, CurrencyState>(
+      builder: (context, state) {
+        String fromCurrency = 'USD';
+        String toCurrency = 'MXN';
+        double result = 0.0;
+        Map<String, double> rates = {};
 
-                    // Buttons wrapped to handle large text
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      alignment: WrapAlignment.center,
+        if (state is CurrencyLoaded) {
+          fromCurrency = state.fromCurrency;
+          toCurrency = state.toCurrency;
+          result = state.result;
+          rates = state.rates;
+        }
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        ElevatedButton.icon(
-                          onPressed: _takePicture,
-                          icon: const Icon(Icons.camera_alt),
-                          label: Text(
-                            l10n.takePhoto,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
+                        if (_selectedImage != null)
+                          Container(
+                            height: 200,
+                            margin: const EdgeInsets.only(
+                              bottom: AppSpacing.md,
                             ),
-                          ),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: _pickFromGallery,
-                          icon: const Icon(Icons.photo_library),
-                          label: Text(
-                            l10n.gallery,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: AppSpacing.lg),
-                    const Divider(),
-                    const SizedBox(height: AppSpacing.lg),
-
-                    TextField(
-                      controller: _amountController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: l10n.amount,
-                        hintText: l10n.enterAmount,
-                        prefixIcon: const Icon(Icons.attach_money),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _amountController.clear();
-                            setState(() {
-                              _result = 0.0;
-                              _selectedImage = null;
-                            });
-                          },
-                        ),
-                      ),
-                      onChanged: (_) => _convertCurrency(),
-                    ),
-
-                    const SizedBox(height: AppSpacing.lg),
-
-                    _buildCurrencySelector(
-                      label: l10n.from,
-                      value: _fromCurrency,
-                      onChanged: (value) {
-                        setState(() {
-                          _fromCurrency = value!;
-                          _convertCurrency();
-                        });
-                      },
-                    ),
-
-                    const SizedBox(height: AppSpacing.md),
-
-                    Center(
-                      child: IconButton(
-                        onPressed: _swapCurrencies,
-                        icon: const Icon(Icons.swap_vert, size: 32),
-                        style: IconButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary.withValues(
-                            alpha: 0.1,
-                          ),
-                          foregroundColor: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: AppSpacing.md),
-
-                    _buildCurrencySelector(
-                      label: l10n.to,
-                      value: _toCurrency,
-                      onChanged: (value) {
-                        setState(() {
-                          _toCurrency = value!;
-                          _convertCurrency();
-                        });
-                      },
-                    ),
-
-                    const SizedBox(height: AppSpacing.xl),
-
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                        border: Border.all(
-                          color: theme.colorScheme.primary,
-                          width: 2,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            l10n.result,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '${_getCurrencySymbol(_toCurrency)} ${_result.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(
+                                AppBorderRadius.md,
+                              ),
+                              border: Border.all(
                                 color: theme.colorScheme.primary,
                               ),
                             ),
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            _getCurrencyName(_toCurrency),
-                            style: theme.textTheme.bodySmall,
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: AppSpacing.md),
-
-                    if (_amountController.text.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(
-                            AppBorderRadius.sm,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 16,
-                              color: theme.colorScheme.onSurfaceVariant,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                AppBorderRadius.md,
+                              ),
+                              child: Image.file(
+                                _selectedImage!,
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                            const SizedBox(width: AppSpacing.xs),
-                            Flexible(
-                              child: Text(
-                                '1 $_fromCurrency = ${(_exchangeRates[_fromCurrency]?[_toCurrency] ?? 0).toStringAsFixed(4)} $_toCurrency',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
+                          ),
+
+                        // Buttons wrapped to handle large text
+                        Wrap(
+                          spacing: AppSpacing.sm,
+                          runSpacing: AppSpacing.sm,
+                          alignment: WrapAlignment.center,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _takePicture,
+                              icon: const Icon(Icons.camera_alt),
+                              label: Text(
+                                l10n.takePhoto,
                                 overflow: TextOverflow.ellipsis,
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 16,
+                                ),
+                              ),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: _pickFromGallery,
+                              icon: const Icon(Icons.photo_library),
+                              label: Text(
+                                l10n.gallery,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 16,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
 
-                    const SizedBox(height: AppSpacing.xl),
-                  ],
+                        const SizedBox(height: AppSpacing.lg),
+                        const Divider(),
+                        const SizedBox(height: AppSpacing.lg),
+
+                        TextField(
+                          controller: _amountController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: l10n.amount,
+                            hintText: l10n.enterAmount,
+                            prefixIcon: const Icon(Icons.attach_money),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _amountController.clear();
+                                context.read<CurrencyCubit>().updateCurrencies(
+                                  fromCurrency,
+                                  toCurrency,
+                                );
+                                setState(() {
+                                  _selectedImage = null;
+                                });
+                              },
+                            ),
+                          ),
+                          onChanged: (_) => _convertCurrency(context),
+                        ),
+
+                        const SizedBox(height: AppSpacing.lg),
+
+                        _buildCurrencySelector(
+                          context,
+                          label: l10n.from,
+                          value: fromCurrency,
+                          onChanged: (value) {
+                            if (value != null) {
+                              final cubit = context.read<CurrencyCubit>();
+                              cubit.updateCurrencies(value, toCurrency);
+                              _convertCurrency(context);
+                            }
+                          },
+                        ),
+
+                        const SizedBox(height: AppSpacing.md),
+
+                        Center(
+                          child: IconButton(
+                            onPressed: () {
+                              context
+                                  .read<CurrencyCubit>()
+                                  .swapCurrencies()
+                                  .then((_) {
+                                    _convertCurrency(context);
+                                  });
+                            },
+                            icon: const Icon(Icons.swap_vert, size: 32),
+                            style: IconButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary
+                                  .withValues(alpha: 0.1),
+                              foregroundColor: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: AppSpacing.md),
+
+                        _buildCurrencySelector(
+                          context,
+                          label: l10n.to,
+                          value: toCurrency,
+                          onChanged: (value) {
+                            if (value != null) {
+                              final cubit = context.read<CurrencyCubit>();
+                              cubit.updateCurrencies(fromCurrency, value);
+                              _convertCurrency(context);
+                            }
+                          },
+                        ),
+
+                        const SizedBox(height: AppSpacing.xl),
+
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              AppBorderRadius.md,
+                            ),
+                            border: Border.all(
+                              color: theme.colorScheme.primary,
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                l10n.result,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              state is CurrencyLoading
+                                  ? const CircularProgressIndicator()
+                                  : FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      '${_getCurrencySymbol(toCurrency)} ${result.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                _getCurrencyName(toCurrency),
+                                style: theme.textTheme.bodySmall,
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: AppSpacing.md),
+
+                        if (_amountController.text.isNotEmpty &&
+                            rates.containsKey(toCurrency))
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(
+                                AppBorderRadius.sm,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                Flexible(
+                                  child: Text(
+                                    '1 $fromCurrency = ${(rates[toCurrency] ?? 0).toStringAsFixed(4)} $toCurrency',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        const SizedBox(height: AppSpacing.xl),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            if (_isLoading)
-              Container(
-                color: Colors.black54,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-          ],
+                if (_isLoading)
+                  Container(
+                    color: Colors.black54,
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildCurrencySelector({
+  Widget _buildCurrencySelector(
+    BuildContext context, {
     required String label,
     required String value,
     required ValueChanged<String?> onChanged,

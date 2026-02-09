@@ -11,6 +11,13 @@ abstract class AuthRepository {
   );
   Future<Either<Failure, void>> sendPasswordResetEmail(String email);
   Future<Either<Failure, void>> logout();
+  Future<Either<Failure, bool>> verifyFolio(String folio);
+  Future<Either<Failure, void>> requestPhoneCode(String phoneNumber);
+  Future<Either<Failure, bool>> verifyPhoneCode(
+    String phoneNumber,
+    String code,
+  );
+  Future<Either<Failure, void>> resendEmailVerification(String email);
 
   Future<Either<Failure, User?>> checkAuthStatus();
   Future<Either<Failure, void>> completeOnboarding();

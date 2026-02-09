@@ -1,117 +1,103 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:frontend/core/l10n/app_localizations.dart';
-import 'package:go_router/go_router.dart';
-
-import 'core/navigation/enrutador_app_turista.dart';
-import 'core/navigation/routes_turista.dart';
-import 'core/theme/app_theme.dart';
-import 'core/theme/dark_theme.dart';
-import 'core/providers/locale_provider.dart';
-import 'core/providers/theme_provider.dart';
-import 'core/providers/accessibility_provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'core/di/service_locator.dart' as di;
-import 'core/di/service_locator.dart';
+import 'package:frontend/core/di/service_locator.dart';
+import 'package:frontend/core/l10n/app_localizations.dart';
+import 'package:frontend/core/navigation/enrutador_app_turista.dart';
+import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_event.dart';
+import 'package:frontend/features/turista/settings/presentation/cubit/accessibility_cubit.dart';
+import 'package:frontend/features/turista/settings/presentation/cubit/locale_cubit.dart';
+import 'package:frontend/features/turista/settings/presentation/cubit/theme_cubit.dart';
+// Providers legacy
+// import 'package:provider/provider.dart'; // Removing Provider dependency for settings
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await di.setupServiceLocator();
+  await setupServiceLocator();
 
-  final prefs = await SharedPreferences.getInstance();
-  final seenOnboarding = prefs.getBool('seenOnboarding') ?? false;
-  final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-
-  String initialRoute;
-  if (!seenOnboarding) {
-    initialRoute = RoutesTurista.onboarding;
-  } else if (!isLoggedIn) {
-    initialRoute = RoutesTurista.folio;
-  } else {
-    initialRoute = RoutesTurista.home;
-  }
-
-  runApp(MainApp(initialRoute: initialRoute));
+  runApp(const MyApp());
 }
 
-class MainApp extends StatefulWidget {
-  final String initialRoute;
-
-  const MainApp({super.key, required this.initialRoute});
-
-  @override
-  State<MainApp> createState() => _MainAppState();
-}
-
-class _MainAppState extends State<MainApp> {
-  late final GoRouter _router;
-  late final AuthBloc _authBloc;
-
-  @override
-  void initState() {
-    super.initState();
-    _authBloc = sl<AuthBloc>()..add(AuthCheckRequested());
-    _router = EnrutadorAppTurista.createRouter(widget.initialRoute, _authBloc);
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    // We replace MultiProvider with MultiBlocProvider
+    return MultiBlocProvider(
       providers: [
-        BlocProvider.value(value: _authBloc),
-        ChangeNotifierProvider(create: (_) => LocaleProvider()),
-
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AccessibilityProvider()),
+        BlocProvider(create: (_) => sl<AuthBloc>()..add(AuthCheckRequested())),
+        // Settings Cubits
+        BlocProvider(create: (_) => ThemeCubit(sharedPreferences: sl())),
+        BlocProvider(create: (_) => LocaleCubit(sharedPreferences: sl())),
+        BlocProvider(create: (_) => AccessibilityCubit()),
       ],
-      child: Consumer3<LocaleProvider, ThemeProvider, AccessibilityProvider>(
-        builder: (
-          context,
-          localeProvider,
-          themeProvider,
-          accessibilityProvider,
-          child,
-        ) {
-          return MaterialApp.router(
-            title: 'OthliAni - Turista',
-            debugShowCheckedModeBanner: false,
+      child: const _AppView(),
+    );
+  }
+}
 
-            // Localization
-            locale: localeProvider.locale,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [Locale('es'), Locale('en')],
+class _AppView extends StatelessWidget {
+  const _AppView();
 
-            // Theme
-            theme: AppTheme.lightTheme,
-            darkTheme: DarkTheme.theme,
-            themeMode: themeProvider.themeMode,
+  @override
+  Widget build(BuildContext context) {
+    // Access Cubits
+    final themeMode = context.select((ThemeCubit cubit) => cubit.state);
+    final locale = context.select((LocaleCubit cubit) => cubit.state);
+    final accessibilityState = context.select(
+      (AccessibilityCubit cubit) => cubit.state,
+    );
 
-            // Router
-            routerConfig: _router,
+    // Apply accessibility (simple text scale for now, assuming AppTheme uses it or we wrap MaterialApp)
+    // Note: To fully apply accessibility settings like high contrast, we might need to modify AppTheme.
+    // For now we just pass themeMode and locale.
 
-            // Accessibility
-            builder: (context, child) {
-              return MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.linear(
-                    accessibilityProvider.fontScale,
-                  ),
-                ),
-                child: child!,
-              );
-            },
-          );
-        },
-      ),
+    // Create Router with AuthBloc
+    final authBloc = context.read<AuthBloc>();
+    final router = EnrutadorAppTurista.createRouter('/', authBloc);
+
+    return MaterialApp.router(
+      title: 'Turista App',
+      theme:
+          AppTheme
+              .lightTheme, // You might need to adjust AppTheme to accept accessibility params
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeMode,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      routerConfig: router,
+      builder: (context, child) {
+        // Apply text scale factor from accessibility
+        double textScale = 1.0;
+        switch (accessibilityState.fontSize) {
+          case FontSizeOption.small:
+            textScale = 0.8;
+            break;
+          case FontSizeOption.medium:
+            textScale = 1.0;
+            break;
+          case FontSizeOption.large:
+            textScale = 1.2;
+            break;
+          case FontSizeOption.extraLarge:
+            textScale = 1.5;
+            break;
+        }
+
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(textScale),
+            boldText:
+                accessibilityState
+                    .highContrast, // approximating high contrast with bold
+          ),
+          child: child!,
+        );
+      },
+      debugShowCheckedModeBanner: false,
     );
   }
 }
