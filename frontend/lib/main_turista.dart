@@ -12,9 +12,11 @@ import 'core/theme/dark_theme.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/providers/accessibility_provider.dart';
+import 'core/di/service_locator.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await di.setupServiceLocator();
 
   final prefs = await SharedPreferences.getInstance();
   final seenOnboarding = prefs.getBool('seenOnboarding') ?? false;
