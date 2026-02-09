@@ -12,10 +12,10 @@ class TripsScreen extends StatefulWidget {
 }
 
 class _TripsScreenState extends State<TripsScreen> {
-  // Controladores de estado local para la UI
   String _searchQuery = '';
   String _selectedStatus = 'TODOS';
   String _searchField = 'TODO'; // 'TODO', 'GUIA', 'DESTINO', 'ID'
+  DateTimeRange? _selectedDateRange; // <--- CAMBIO: Rango de fechas
   Timer? _debounce; // Para esperar a que el usuario termine de escribir
 
   @override
@@ -24,14 +24,13 @@ class _TripsScreenState extends State<TripsScreen> {
     super.dispose();
   }
 
-  // Método centralizado para disparar el evento
   void _applyFilters() {
     context.read<ViajesBloc>().add(
       LoadViajesEvent(
         query: _searchQuery,
         filterStatus: _selectedStatus,
         field: _searchField,
-        // filterDate: _selectedDate,
+        filterDateRange: _selectedDateRange, // <--- Enviamos rango
       ),
     );
   }
@@ -61,6 +60,63 @@ class _TripsScreenState extends State<TripsScreen> {
             _buildToolbar(),
 
             const SizedBox(height: 16),
+
+            // INDICADOR DE RANGO ACTIVO 📅
+            if (_selectedDateRange != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16, left: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        border: Border.all(
+                          color: Colors.blue.withValues(alpha: 0.3),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.date_range,
+                            size: 16,
+                            color: Colors.blue,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Resultados del periodo: ${_formatRange(_selectedDateRange!)}",
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () {
+                              setState(() => _selectedDateRange = null);
+                              _applyFilters();
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
             // --- 2. TABLA DE RESULTADOS ---
             Expanded(
@@ -95,7 +151,7 @@ class _TripsScreenState extends State<TripsScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -182,8 +238,9 @@ class _TripsScreenState extends State<TripsScreen> {
                             isDense: true,
                           ),
                           onChanged: (value) {
-                            if (_debounce?.isActive ?? false)
+                            if (_debounce?.isActive ?? false) {
                               _debounce!.cancel();
+                            }
                             _debounce = Timer(
                               const Duration(milliseconds: 500),
                               () {
@@ -201,10 +258,31 @@ class _TripsScreenState extends State<TripsScreen> {
 
               const SizedBox(width: 16),
 
-              // 2. Botón Fecha
+              // 2. BOTÓN DE FECHA MEJORADO
+              // 2. BOTÓN DE FECHA MEJORADO (RANGO + Localización ES 🇪🇸)
               OutlinedButton.icon(
-                icon: const Icon(Icons.calendar_today, size: 18),
-                label: const Text("Filtrar Fecha"),
+                icon: Icon(
+                  Icons.date_range, // Icono de rango
+                  size: 18,
+                  color: _selectedDateRange != null ? Colors.blue : Colors.grey,
+                ),
+                label: Text(
+                  _selectedDateRange == null
+                      ? "Filtrar Fechas"
+                      : _formatRange(
+                        _selectedDateRange!,
+                      ), // Formato inteligente
+                  style: TextStyle(
+                    color:
+                        _selectedDateRange != null
+                            ? Colors.blue
+                            : Colors.grey[700],
+                    fontWeight:
+                        _selectedDateRange != null
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                  ),
+                ),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -213,24 +291,58 @@ class _TripsScreenState extends State<TripsScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  side: BorderSide(color: Colors.grey.shade300),
+                  side:
+                      _selectedDateRange != null
+                          ? const BorderSide(color: Colors.blue, width: 2)
+                          : BorderSide(color: Colors.grey.shade300),
                 ),
                 onPressed: () async {
-                  DateTime? picked = await showDatePicker(
+                  // Si ya hay rango, permitir limpiar haciendo clic
+                  if (_selectedDateRange != null) {
+                    setState(() => _selectedDateRange = null);
+                    _applyFilters();
+                    return;
+                  }
+
+                  // Abrir Selector de Rango 📅🇪🇸 (Modal centrado, no fullscreen)
+                  final DateTimeRange? picked = await showDateRangePicker(
                     context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2020),
+                    locale: const Locale('es', 'ES'), // <--- ESPAÑOL
+                    firstDate: DateTime(2025),
                     lastDate: DateTime(2030),
-                  );
-                  if (picked != null) {
-                    // ignore: use_build_context_synchronously
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          "Fecha seleccionada: ${picked.toString()}",
+                    initialDateRange: _selectedDateRange,
+                    saveText: 'FILTRAR',
+                    helpText: 'SELECCIONA FECHA O PERIODO', // Texto más claro
+                    fieldStartHintText: 'Inicio',
+                    fieldEndHintText: 'Fin',
+                    builder: (context, child) {
+                      return Theme(
+                        data: ThemeData.light().copyWith(
+                          colorScheme: const ColorScheme.light(
+                            primary: Colors.indigo, // Azul corporativo
+                            onPrimary: Colors.white,
+                            onSurface: Colors.black,
+                          ),
                         ),
-                      ),
-                    );
+                        // Evitar pantalla completa: Centrar y limitar tamaño
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxWidth:
+                                  500, // Ancho controlado (estilo diálogo)
+                              maxHeight: 650,
+                            ),
+                            child: child!,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+
+                  if (picked != null) {
+                    setState(() => _selectedDateRange = picked);
+                    _applyFilters();
                   }
                 },
               ),
@@ -292,17 +404,18 @@ class _TripsScreenState extends State<TripsScreen> {
               // Botón Reset (Solo visible si hay filtros activos)
               if (_selectedStatus != 'TODOS' ||
                   _searchQuery.isNotEmpty ||
-                  _searchField != 'TODO')
+                  _searchField != 'TODO' ||
+                  _selectedDateRange != null) // <--- Check rango
                 TextButton.icon(
                   icon: const Icon(Icons.clear, size: 16),
                   label: const Text("Limpiar Filtros"),
                   style: TextButton.styleFrom(foregroundColor: Colors.grey),
                   onPressed: () {
                     setState(() {
-                      _searchQuery =
-                          ''; // Nota: necesitas un controller si quieres limpiar el input visualmente
+                      _searchQuery = '';
                       _selectedStatus = 'TODOS';
                       _searchField = 'TODO';
+                      _selectedDateRange = null; // <--- Limpiar rango
                     });
                     _applyFilters();
                   },
@@ -334,7 +447,7 @@ class _TripsScreenState extends State<TripsScreen> {
       selectedColor: color,
       checkmarkColor: Colors.white,
       side: BorderSide(
-        color: isSelected ? Colors.transparent : color.withOpacity(0.3),
+        color: isSelected ? Colors.transparent : color.withValues(alpha: 0.3),
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -355,5 +468,16 @@ class _TripsScreenState extends State<TripsScreen> {
         ],
       ),
     );
+  }
+
+  String _formatRange(DateTimeRange range) {
+    final start = range.start;
+    final end = range.end;
+    if (start.day == end.day &&
+        start.month == end.month &&
+        start.year == end.year) {
+      return "${start.day}/${start.month}/${start.year}";
+    }
+    return "${start.day}/${start.month} - ${end.day}/${end.month}";
   }
 }

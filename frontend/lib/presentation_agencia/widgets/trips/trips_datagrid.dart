@@ -27,11 +27,17 @@ class _TripsDatagridState extends State<TripsDatagrid> {
     // Mapeo de datos (Entity -> ViewModel local)
     final List<TripData> trips =
         widget.viajes.map((v) {
+          // Formateo de fechas
+          final inicio = v.fechaInicio;
+          final fin = v.fechaFin;
+
           return TripData(
             v.id,
             v.destino,
-            'N/A', // idGuia removed from Entity per user spec
-            "22/01 - 23/01",
+            v.guiaNombre,
+            inicio, // Pasamos DateTime completo
+            fin, // Pasamos DateTime completo
+            v.duracionLabel, // Pasamos la duración formateada desde la entidad
             v.turistas.toString(),
             _mapStatus(v.estado),
           );
@@ -61,6 +67,9 @@ class _TripsDatagridState extends State<TripsDatagrid> {
                     controller: _horizontalScrollController,
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
+                      dataRowMinHeight: 40,
+                      dataRowMaxHeight:
+                          65, // <--- AUMENTADO PARA EVITAR OVERFLOW
                       headingRowColor: WidgetStateProperty.all(
                         Colors.grey.shade50,
                       ),
@@ -85,7 +94,7 @@ class _TripsDatagridState extends State<TripsDatagrid> {
                         ),
                         DataColumn(
                           label: Text(
-                            'FECHAS',
+                            'CALENDARIO / DURACIÓN',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -174,12 +183,18 @@ class _TripsDatagridState extends State<TripsDatagrid> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (trip.guideName != null) ...[
+                if (trip.guideName != null &&
+                    trip.guideName != 'Sin asignar') ...[
                   CircleAvatar(
                     radius: 10,
+                    backgroundColor: Colors.indigo.shade100,
                     child: Text(
                       trip.guideName![0],
-                      style: const TextStyle(fontSize: 10),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.indigo.shade800,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -195,7 +210,97 @@ class _TripsDatagridState extends State<TripsDatagrid> {
               ],
             ),
           ),
-          DataCell(Text(trip.dates)),
+          // CELDA DE FECHAS INTELIGENTE
+          DataCell(
+            Builder(
+              builder: (context) {
+                // 1. Formatos Cortos (Para la vista rápida)
+                final inicio = trip.fechaInicio;
+                final fin = trip.fechaFin;
+
+                String formatHoraCorto(DateTime dt) =>
+                    "${dt.hour}:${dt.minute.toString().padLeft(2, '0')}";
+                String formatFechaCorto(DateTime dt) => "${dt.day}/${dt.month}";
+
+                final inicioCorto =
+                    "${formatFechaCorto(inicio)} ${formatHoraCorto(inicio)}";
+                final finCorto = formatHoraCorto(fin);
+                final finLargo =
+                    "${formatFechaCorto(fin)} ${formatHoraCorto(fin)}";
+
+                // Lógica visual: ¿Es mismo día o multi-día?
+                final bool mismoDia =
+                    inicio.day == fin.day &&
+                    inicio.month == fin.month &&
+                    inicio.year == fin.year;
+
+                // 2. Formato Largo y Humano (Para el Tooltip)
+                final tooltipMessage = _generarTooltipHumano(inicio, fin);
+
+                return Tooltip(
+                  message: tooltipMessage, // <--- AQUÍ ESTÁ LA MAGIA
+                  waitDuration: const Duration(milliseconds: 500),
+                  showDuration: const Duration(seconds: 4),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  textStyle: const TextStyle(color: Colors.white, fontSize: 12),
+
+                  // EL CONTENIDO VISUAL (LO DE SIEMPRE)
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_month,
+                              size: 14,
+                              color: Colors.grey[600],
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              mismoDia
+                                  ? "$inicioCorto - $finCorto"
+                                  : "$inicioCorto ➝ $finLargo",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            trip.duracionLabel, // "3 días"
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.blue[900],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
           DataCell(Text(trip.pax)),
           DataCell(_buildStatusBadge(trip.status)),
           DataCell(
@@ -371,13 +476,56 @@ class _TripsDatagridState extends State<TripsDatagrid> {
       ),
     );
   }
+
+  String _generarTooltipHumano(DateTime inicio, DateTime fin) {
+    // Array de meses y días para español
+    const meses = [
+      'Ene',
+      'Feb',
+      'Mar',
+      'Abr',
+      'May',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dic',
+    ];
+
+    String formatoHora(DateTime dt) {
+      final hora = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+      final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+      final min = dt.minute.toString().padLeft(2, '0');
+      return "$hora:$min $ampm";
+    }
+
+    String formatoFecha(DateTime dt) {
+      return "${dt.day} de ${meses[dt.month - 1]} ${dt.year}";
+    }
+
+    // Lógica:
+    // Si es mismo día: "10 de Feb 2026 (10:00 AM - 06:00 PM)"
+    // Si es diferente: "10 de Feb 10:00 AM hasta 12 de Feb 06:00 PM"
+
+    if (inicio.year == fin.year &&
+        inicio.month == fin.month &&
+        inicio.day == fin.day) {
+      return "📅 ${formatoFecha(inicio)}\n⏰ Horario: ${formatoHora(inicio)} - ${formatoHora(fin)}";
+    } else {
+      return "🛫 Inicio: ${formatoFecha(inicio)} a las ${formatoHora(inicio)}\n🛬 Fin:    ${formatoFecha(fin)} a las ${formatoHora(fin)}";
+    }
+  }
 }
 
 class TripData {
   final String folio;
   final String name;
   final String? guideName;
-  final String dates;
+  final DateTime fechaInicio;
+  final DateTime fechaFin;
+  final String duracionLabel;
   final String pax;
   final TripStatus status;
 
@@ -385,7 +533,9 @@ class TripData {
     this.folio,
     this.name,
     this.guideName,
-    this.dates,
+    this.fechaInicio,
+    this.fechaFin,
+    this.duracionLabel,
     this.pax,
     this.status,
   );

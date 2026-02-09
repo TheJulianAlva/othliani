@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'core/mock/mock_database.dart';
+import 'data/datasources/mock_agencia_datasource.dart';
 import 'data/datasources/agencia_mock_data_source.dart';
 import 'data/repositories/agencia_repository_impl.dart';
 import 'domain/repositories/agencia_repository.dart';
@@ -37,5 +37,5 @@ Future<void> init() async {
   );
 
   //! Core
-  sl.registerLazySingleton(() => MockDatabase());
+  sl.registerLazySingleton(() => MockAgenciaDataSource());
 }

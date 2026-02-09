@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart'; // Para DateTimeRange
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../domain/entities/viaje.dart';
@@ -14,17 +15,17 @@ class LoadViajesEvent extends ViajesEvent {
   final String query;
   final String field; // 'TODO', 'GUIA', 'DESTINO', 'ID'
   final String? filterStatus;
-  final DateTime? filterDate;
+  final DateTimeRange? filterDateRange;
 
   const LoadViajesEvent({
     this.query = '',
     this.field = 'TODO',
     this.filterStatus = 'TODOS',
-    this.filterDate,
+    this.filterDateRange,
   });
 
   @override
-  List<Object?> get props => [query, field, filterStatus, filterDate];
+  List<Object?> get props => [query, field, filterStatus, filterDateRange];
 }
 
 // States
@@ -112,10 +113,41 @@ class ViajesBloc extends Bloc<ViajesEvent, ViajesState> {
               event.filterStatus == null ||
               viaje.estado == event.filterStatus;
 
-          // C. Filtro de Fecha (Opcional - por ahora no implementado en detalle)
-          // final matchesDate = event.filterDate == null || isSameDay(viaje.fecha, event.filterDate!);
+          // C. FILTRO DE FECHA INTELIGENTE 📅 (Logística PRO con Rangos)
+          // Muestra viajes que se SOLAPAN con el rango seleccionado
+          bool matchesDate = true;
+          if (event.filterDateRange != null) {
+            final rango = event.filterDateRange!;
 
-          return matchesQuery && matchesStatus;
+            // Normalizamos rango filtro (Inicio 00:00, Fin 23:59:59)
+            final rangoInicio = DateTime(
+              rango.start.year,
+              rango.start.month,
+              rango.start.day,
+            );
+            final rangoFin = DateTime(
+              rango.end.year,
+              rango.end.month,
+              rango.end.day,
+              23,
+              59,
+              59,
+            );
+
+            // Viaje
+            final viajeInicio = viaje.fechaInicio;
+            final viajeFin = viaje.fechaFin;
+
+            // Lógica de Solapamiento (Intersection)
+            // (StartA <= EndB) and (EndA >= StartB)
+            matchesDate =
+                (viajeInicio.isBefore(rangoFin) ||
+                    viajeInicio.isAtSameMomentAs(rangoFin)) &&
+                (viajeFin.isAfter(rangoInicio) ||
+                    viajeFin.isAtSameMomentAs(rangoInicio));
+          }
+
+          return matchesQuery && matchesStatus && matchesDate;
         }).toList();
 
     emit(ViajesLoaded(filtered));

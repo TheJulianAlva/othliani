@@ -1,4 +1,4 @@
-import '../../core/mock/mock_database.dart';
+import 'mock_agencia_datasource.dart';
 import '../../domain/entities/dashboard_data.dart';
 import '../../domain/entities/viaje.dart';
 import '../../domain/entities/guia.dart';
@@ -21,7 +21,7 @@ abstract class AgenciaDataSource {
 }
 
 class AgenciaMockDataSourceImpl implements AgenciaDataSource {
-  final MockDatabase db;
+  final MockAgenciaDataSource db;
 
   AgenciaMockDataSourceImpl(this.db);
 

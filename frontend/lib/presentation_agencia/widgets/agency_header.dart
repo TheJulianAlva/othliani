@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/navigation/routes_agencia.dart';
-import '../models/search_result.dart';
-import '../../core/mock/mock_database.dart';
+import '../viewmodels/search_result.dart';
+import '../../data/datasources/mock_agencia_datasource.dart';
 import '../../domain/entities/alerta.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/sync/sync_bloc.dart';
 
 class AgencyHeader extends StatefulWidget {
   final VoidCallback onMenuPressed;
@@ -44,7 +46,7 @@ class _AgencyHeaderState extends State<AgencyHeader> {
   }
 
   Future<void> _loadRecentAlertas() async {
-    final alertas = await MockDatabase().getRecentAlertas(limit: 3);
+    final alertas = await MockAgenciaDataSource().getRecentAlertas(limit: 3);
     setState(() {
       _recentAlertas = alertas;
     });
@@ -82,7 +84,7 @@ class _AgencyHeaderState extends State<AgencyHeader> {
     // NO mostrar overlay aquí - esperar a que lleguen los resultados
 
     // Buscar en MockDatabase
-    final results = await MockDatabase().searchAll(query);
+    final results = await MockAgenciaDataSource().searchAll(query);
 
     // Convertir a SearchResult
     final searchResults =
@@ -116,13 +118,6 @@ class _AgencyHeaderState extends State<AgencyHeader> {
       _searchResults = searchResults;
       _isSearching = false;
     });
-
-    // DEBUG: Ver qué resultados se obtuvieron
-    print('🔍 Búsqueda: "$query"');
-    print('📊 Resultados totales: ${searchResults.length}');
-    for (var result in searchResults) {
-      print('  - ${result.type}: ${result.name}');
-    }
 
     // AHORA SÍ mostrar overlay con los resultados correctos
     if (_searchFocusNode.hasFocus) {
@@ -375,13 +370,6 @@ class _AgencyHeaderState extends State<AgencyHeader> {
             .where((result) => _selectedFilters.contains(result.type))
             .toList();
 
-    // DEBUG: Ver filtrado
-    print('🎯 Filtros activos: $_selectedFilters');
-    print('📋 Resultados filtrados: ${filteredResults.length}');
-    for (var result in filteredResults) {
-      print('  ✓ ${result.type}: ${result.name}');
-    }
-
     if (filteredResults.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(24),
@@ -592,6 +580,68 @@ class _AgencyHeaderState extends State<AgencyHeader> {
 
           const Spacer(),
 
+          // --- ÍCONO DE ESTATUS REAL (CONNECTIVITY PLUS) ---
+          BlocBuilder<SyncBloc, SyncState>(
+            builder: (context, state) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: _getSyncBgColor(state.status),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _getSyncColor(state.status).withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    state.status == SyncStatus.syncing
+                        ? SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: _getSyncColor(state.status),
+                          ),
+                        )
+                        : Icon(
+                          _getSyncIcon(state.status),
+                          size: 18,
+                          color: _getSyncColor(state.status),
+                        ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          state.status == SyncStatus.offline
+                              ? "SIN CONEXIÓN"
+                              : "CONECTADO",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                            color: _getSyncColor(state.status),
+                          ),
+                        ),
+                        Text(
+                          state.label,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 16),
+
           // --- BUSCADOR GLOBAL CON OVERLAY MANUAL ---
           CompositedTransformTarget(
             link: _layerLink,
@@ -788,5 +838,24 @@ class _AgencyHeaderState extends State<AgencyHeader> {
   String _capitalize(String s) {
     if (s.isEmpty) return s;
     return s[0].toUpperCase() + s.substring(1);
+  }
+
+  // Helpers visuales para Sync
+  Color _getSyncColor(SyncStatus s) {
+    if (s == SyncStatus.online) return Colors.green[700]!;
+    if (s == SyncStatus.syncing) return Colors.blue[700]!;
+    return Colors.orange[800]!;
+  }
+
+  Color _getSyncBgColor(SyncStatus s) {
+    if (s == SyncStatus.online) return Colors.green[50]!;
+    if (s == SyncStatus.syncing) return Colors.blue[50]!;
+    return Colors.orange[50]!;
+  }
+
+  IconData _getSyncIcon(SyncStatus s) {
+    if (s == SyncStatus.online) return Icons.cloud_done;
+    if (s == SyncStatus.offline) return Icons.cloud_off;
+    return Icons.sync;
   }
 }

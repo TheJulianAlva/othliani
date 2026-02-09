@@ -3,12 +3,11 @@ import '../../domain/entities/guia.dart';
 import '../../domain/entities/turista.dart';
 import '../../domain/entities/alerta.dart';
 import '../../domain/entities/log_auditoria.dart';
-import 'mock_models.dart'; // Keep for backward compatibility during transition
 
-class MockDatabase {
-  static final MockDatabase _instance = MockDatabase._internal();
-  factory MockDatabase() => _instance;
-  MockDatabase._internal();
+class MockAgenciaDataSource {
+  static final MockAgenciaDataSource _instance =
+      MockAgenciaDataSource._internal();
+  factory MockAgenciaDataSource() => _instance;
 
   // --- 1. LISTA DE GUÍAS (Usando Entity Guia) ---
   final List<Guia> _guias = [
@@ -74,113 +73,149 @@ class MockDatabase {
     ),
   ];
 
-  // --- 2. LISTA DE VIAJES (Usando Entity Viaje) ---
-  final List<Viaje> _viajes = [
-    // Viajes Activos (En Curso)
-    const Viaje(
-      id: '204',
-      destino: 'Centro Histórico CDMX',
-      estado: 'EN_CURSO',
-      turistas: 15,
-      latitud: 19.4326,
-      longitud: -99.1332,
-      guiaNombre: 'Marcos Ruiz',
-      horaInicio: '09:00 AM',
-      alertasActivas: 1, // Ana G. en pánico
-    ),
-    const Viaje(
-      id: '205',
-      destino: 'Zona Montañosa - Desierto de los Leones',
-      estado: 'EN_CURSO',
-      turistas: 8,
-      latitud: 19.3117,
-      longitud: -99.3147,
-      guiaNombre: 'Pedro Sánchez',
-      horaInicio: '08:30 AM',
-      alertasActivas: 2, // Batería baja + Conectividad
-    ),
-    const Viaje(
-      id: '110',
-      destino: 'Teotihuacán',
-      estado: 'EN_CURSO',
-      turistas: 40,
-      latitud: 19.6925,
-      longitud: -98.8439,
-      guiaNombre: 'Ana Paula G.',
-      horaInicio: '07:00 AM',
-      alertasActivas: 1, // Luis P. alejado
-    ),
+  // --- 2. LISTA DE VIAJES (Usando Entity Viaje con fechas dinámicas) ---
+  // Definimos "HOY" para calcular todo relativo a este momento
+  final DateTime _hoy = DateTime.now();
 
-    // Viajes Futuros
-    const Viaje(
-      id: '305',
-      destino: 'Nevado de Toluca',
-      estado: 'PROGRAMADO',
-      turistas: 12,
-      latitud: 19.108,
-      longitud: -99.759,
-      guiaNombre: 'Carlos Vega',
-      horaInicio: 'Mañana 06:00 AM',
-      alertasActivas: 0,
-    ),
-    const Viaje(
-      id: '306',
-      destino: 'Valle de Bravo',
-      estado: 'PROGRAMADO',
-      turistas: 8,
-      latitud: 19.192,
-      longitud: -100.131,
-      guiaNombre: 'Luisa Lane',
-      horaInicio: 'En 2 días',
-      alertasActivas: 0,
-    ),
-    const Viaje(
-      id: '307',
-      destino: 'Xochimilco',
-      estado: 'PROGRAMADO',
-      turistas: 20,
-      latitud: 19.295,
-      longitud: -99.099,
-      guiaNombre: 'Roberto Gómez',
-      horaInicio: 'Sábado 10:00 AM',
-      alertasActivas: 0,
-    ),
-    const Viaje(
-      id: '308',
-      destino: 'Tepoztlán',
-      estado: 'PROGRAMADO',
-      turistas: 10,
-      latitud: 18.986,
-      longitud: -99.100,
-      guiaNombre: 'María López',
-      horaInicio: 'Domingo 08:00 AM',
-      alertasActivas: 0,
-    ),
-    const Viaje(
-      id: '309',
-      destino: 'Taxco',
-      estado: 'PROGRAMADO',
-      turistas: 15,
-      latitud: 18.556,
-      longitud: -99.605,
-      guiaNombre: 'Sin asignar',
-      horaInicio: 'Próxima semana',
-      alertasActivas: 0,
-    ),
+  // Usamos 'late' para inicializar con _hoy
+  late final List<Viaje> _viajes;
 
-    // Viajes Pasados
-    const Viaje(
-      id: '401',
-      destino: 'Cañón del Sumidero',
-      estado: 'FINALIZADO',
-      turistas: 25,
-      latitud: 16.835,
-      longitud: -93.033,
-      guiaNombre: 'Jorge Ramírez',
-      horaInicio: 'Hace 3 horas',
-      alertasActivas: 0, // Sin incidentes
-    ),
-  ];
+  MockAgenciaDataSource._internal() {
+    // Inicializamos viajes con fechas dinámicas
+    _viajes = [
+      // 🟢 Viajes EN CURSO - VIAJES CORTOS (Mismo día, 6-8 horas)
+      Viaje(
+        id: '204',
+        destino: 'Centro Histórico CDMX',
+        estado: 'EN_CURSO',
+        // Inició hace 2 horas, termina en 4 horas (6 horas total)
+        fechaInicio: _hoy.subtract(const Duration(hours: 2)),
+        fechaFin: _hoy.add(const Duration(hours: 4)),
+        turistas: 15,
+        latitud: 19.4326,
+        longitud: -99.1332,
+        guiaNombre: 'Marcos Ruiz',
+        horaInicio: '09:00 AM',
+        alertasActivas: 1, // Ana G. en pánico
+      ),
+      Viaje(
+        id: '205',
+        destino: 'Zona Montañosa - Desierto de los Leones',
+        estado: 'EN_CURSO',
+        // Inició hace 3 horas, termina en 5 horas (8 horas total)
+        fechaInicio: _hoy.subtract(const Duration(hours: 3)),
+        fechaFin: _hoy.add(const Duration(hours: 5)),
+        turistas: 8,
+        latitud: 19.3117,
+        longitud: -99.3147,
+        guiaNombre: 'Pedro Sánchez',
+        horaInicio: '08:30 AM',
+        alertasActivas: 2, // Batería baja + Conectividad
+      ),
+      Viaje(
+        id: '110',
+        destino: 'Teotihuacán',
+        estado: 'EN_CURSO',
+        // Inició hace 4 horas, termina en 3 horas (7 horas total)
+        fechaInicio: _hoy.subtract(const Duration(hours: 4)),
+        fechaFin: _hoy.add(const Duration(hours: 3)),
+        turistas: 40,
+        latitud: 19.6925,
+        longitud: -98.8439,
+        guiaNombre: 'Ana Paula G.',
+        horaInicio: '07:00 AM',
+        alertasActivas: 1, // Luis P. alejado
+      ),
+
+      // 🔵 Viajes PROGRAMADOS - VIAJES LARGOS (Multi-día, 2-3 días)
+      Viaje(
+        id: '305',
+        destino: 'Nevado de Toluca (Campamento)',
+        estado: 'PROGRAMADO',
+        // Empieza mañana a las 8 AM, termina pasado mañana a las 6 PM (3 días)
+        fechaInicio: DateTime(_hoy.year, _hoy.month, _hoy.day + 1, 8, 0),
+        fechaFin: DateTime(_hoy.year, _hoy.month, _hoy.day + 3, 18, 0),
+        turistas: 12,
+        latitud: 19.108,
+        longitud: -99.759,
+        guiaNombre: 'Carlos Vega',
+        horaInicio: 'Mañana 06:00 AM',
+        alertasActivas: 0,
+      ),
+      Viaje(
+        id: '306',
+        destino: 'Valle de Bravo (Fin de Semana)',
+        estado: 'PROGRAMADO',
+        // Empieza en 2 días a las 9 AM, termina en 4 días a las 5 PM (2 días)
+        fechaInicio: DateTime(_hoy.year, _hoy.month, _hoy.day + 2, 9, 0),
+        fechaFin: DateTime(_hoy.year, _hoy.month, _hoy.day + 4, 17, 0),
+        turistas: 8,
+        latitud: 19.192,
+        longitud: -100.131,
+        guiaNombre: 'Luisa Lane',
+        horaInicio: 'En 2 días',
+        alertasActivas: 0,
+      ),
+      Viaje(
+        id: '307',
+        destino: 'Xochimilco',
+        estado: 'PROGRAMADO',
+        // Viaje corto programado: En 5 días, 6 horas
+        fechaInicio: DateTime(_hoy.year, _hoy.month, _hoy.day + 5, 10, 0),
+        fechaFin: DateTime(_hoy.year, _hoy.month, _hoy.day + 5, 16, 0),
+        turistas: 20,
+        latitud: 19.295,
+        longitud: -99.099,
+        guiaNombre: 'Roberto Gómez',
+        horaInicio: 'Sábado 10:00 AM',
+        alertasActivas: 0,
+      ),
+      Viaje(
+        id: '308',
+        destino: 'Tepoztlán',
+        estado: 'PROGRAMADO',
+        // Viaje corto programado: En 6 días, 7 horas
+        fechaInicio: DateTime(_hoy.year, _hoy.month, _hoy.day + 6, 8, 0),
+        fechaFin: DateTime(_hoy.year, _hoy.month, _hoy.day + 6, 15, 0),
+        turistas: 10,
+        latitud: 18.986,
+        longitud: -99.100,
+        guiaNombre: 'María López',
+        horaInicio: 'Domingo 08:00 AM',
+        alertasActivas: 0,
+      ),
+      Viaje(
+        id: '309',
+        destino: 'Taxco (Expedición)',
+        estado: 'PROGRAMADO',
+        // Viaje largo programado: En 7 días, 3 días de duración
+        fechaInicio: DateTime(_hoy.year, _hoy.month, _hoy.day + 7, 7, 0),
+        fechaFin: DateTime(_hoy.year, _hoy.month, _hoy.day + 10, 19, 0),
+        turistas: 15,
+        latitud: 18.556,
+        longitud: -99.605,
+        guiaNombre: 'Sin asignar',
+        horaInicio: 'Próxima semana',
+        alertasActivas: 0,
+      ),
+
+      // ⚫ Viajes FINALIZADOS - Fechas PASADAS
+      Viaje(
+        id: '401',
+        destino: 'Cañón del Sumidero',
+        estado: 'FINALIZADO',
+        // Empezó ayer a las 7 AM, terminó ayer a las 8 PM (13 horas)
+        fechaInicio: DateTime(_hoy.year, _hoy.month, _hoy.day - 1, 7, 0),
+        fechaFin: DateTime(_hoy.year, _hoy.month, _hoy.day - 1, 20, 0),
+        turistas: 25,
+        latitud: 16.835,
+        longitud: -93.033,
+        guiaNombre: 'Jorge Ramírez',
+        horaInicio: 'Hace 3 horas',
+        alertasActivas: 0, // Sin incidentes
+      ),
+    ];
+  }
 
   // --- 3. LISTA DE TURISTAS (Población Real) ---
   final List<Turista> _turistas = [
@@ -1817,40 +1852,4 @@ class MockDatabase {
     await Future.delayed(const Duration(milliseconds: 600));
     return _turistas;
   }
-
-  // Legacy getters for backward compatibility (will be removed)
-  List<MockAlerta> get alertas =>
-      _alertas
-          .map(
-            (a) => MockAlerta(
-              id: a.id,
-              idViaje: a.viajeId,
-              nombreTurista: a.nombreTurista,
-              tipo: a.tipo == 'PANICO' ? TipoAlerta.PANICO : TipoAlerta.LEJANIA,
-              hora: a.hora,
-              esCritica: a.esCritica,
-              mensaje: a.mensaje,
-            ),
-          )
-          .toList();
-
-  List<MockViaje> get viajes =>
-      _viajes
-          .map(
-            (v) => MockViaje(
-              id: v.id,
-              destino: v.destino,
-              estado:
-                  v.estado == 'EN_CURSO'
-                      ? EstadoViaje.EN_CURSO
-                      : v.estado == 'PROGRAMADO'
-                      ? EstadoViaje.PROGRAMADO
-                      : EstadoViaje.FINALIZADO,
-              turistasTotales: v.turistas,
-              idGuia: 'g1',
-              latitudActual: v.latitud,
-              longitudActual: v.longitud,
-            ),
-          )
-          .toList();
 }
