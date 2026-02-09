@@ -9,4 +9,10 @@ abstract class AuthRepository {
     String email,
     String password,
   );
+  Future<Either<Failure, void>> sendPasswordResetEmail(String email);
+  Future<Either<Failure, void>> logout();
+
+  Future<Either<Failure, User?>> checkAuthStatus();
+  Future<Either<Failure, void>> completeOnboarding();
+  Future<Either<Failure, bool>> checkOnboardingStatus();
 }

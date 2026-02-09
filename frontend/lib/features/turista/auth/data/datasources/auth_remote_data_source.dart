@@ -28,7 +28,6 @@ class AuthMockDataSource implements AuthRemoteDataSource {
     await Future.delayed(const Duration(seconds: 2));
     return UserModel(id: '2', email: email, name: name);
   }
-  }
 
   @override
   Future<void> sendPasswordResetEmail(String email) async {
@@ -38,4 +37,3 @@ class AuthMockDataSource implements AuthRemoteDataSource {
     }
   }
 }
-

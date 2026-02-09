@@ -1,6 +1,7 @@
 import 'package:frontend/presentation_turista/screens/pantalla_telefono.dart';
 import 'package:frontend/presentation_turista/screens/pantalla_verificacion_sms.dart';
-import 'package:frontend/presentation_turista/screens/pantalla_introduccion.dart';
+
+import 'package:frontend/features/turista/auth/presentation/screens/onboarding_screen.dart';
 import 'package:frontend/features/turista/auth/presentation/screens/register_screen.dart';
 
 import 'package:frontend/features/turista/auth/presentation/screens/login_screen.dart';
@@ -19,13 +20,42 @@ import 'package:frontend/presentation_turista/screens/pantalla_accesibilidad.dar
 import 'package:go_router/go_router.dart';
 import '../../presentation_turista/screens/pantalla_folio.dart';
 
+import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
+import 'package:frontend/features/turista/auth/presentation/bloc/auth_state.dart';
+import 'package:frontend/core/navigation/go_router_refresh_stream.dart';
+
 import 'routes_turista.dart';
 import 'transitions.dart';
 
 class EnrutadorAppTurista {
-  static GoRouter createRouter(String initialLocation) {
+  static GoRouter createRouter(String initialLocation, AuthBloc authBloc) {
     return GoRouter(
       initialLocation: initialLocation,
+      refreshListenable: GoRouterRefreshStream(authBloc.stream),
+      redirect: (context, state) {
+        final authState = authBloc.state;
+        final isAuth = authState.status == AuthStatus.authenticated;
+        final isLoggingIn =
+            state.matchedLocation == RoutesTurista.login ||
+            state.matchedLocation == RoutesTurista.register ||
+            state.matchedLocation == RoutesTurista.folio ||
+            state.matchedLocation == RoutesTurista.phoneConfirm ||
+            state.matchedLocation == RoutesTurista.smsVerification ||
+            state.matchedLocation == RoutesTurista.forgotPassword ||
+            state.matchedLocation == RoutesTurista.emailVerification ||
+            state.matchedLocation == RoutesTurista.onboarding;
+
+        if (!isAuth && !isLoggingIn) {
+          return RoutesTurista.folio;
+        }
+
+        if (isAuth && isLoggingIn) {
+          return RoutesTurista.home;
+        }
+
+        return null;
+      },
+
       routes: [
         GoRoute(
           path: RoutesTurista.folio,

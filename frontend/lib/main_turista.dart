@@ -12,7 +12,11 @@ import 'core/theme/dark_theme.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/providers/accessibility_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di/service_locator.dart' as di;
+import 'core/di/service_locator.dart';
+import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
+import 'package:frontend/features/turista/auth/presentation/bloc/auth_event.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,18 +49,22 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   late final GoRouter _router;
+  late final AuthBloc _authBloc;
 
   @override
   void initState() {
     super.initState();
-    _router = EnrutadorAppTurista.createRouter(widget.initialRoute);
+    _authBloc = sl<AuthBloc>()..add(AuthCheckRequested());
+    _router = EnrutadorAppTurista.createRouter(widget.initialRoute, _authBloc);
   }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        BlocProvider.value(value: _authBloc),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AccessibilityProvider()),
       ],
