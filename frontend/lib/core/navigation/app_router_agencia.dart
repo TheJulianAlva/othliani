@@ -9,6 +9,7 @@ import '../../presentation_agencia/screens/login_screen.dart';
 import '../../presentation_agencia/screens/dashboard_screen.dart';
 import '../../presentation_agencia/screens/trips_screen.dart';
 import '../../presentation_agencia/screens/trip_detail_screen.dart';
+import '../../presentation_agencia/screens/trip_creation_screen.dart'; // <--- Importante
 import '../../presentation_agencia/screens/users_screen.dart';
 import '../../presentation_agencia/screens/audit_screen.dart';
 import '../../presentation_agencia/screens/settings_screen.dart'; // Settings Screen
@@ -95,7 +96,13 @@ class AppRouterAgencia {
               );
             },
             routes: [
-              // Sub-ruta: DETALLE (/viajes/:id)
+              // 1. NUEVO VIAJE (Antes de :id para evitar conflicto)
+              GoRoute(
+                path: 'nuevo',
+                builder: (context, state) => const TripCreationScreen(),
+              ),
+
+              // 2. DETALLE (/viajes/:id)
               GoRoute(
                 path: ':id', // Parámetro dinámico
                 builder: (context, state) {

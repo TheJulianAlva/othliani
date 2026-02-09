@@ -2,6 +2,8 @@ import 'dart:async'; // Para el Timer
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/viajes/viajes_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../core/navigation/routes_agencia.dart';
 import '../widgets/trips/trips_datagrid.dart'; // Tu tabla existente
 
 class TripsScreen extends StatefulWidget {
@@ -364,12 +366,8 @@ class _TripsScreenState extends State<TripsScreen> {
                   ),
                 ),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "🚀 Funcionalidad de 'Crear Viaje' en desarrollo",
-                      ),
-                    ),
+                  context.go(
+                    '${RoutesAgencia.viajes}/${RoutesAgencia.nuevoViaje}',
                   );
                 },
               ),
