@@ -1,9 +1,69 @@
 import 'package:flutter/material.dart';
+import '../../../domain/entities/turista.dart';
 import '../../widgets/trip_detail/passenger_detail_modal.dart';
 
-class TripPassengerList extends StatelessWidget {
-  const TripPassengerList({super.key});
+class TripPassengerList extends StatefulWidget {
+  final List<Turista> turistas;
+  final String estadoViaje; // 'PROGRAMADO', 'EN_CURSO', 'FINALIZADO'
+  final bool isLive;
+  final FocusNode? searchFocusNode;
+  final bool highlightSearch;
+  final String? focusAlertId; // ← NUEVO: ID de alerta para resaltar
 
+  const TripPassengerList({
+    super.key,
+    required this.turistas,
+    required this.estadoViaje,
+    this.isLive = true,
+    this.searchFocusNode,
+    this.highlightSearch = false,
+    this.focusAlertId, // ← NUEVO
+  });
+
+  @override
+  State<TripPassengerList> createState() => _TripPassengerListState();
+}
+
+class _TripPassengerListState extends State<TripPassengerList> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-scroll al turista enfocado si hay un alert_focus
+    if (widget.focusAlertId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToFocusedItem();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToFocusedItem() {
+    // Buscar el índice del turista que coincide con el focusAlertId
+    final index = widget.turistas.indexWhere(
+      (t) => t.id == widget.focusAlertId,
+    );
+
+    if (index != -1 && _scrollController.hasClients) {
+      // Altura estimada de cada item (ajustar según diseño real)
+      const double itemHeight = 80.0;
+      final double targetPosition = index * itemHeight;
+
+      _scrollController.animateTo(
+        targetPosition,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -19,9 +79,11 @@ class TripPassengerList extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'NÓMINA (PAX)',
-                  style: TextStyle(
+                Text(
+                  widget.isLive
+                      ? 'NÓMINA (PAX: ${widget.turistas.length})'
+                      : 'LISTA DE PARTICIPANTES (${widget.turistas.length} personas)',
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: Colors.grey,
@@ -29,12 +91,13 @@ class TripPassengerList extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 TextField(
+                  focusNode: widget.searchFocusNode,
                   decoration: InputDecoration(
                     hintText: 'Buscar Turista...',
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.search,
                       size: 18,
-                      color: Colors.grey,
+                      color: widget.highlightSearch ? Colors.blue : Colors.grey,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 0,
@@ -43,6 +106,13 @@ class TripPassengerList extends StatelessWidget {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
                       borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: const BorderSide(
+                        color: Colors.blue,
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: Colors.grey.shade50,
@@ -54,58 +124,22 @@ class TripPassengerList extends StatelessWidget {
 
           // List
           Expanded(
-            child: ListView(
+            child: ListView.builder(
+              controller: _scrollController, // ← Conectar ScrollController
               padding: EdgeInsets.zero,
-              children: [
-                _buildPaxItem(
+              itemCount: widget.turistas.length,
+              itemBuilder: (context, index) {
+                final turista = widget.turistas[index];
+                final bool isFocused =
+                    turista.id == widget.focusAlertId; // ← Detectar foco
+
+                return _buildPaxItem(
                   context: context,
-                  name: 'Ana Gómez',
-                  status: PaxStatus.critical,
-                  distance: '120m',
-                  isFar: true,
-                  battery: 15,
-                  signal: 2,
-                ),
-                _buildPaxItem(
-                  context: context,
-                  name: 'Luis Pérez',
-                  status: PaxStatus.warning,
-                  distance: '45m',
-                  isFar: false, // Borderline
-                  battery: 10,
-                  signal: 3,
-                ),
-                _buildPaxItem(
-                  context: context,
-                  name: 'Carlos Ruiz',
-                  status: PaxStatus.ok,
-                  distance: '10m',
-                  isFar: false,
-                  battery: 90,
-                  signal: 4,
-                ),
-                _buildPaxItem(
-                  context: context,
-                  name: 'Pepe (Offline)',
-                  status: PaxStatus.offline,
-                  subtitle: 'Hace 15 min',
-                  distance: 'UNKNOWN',
-                  isFar: false,
-                  battery: 0,
-                  signal: 0,
-                ),
-                // Mock filler
-                for (int i = 0; i < 5; i++)
-                  _buildPaxItem(
-                    context: context,
-                    name: 'Turista #$i',
-                    status: PaxStatus.ok,
-                    distance: '${10 + i}m',
-                    isFar: false,
-                    battery: 80 - i * 5,
-                    signal: 4,
-                  ),
-              ],
+                  turista: turista,
+                  isLive: widget.isLive,
+                  isFocused: isFocused, // ← Pasar estado de foco
+                );
+              },
             ),
           ),
         ],
@@ -113,16 +147,29 @@ class TripPassengerList extends StatelessWidget {
     );
   }
 
+  PaxStatus _mapEstadoToStatus(String status) {
+    switch (status.toUpperCase()) {
+      case 'SOS':
+        return PaxStatus.critical;
+      case 'ADVERTENCIA':
+      case 'ALERTA':
+        return PaxStatus.warning;
+      case 'OK':
+        return PaxStatus.ok;
+      case 'OFFLINE':
+        return PaxStatus.offline;
+      default:
+        return PaxStatus.ok;
+    }
+  }
+
   Widget _buildPaxItem({
     required BuildContext context,
-    required String name,
-    required PaxStatus status,
-    required String distance,
-    required bool isFar,
-    required int battery,
-    required int signal,
-    String? subtitle,
+    required Turista turista,
+    required bool isLive,
+    required bool isFocused, // ← NUEVO: Indica si este item debe resaltarse
   }) {
+    final status = _mapEstadoToStatus(turista.status);
     Color statusColor;
     IconData statusIcon;
 
@@ -145,9 +192,15 @@ class TripPassengerList extends StatelessWidget {
         break;
     }
 
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFF5F5F5))),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        color: isFocused ? Colors.orange.withValues(alpha: 0.15) : Colors.white,
+        border:
+            isFocused
+                ? Border.all(color: Colors.orange, width: 3)
+                : const Border(bottom: BorderSide(color: Color(0xFFF5F5F5))),
       ),
       child: Material(
         color: Colors.transparent,
@@ -157,7 +210,8 @@ class TripPassengerList extends StatelessWidget {
               context: context,
               builder:
                   (context) => PassengerDetailModal(
-                    passenger: {'name': name, 'status': status},
+                    turista: turista,
+                    estadoViaje: widget.estadoViaje, // ← Corregido
                   ),
             );
           },
@@ -181,15 +235,18 @@ class TripPassengerList extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            name,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color:
-                                  status == PaxStatus.offline
-                                      ? Colors.grey
-                                      : Colors.black87,
+                          Expanded(
+                            child: Text(
+                              turista.nombre,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color:
+                                    status == PaxStatus.offline
+                                        ? Colors.grey
+                                        : Colors.black87,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           if (status == PaxStatus.critical)
@@ -214,13 +271,10 @@ class TripPassengerList extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      if (subtitle != null)
-                        Text(
-                          subtitle,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
+                      if (status == PaxStatus.offline)
+                        const Text(
+                          'Sin conexión',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
                         )
                       else
                         Row(
@@ -228,14 +282,17 @@ class TripPassengerList extends StatelessWidget {
                             Icon(
                               Icons.location_on,
                               size: 12,
-                              color: isFar ? Colors.red : Colors.grey,
+                              color:
+                                  turista.enCampo ? Colors.green : Colors.grey,
                             ),
                             Text(
-                              ' A $distance ${isFar ? "(Lejos)" : ""}',
+                              turista.enCampo ? ' En Campo' : ' Fuera de Campo',
                               style: TextStyle(
                                 fontSize: 12,
                                 color:
-                                    isFar ? Colors.red : Colors.grey.shade700,
+                                    turista.enCampo
+                                        ? Colors.green
+                                        : Colors.grey.shade700,
                               ),
                             ),
                           ],
@@ -249,10 +306,13 @@ class TripPassengerList extends StatelessWidget {
                             Icon(
                               Icons.battery_std,
                               size: 14,
-                              color: battery < 20 ? Colors.red : Colors.green,
+                              color:
+                                  turista.bateria < 0.2
+                                      ? Colors.red
+                                      : Colors.green,
                             ),
                             Text(
-                              '$battery%',
+                              '${(turista.bateria * 100).toInt()}%',
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey,
