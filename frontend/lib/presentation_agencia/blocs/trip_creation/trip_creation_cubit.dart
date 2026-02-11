@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart'; // Para TimeOfDay
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -17,6 +18,11 @@ class TripCreationState extends Equatable {
   final LatLng? location; // Coordenadas del destino principal
   final bool isMultiDay; // Switch para lógica de fechas
 
+  // Añadimos TimeOfDay para manejo preciso de horas
+  final TimeOfDay? horaInicio;
+  final TimeOfDay? horaFin;
+  final String searchQueryGuia; // Para el buscador del modal
+
   // Listas simuladas para los selectores (En app real vendrían de otro Bloc)
   final List<Map<String, dynamic>> availableGuides;
 
@@ -30,10 +36,15 @@ class TripCreationState extends Equatable {
     this.selectedGuiaId,
     this.location,
     this.isMultiDay = false,
+    this.horaInicio,
+    this.horaFin,
+    this.searchQueryGuia = '',
     this.availableGuides = const [
       {'id': 'gui-01', 'name': 'Marcos R.', 'status': 'Disponible'},
       {'id': 'gui-02', 'name': 'Ana G.', 'status': 'Ocupado'},
       {'id': 'gui-03', 'name': 'Pedro S.', 'status': 'Disponible'},
+      {'id': 'gui-04', 'name': 'Sofia L.', 'status': 'Disponible'},
+      {'id': 'gui-05', 'name': 'Carlos M.', 'status': 'Ocupado'},
     ],
   });
 
@@ -47,6 +58,9 @@ class TripCreationState extends Equatable {
     String? selectedGuiaId,
     LatLng? location,
     bool? isMultiDay,
+    TimeOfDay? horaInicio,
+    TimeOfDay? horaFin,
+    String? searchQueryGuia,
   }) {
     return TripCreationState(
       currentStep: currentStep ?? this.currentStep,
@@ -58,8 +72,32 @@ class TripCreationState extends Equatable {
       selectedGuiaId: selectedGuiaId ?? this.selectedGuiaId,
       location: location ?? this.location,
       isMultiDay: isMultiDay ?? this.isMultiDay,
+      horaInicio: horaInicio ?? this.horaInicio,
+      horaFin: horaFin ?? this.horaFin,
+      searchQueryGuia: searchQueryGuia ?? this.searchQueryGuia,
       availableGuides: availableGuides,
     );
+  }
+
+  // Getter inteligente para ordenar guías
+  List<Map<String, dynamic>> get guiasFiltrados {
+    // 1. Filtrar por texto
+    var lista =
+        availableGuides
+            .where(
+              (g) => (g['name'] as String).toLowerCase().contains(
+                searchQueryGuia.toLowerCase(),
+              ),
+            )
+            .toList();
+
+    // 2. Ordenar: Disponibles arriba, Ocupados abajo
+    lista.sort((a, b) {
+      if (a['status'] == 'Disponible' && b['status'] != 'Disponible') return -1;
+      if (a['status'] != 'Disponible' && b['status'] == 'Disponible') return 1;
+      return 0;
+    });
+    return lista;
   }
 
   //Calculadora de Huella de Carbono Total
@@ -77,6 +115,9 @@ class TripCreationState extends Equatable {
     selectedGuiaId,
     location,
     isMultiDay,
+    horaInicio,
+    horaFin,
+    searchQueryGuia,
     availableGuides,
   ];
 }
@@ -94,6 +135,10 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   void setLocation(LatLng loc) => emit(state.copyWith(location: loc));
 
   void toggleMultiDay(bool value) => emit(state.copyWith(isMultiDay: value));
+
+  void setHoraInicio(TimeOfDay t) => emit(state.copyWith(horaInicio: t));
+  void setHoraFin(TimeOfDay t) => emit(state.copyWith(horaFin: t));
+  void searchGuia(String query) => emit(state.copyWith(searchQueryGuia: query));
 
   // Método auxiliar para setear fechas complejas
   void setDates({DateTime? start, DateTime? end}) {

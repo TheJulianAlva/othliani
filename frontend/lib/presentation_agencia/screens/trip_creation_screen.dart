@@ -72,28 +72,35 @@ class _TripCreationForm extends StatelessWidget {
     );
   }
 
-  // --- PASO 1: DATOS GENERALES ROBUSTOS ---
+  // --- PASO 1: DATOS GENERALES (VERSIÓN PRO) ---
   Widget _buildGeneralInfoStep(BuildContext context, TripCreationState state) {
     final cubit = context.read<TripCreationCubit>();
 
     return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 16,
+      ), // Espaciado
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Información Operativa",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          // TÍTULO DE SECCIÓN
+          Text(
+            "Detalles del Viaje",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueGrey[800],
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // 1. NOMBRE DEL VIAJE
+          // 1. NOMBRE DEL VIAJE (Input Moderno)
           TextFormField(
             initialValue: state.destino,
-            decoration: const InputDecoration(
-              labelText: 'Nombre del Viaje / Destino',
-              hintText: 'Ej: Excursión a Teotihuacán',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.label_outline),
+            decoration: _inputDecoration(
+              'Nombre del Viaje / Destino',
+              Icons.place,
             ),
             onChanged:
                 (v) => cubit.updateBasicInfo(
@@ -104,65 +111,76 @@ class _TripCreationForm extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // 2. UBICACIÓN EXACTA (MAPA + COORDENADAS)
+          // 2. UBICACIÓN (Mapa + Coordenadas)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
                   children: [
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Coordenadas (Lat, Lng)',
-                        hintText: '19.4326, -99.1332',
-                        prefixIcon: Icon(Icons.pin_drop),
-                        border: OutlineInputBorder(),
+                    InputDecorator(
+                      decoration: _inputDecoration(
+                        'Ubicación / Punto de Encuentro',
+                        Icons.pin_drop,
                       ),
-                      // Si hay ubicación seleccionada, mostramos el texto
-                      controller:
-                          state.location != null
-                              ? TextEditingController(
-                                text:
-                                    "${state.location!.latitude.toStringAsFixed(4)}, ${state.location!.longitude.toStringAsFixed(4)}",
-                              )
-                              : null,
+                      child: Text(
+                        state.location != null
+                            ? "${state.location!.latitude.toStringAsFixed(4)}, ${state.location!.longitude.toStringAsFixed(4)}"
+                            : "No seleccionada",
+                        style: TextStyle(
+                          color:
+                              state.location != null
+                                  ? Colors.black
+                                  : Colors.grey,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 8),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.map),
-                      label: const Text("Seleccionar en Mapa"),
-                      onPressed:
-                          () => _showMapPicker(
-                            context,
-                          ), // Abre un modal con mapa grande
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.map),
+                        label: const Text("Seleccionar en Mapa"),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () => _showMapPicker(context),
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 16),
-              // PREVIEW DEL MAPA (Pequeño)
+              // Preview Mapa
               Container(
                 width: 120,
-                height: 120,
+                height: 130, // Alineado con input + botón
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey[200],
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.grey[100],
                 ),
-                child:
-                    state.location == null
-                        ? const Center(
-                          child: Icon(Icons.map, color: Colors.grey),
-                        )
-                        : ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: FlutterMap(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child:
+                      state.location == null
+                          ? const Center(
+                            child: Icon(
+                              Icons.map,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          )
+                          : FlutterMap(
                             options: MapOptions(
                               initialCenter: state.location!,
                               initialZoom: 13,
                               interactionOptions: const InteractionOptions(
                                 flags: InteractiveFlag.none,
-                              ), // Estático
+                              ),
                             ),
                             children: [
                               TileLayer(
@@ -183,226 +201,349 @@ class _TripCreationForm extends StatelessWidget {
                               ),
                             ],
                           ),
-                        ),
+                ),
               ),
             ],
           ),
+          const SizedBox(height: 24),
 
-          const Divider(height: 32),
-
-          // 3. ASIGNACIÓN DE GUÍA (Selector Realista)
-          DropdownButtonFormField<String>(
-            initialValue: state.selectedGuiaId,
-            decoration: const InputDecoration(
-              labelText: 'Guía Responsable',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.badge),
+          // 2. SELECTOR DE GUÍA AVANZADO (Input ReadOnly que abre Modal)
+          InkWell(
+            onTap: () => _showGuiaPicker(context, state),
+            child: InputDecorator(
+              decoration: _inputDecoration('Guía Responsable', Icons.badge),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  state.selectedGuiaId == null
+                      ? Text(
+                        "Seleccionar Guía...",
+                        style: TextStyle(color: Colors.grey[600]),
+                      )
+                      : _buildSelectedGuiaChip(state),
+                  const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                ],
+              ),
             ),
-            items:
-                state.availableGuides.map((g) {
-                  return DropdownMenuItem(
-                    value: g['id'] as String,
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundColor: Colors.blue[100],
-                          child: Text(
-                            (g['name'] as String)[0],
-                            style: const TextStyle(fontSize: 10),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(g['name']),
-                        const SizedBox(width: 8),
-                        // Badge de disponibilidad
-                        if (g['status'] == 'Ocupado')
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.orange[100],
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              "OCUPADO",
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.orange,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-            onChanged: (v) => cubit.setGuia(v),
           ),
 
-          const Divider(height: 32),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 24),
 
-          // 4. LOGÍSTICA DE TIEMPO (Switch Corto/Largo)
+          // 3. SWITCH DE DURACIÓN
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "¿Es un viaje de varios días?",
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Icon(Icons.date_range, color: Colors.blueGrey[700]),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Duración del Viaje",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    state.isMultiDay
+                        ? "Varios Días (Expedición)"
+                        : "Un Día (Excursión)",
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
               ),
+              const Spacer(),
               Switch(
                 value: state.isMultiDay,
                 onChanged: (val) => cubit.toggleMultiDay(val),
+                activeThumbColor: Colors.blue[800],
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // SELECTORES DE FECHA (Lógica Dinámica)
-          Row(
-            children: [
-              // FECHA INICIO
-              Expanded(
-                child: _buildDatePickerField(
-                  context: context,
-                  label: state.isMultiDay ? "Fecha Inicio" : "Fecha del Viaje",
-                  selectedDate: state.fechaInicio,
-                  onPicked: (d) {
-                    // Lógica simple: Si es 1 día, Inicio y Fin son el mismo día
-                    if (!state.isMultiDay) {
-                      cubit.setDates(start: d, end: d);
-                    } else {
-                      cubit.setDates(start: d, end: state.fechaFin);
-                    }
-                  },
+          // 4. FECHAS Y HORAS (GRID)
+          if (!state.isMultiDay)
+            // CASO A: UN SOLO DÍA
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: _buildDateField(
+                    context,
+                    "Fecha",
+                    state.fechaInicio,
+                    (d) => cubit.setDates(start: d, end: d),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              // FECHA FIN (Solo visible si es Multidía) o HORA FIN
-              Expanded(
-                child:
-                    state.isMultiDay
-                        ? _buildDatePickerField(
-                          context: context,
-                          label: "Fecha Fin",
-                          selectedDate: state.fechaFin,
-                          onPicked:
-                              (d) => cubit.setDates(
-                                start: state.fechaInicio,
-                                end: d,
-                              ),
-                        )
-                        : _buildTimePickerField(
-                          context,
-                          "Hora Estimada Fin",
-                        ), // Implementa un TimePicker simple
-              ),
-            ],
-          ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTimeField(
+                    context,
+                    "Inicio",
+                    state.horaInicio,
+                    (t) => cubit.setHoraInicio(t),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTimeField(
+                    context,
+                    "Fin",
+                    state.horaFin,
+                    (t) => cubit.setHoraFin(t),
+                  ),
+                ),
+              ],
+            )
+          else
+            // CASO B: MULTIDÍA
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: _buildDateField(
+                        context,
+                        "Inicia el...",
+                        state.fechaInicio,
+                        (d) => cubit.setDates(start: d, end: state.fechaFin),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildTimeField(
+                        context,
+                        "A las...",
+                        state.horaInicio,
+                        (t) => cubit.setHoraInicio(t),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: _buildDateField(
+                        context,
+                        "Termina el...",
+                        state.fechaFin,
+                        (d) => cubit.setDates(start: state.fechaInicio, end: d),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildTimeField(
+                        context,
+                        "A las...",
+                        state.horaFin,
+                        (t) => cubit.setHoraFin(t),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
         ],
       ),
     );
   }
 
-  // --- WIDGETS AUXILIARES ---
+  // --- ESTILOS MODERNOS ---
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: Colors.blueGrey),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey[300]!),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey[300]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue[800]!, width: 2),
+      ),
+      filled: true,
+      fillColor: Colors.grey[50],
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
 
-  // Modal con Mapa Grande para seleccionar punto
-  void _showMapPicker(BuildContext context) {
-    showDialog(
+  // --- MODAL DE SELECCIÓN DE GUÍA ---
+  void _showGuiaPicker(BuildContext context, TripCreationState state) {
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder:
-          (ctx) => Dialog(
-            child: SizedBox(
-              width: 600,
-              height: 500,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: FlutterMap(
-                      options: MapOptions(
-                        initialCenter: const LatLng(
-                          19.4326,
-                          -99.1332,
-                        ), // CDMX default
-                        initialZoom: 12,
-                        onTap: (_, latlng) {
-                          context.read<TripCreationCubit>().setLocation(latlng);
-                          Navigator.pop(ctx); // Cierra al tocar
+          (ctx) => DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            expand: false,
+            builder:
+                (_, scrollController) => Column(
+                  children: [
+                    // Cabecera del Modal
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "Buscar guía por nombre...",
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                        ),
+                        onChanged:
+                            (v) =>
+                                context.read<TripCreationCubit>().searchGuia(v),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    // Lista Filtrada y Ordenada
+                    Expanded(
+                      child: ListView.separated(
+                        controller: scrollController,
+                        itemCount: state.guiasFiltrados.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (ctx, i) {
+                          final guia = state.guiasFiltrados[i];
+                          final bool disponible =
+                              guia['status'] == 'Disponible';
+
+                          return ListTile(
+                            enabled:
+                                disponible, // Desactiva clic si está ocupado
+                            leading: CircleAvatar(
+                              backgroundColor:
+                                  disponible
+                                      ? Colors.blue[100]
+                                      : Colors.grey[300],
+                              child: Text(
+                                guia['name'][0],
+                                style: TextStyle(
+                                  color:
+                                      disponible
+                                          ? Colors.blue[900]
+                                          : Colors.grey,
+                                ),
+                              ),
+                            ),
+                            title: Text(
+                              guia['name'],
+                              style: TextStyle(
+                                color: disponible ? Colors.black : Colors.grey,
+                                decoration:
+                                    disponible
+                                        ? null
+                                        : TextDecoration.lineThrough,
+                              ),
+                            ),
+                            subtitle: Text(
+                              disponible
+                                  ? "✅ Disponible"
+                                  : "⛔ Ocupado en otro viaje",
+                            ),
+                            trailing:
+                                disponible
+                                    ? (state.selectedGuiaId == guia['id']
+                                        ? const Icon(
+                                          Icons.check_circle,
+                                          color: Colors.blue,
+                                        )
+                                        : null)
+                                    : null,
+                            onTap: () {
+                              context.read<TripCreationCubit>().setGuia(
+                                guia['id'],
+                              );
+                              Navigator.pop(ctx);
+                            },
+                          );
                         },
                       ),
-                      children: [
-                        TileLayer(
-                          urlTemplate:
-                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: 'com.othliani.app',
-                        ),
-                        const Center(
-                          child: Icon(
-                            Icons.location_searching,
-                            color: Colors.blue,
-                          ),
-                        ), // Mira central
-                      ],
                     ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "Toca en el mapa para seleccionar el punto de encuentro",
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                  ],
+                ),
           ),
     );
   }
 
-  Widget _buildDatePickerField({
-    required BuildContext context,
-    required String label,
-    DateTime? selectedDate,
-    required Function(DateTime) onPicked,
-  }) {
+  // --- WIDGETS AUXILIARES ---
+  Widget _buildDateField(
+    BuildContext context,
+    String label,
+    DateTime? val,
+    Function(DateTime) onPick,
+  ) {
     return InkWell(
       onTap: () async {
         final d = await showDatePicker(
           context: context,
           initialDate: DateTime.now(),
-          firstDate: DateTime.now(),
+          firstDate: DateTime(2020),
           lastDate: DateTime(2030),
         );
-        if (d != null) onPicked(d);
+        if (d != null) onPick(d);
       },
       child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          prefixIcon: const Icon(Icons.calendar_today),
-        ),
+        decoration: _inputDecoration(label, Icons.calendar_today),
         child: Text(
-          selectedDate != null
-              ? "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}"
-              : "Seleccionar",
+          val != null ? "${val.day}/${val.month}/${val.year}" : "Seleccionar",
+          style: const TextStyle(fontSize: 14),
         ),
       ),
     );
   }
 
-  Widget _buildTimePickerField(BuildContext context, String label) {
+  Widget _buildTimeField(
+    BuildContext context,
+    String label,
+    TimeOfDay? val,
+    Function(TimeOfDay) onPick,
+  ) {
     return InkWell(
       onTap: () async {
-        // Implementa showTimePicker aquí
+        final t = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.now(),
+        );
+        if (t != null) onPick(t);
       },
       child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          prefixIcon: const Icon(Icons.access_time),
+        decoration: _inputDecoration(label, Icons.access_time),
+        child: Text(
+          val != null ? val.format(context) : "--:--",
+          style: const TextStyle(fontSize: 14),
         ),
-        child: const Text("18:00 (Ejemplo)"),
       ),
+    );
+  }
+
+  Widget _buildSelectedGuiaChip(TripCreationState state) {
+    final guia = state.availableGuides.firstWhere(
+      (g) => g['id'] == state.selectedGuiaId,
+      orElse: () => state.availableGuides.first,
+    );
+    return Chip(
+      avatar: CircleAvatar(
+        backgroundColor: Colors.blue[800],
+        child: Text(
+          guia['name'][0],
+          style: const TextStyle(fontSize: 10, color: Colors.white),
+        ),
+      ),
+      label: Text(guia['name']),
+      backgroundColor: Colors.blue[50],
+      side: BorderSide.none,
     );
   }
 
@@ -457,9 +598,7 @@ class _TripCreationForm extends StatelessWidget {
         leading: CircleAvatar(
           backgroundColor: esPrivado ? Colors.grey[200] : Colors.green[50],
           child: Icon(
-            esPrivado
-                ? Icons.visibility_off
-                : Icons.security, // [cite: 6] Iconografía de privacidad
+            esPrivado ? Icons.visibility_off : Icons.security,
             color: esPrivado ? Colors.grey : Colors.green[800],
             size: 20,
           ),
@@ -549,6 +688,60 @@ class _TripCreationForm extends StatelessWidget {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Actividad agregada al itinerario")),
+    );
+  }
+
+  // --- MODAL DE MAPA ---
+  void _showMapPicker(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => Dialog(
+            child: SizedBox(
+              width: 600,
+              height: 500,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: FlutterMap(
+                      options: MapOptions(
+                        initialCenter: const LatLng(
+                          19.4326,
+                          -99.1332,
+                        ), // CDMX default
+                        initialZoom: 12,
+                        onTap: (_, latlng) {
+                          context.read<TripCreationCubit>().setLocation(latlng);
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.othliani.app',
+                        ),
+                        const Center(
+                          child: Icon(
+                            Icons.location_searching,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    color: Colors.white,
+                    child: const Text(
+                      "Toca en el mapa para establecer el punto de encuentro.",
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
     );
   }
 }
