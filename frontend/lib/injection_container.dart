@@ -9,6 +9,7 @@ import 'presentation_agencia/blocs/viajes/viajes_bloc.dart';
 import 'presentation_agencia/blocs/detalle_viaje/detalle_viaje_bloc.dart';
 import 'presentation_agencia/blocs/usuarios/usuarios_bloc.dart';
 import 'presentation_agencia/blocs/auditoria/auditoria_bloc.dart';
+import 'presentation_agencia/blocs/trip_creation/trip_creation_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -22,6 +23,7 @@ Future<void> init() async {
   sl.registerFactory(() => DetalleViajeBloc(repository: sl()));
   sl.registerFactory(() => UsuariosBloc(repository: sl()));
   sl.registerFactory(() => AuditoriaBloc(repository: sl()));
+  sl.registerFactory(() => TripCreationCubit(repository: sl()));
 
   // Use cases
   sl.registerLazySingleton(() => GetDashboardData(sl()));

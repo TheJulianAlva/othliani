@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../blocs/usuarios/usuarios_bloc.dart';
 import '../../../domain/entities/guia.dart';
+import '../common/trip_status_chip.dart';
 
 class GuidesTab extends StatelessWidget {
   const GuidesTab({super.key});
@@ -260,20 +261,7 @@ class _GuideRow extends StatelessWidget {
             // Estado
             Expanded(flex: 2, child: _buildStatusBadge(guia.status)),
             // Viajes Asignados
-            Expanded(
-              flex: 2,
-              child: Text(
-                '${guia.viajesAsignados} ${guia.viajesAsignados == 1 ? 'viaje' : 'viajes'}',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color:
-                      guia.viajesAsignados > 0
-                          ? Colors.green.shade700
-                          : Colors.grey.shade600,
-                ),
-              ),
-            ),
+            Expanded(flex: 2, child: _buildTripAssignmentInfo(guia)),
             // Acciones
             Expanded(
               flex: 2,
@@ -319,6 +307,39 @@ class _GuideRow extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTripAssignmentInfo(Guia guia) {
+    if (guia.viajesAsignados == 0) {
+      return Text(
+        '0 viajes',
+        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+      );
+    }
+
+    // Inferir estado del viaje desde el status del guía
+    String estadoViaje;
+    if (guia.status == 'EN_RUTA') {
+      estadoViaje = 'EN_CURSO';
+    } else if (guia.status == 'ONLINE' && guia.viajesAsignados > 0) {
+      estadoViaje = 'PROGRAMADO';
+    } else {
+      estadoViaje = 'FINALIZADO';
+    }
+
+    return Row(
+      children: [
+        Text(
+          '${guia.viajesAsignados} ',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey.shade800,
+          ),
+        ),
+        TripStatusChip(estado: estadoViaje, compact: true),
+      ],
     );
   }
 

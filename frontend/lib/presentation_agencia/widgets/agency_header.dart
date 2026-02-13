@@ -96,6 +96,7 @@ class _AgencyHeaderState extends State<AgencyHeader> {
               name: data['nombre'],
               status: data['status'],
               viajesAsignados: data['viajesAsignados'],
+              viajeEstado: data['viajeEstado'], // Pasar estado del viaje
             );
           } else if (type == 'tourist') {
             return SearchResult.tourist(

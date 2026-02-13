@@ -11,64 +11,71 @@ class MockAgenciaDataSource {
 
   // --- 1. LISTA DE GUÍAS (Usando Entity Guia) ---
   final List<Guia> _guias = [
+    // 🔵 GUÍAS EN_RUTA (3) - Viajes activos EN_CURSO
     const Guia(
       id: 'G-01',
       nombre: 'Marcos Ruiz',
       status: 'EN_RUTA',
-      viajesAsignados: 1,
+      viajesAsignados: 1, // Viaje #204
     ),
     const Guia(
       id: 'G-02',
-      nombre: 'Ana Paula G.',
+      nombre: 'Pedro Sánchez',
       status: 'EN_RUTA',
-      viajesAsignados: 1,
+      viajesAsignados: 1, // Viaje #205
     ),
     const Guia(
       id: 'G-03',
-      nombre: 'Pedro Sánchez',
+      nombre: 'Ana Paula G.',
       status: 'EN_RUTA',
-      viajesAsignados: 1,
+      viajesAsignados: 1, // Viaje #110
     ),
+
+    // 📅 GUÍAS CON VIAJES PROGRAMADOS (4)
     const Guia(
       id: 'G-04',
-      nombre: 'Luisa Lane',
-      status: 'OFFLINE',
-      viajesAsignados: 0,
+      nombre: 'Carlos Vega',
+      status: 'ONLINE',
+      viajesAsignados: 1, // Viaje #305 PROGRAMADO
     ),
     const Guia(
       id: 'G-05',
-      nombre: 'Carlos V.',
+      nombre: 'Luisa Lane',
       status: 'ONLINE',
-      viajesAsignados: 0,
+      viajesAsignados: 1, // Viaje #306 PROGRAMADO
     ),
     const Guia(
       id: 'G-06',
-      nombre: 'Sofia R.',
-      status: 'EN_RUTA',
-      viajesAsignados: 1,
+      nombre: 'Roberto Gómez',
+      status: 'ONLINE',
+      viajesAsignados: 1, // Viaje #307 PROGRAMADO
     ),
     const Guia(
       id: 'G-07',
+      nombre: 'María López',
+      status: 'ONLINE',
+      viajesAsignados: 1, // Viaje #308 PROGRAMADO
+    ),
+
+    // ✅ GUÍAS DISPONIBLES (2) - ONLINE sin viajes
+    const Guia(
+      id: 'G-08',
       nombre: 'Jorge T.',
       status: 'ONLINE',
       viajesAsignados: 0,
     ),
     const Guia(
-      id: 'G-08',
-      nombre: 'Mariana L.',
+      id: 'G-09',
+      nombre: 'Elena M.',
       status: 'ONLINE',
       viajesAsignados: 0,
     ),
-    const Guia(
-      id: 'G-09',
-      nombre: 'Roberto C.',
-      status: 'EN_RUTA',
-      viajesAsignados: 1,
-    ),
+
+    // ⚫ GUÍA OFFLINE (1)
     const Guia(
       id: 'G-10',
-      nombre: 'Elena M.',
-      status: 'ONLINE',
+      nombre: 'Sofia R.',
+      status: 'OFFLINE',
       viajesAsignados: 0,
     ),
   ];
@@ -1671,12 +1678,25 @@ class MockAgenciaDataSource {
     for (final guia in _guias) {
       if (guia.nombre.toLowerCase().contains(lowerQuery) ||
           guia.id.toLowerCase().contains(lowerQuery)) {
+        // Determinar estado del viaje asignado
+        String? viajeEstado;
+        if (guia.viajesAsignados > 0) {
+          // Buscar el viaje asignado a este guía
+          final viajeAsignado =
+              _viajes.where((v) {
+                return v.guiaNombre.contains(guia.nombre.split(' ')[0]);
+              }).firstOrNull;
+
+          viajeEstado = viajeAsignado?.estado;
+        }
+
         results.add({
           'type': 'guide',
           'id': guia.id,
           'nombre': guia.nombre,
           'status': guia.status,
           'viajesAsignados': guia.viajesAsignados,
+          'viajeEstado': viajeEstado, // Nuevo campo
         });
       }
     }

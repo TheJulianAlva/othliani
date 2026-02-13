@@ -6,10 +6,13 @@ import 'presentation_agencia/blocs/sync/sync_bloc.dart';
 import 'core/navigation/app_router_agencia.dart';
 import 'injection_container.dart' as di;
 
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importar dotenv
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Ensure window manager is initialized
   await windowManager.ensureInitialized();
+  await dotenv.load(fileName: ".env"); // Cargar variables de entorno
   await di.init(); // Initialize Dependency Injection
 
   WindowOptions windowOptions = const WindowOptions(

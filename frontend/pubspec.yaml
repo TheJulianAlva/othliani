@@ -41,6 +41,7 @@ dependencies:
   window_manager: ^0.5.1
   rxdart: ^0.28.0
   connectivity_plus: ^6.1.0
+  flutter_dotenv: ^6.0.0
 
 
 dev_dependencies:
