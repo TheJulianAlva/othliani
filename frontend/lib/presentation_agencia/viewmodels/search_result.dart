@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/trip_status_utils.dart';
 
 enum SearchResultType { guide, tourist, trip }
 
@@ -25,6 +26,7 @@ class SearchResult {
     required String name,
     required String status,
     required int viajesAsignados,
+    String? viajeEstado, // Nuevo parámetro opcional para estado del viaje
   }) {
     String statusText =
         status == 'EN_RUTA'
@@ -32,12 +34,22 @@ class SearchResult {
             : status == 'ONLINE'
             ? 'Online'
             : 'Offline';
+
+    // Construir texto contextual para viajes
+    String viajesText;
+    if (viajesAsignados == 0) {
+      viajesText = '0 viajes';
+    } else {
+      // Usar información contextual del estado del viaje
+      final tripInfo = getTripStatusInfo(viajeEstado ?? 'EN_CURSO');
+      viajesText = '$viajesAsignados ${tripInfo.text}';
+    }
+
     return SearchResult(
       type: SearchResultType.guide,
       id: id,
       name: name,
-      subtitle:
-          '$statusText • $viajesAsignados ${viajesAsignados == 1 ? 'viaje' : 'viajes'}',
+      subtitle: '$statusText • $viajesText',
       icon: Icons.person_pin,
       color: Colors.blue,
     );

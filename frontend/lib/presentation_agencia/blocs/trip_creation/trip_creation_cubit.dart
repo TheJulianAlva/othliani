@@ -1,7 +1,11 @@
+import 'package:flutter/material.dart'; // Para TimeOfDay
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'dart:async';
+import '../../../core/services/pexels_service.dart';
 import '../../../domain/entities/actividad_itinerario.dart';
+import '../../../domain/repositories/agencia_repository.dart';
 
 // --- ESTADO ---
 class TripCreationState extends Equatable {
@@ -13,12 +17,20 @@ class TripCreationState extends Equatable {
   final bool isSaving;
 
   // Nuevos campos para Datos Generales Robustos
-  final String? selectedGuiaId; // ID del guía asignado
+  final String? selectedGuiaId; // El Principal (Jefe de expedición)
+  final List<String> coGuiasIds; // Los Auxiliares (Equipo de apoyo)
   final LatLng? location; // Coordenadas del destino principal
   final bool isMultiDay; // Switch para lógica de fechas
 
-  // Listas simuladas para los selectores (En app real vendrían de otro Bloc)
-  final List<Map<String, dynamic>> availableGuides;
+  // Añadimos TimeOfDay para manejo preciso de horas
+  final TimeOfDay? horaInicio;
+  final TimeOfDay? horaFin;
+  final String searchQueryGuia; // Para el buscador del modal
+  final List<Map<String, dynamic>> availableGuides; // Lista de guías
+
+  // Campos para Carrusel de Fotos (Inteligencia Visual)
+  final String? fotoPortadaUrl;
+  final List<String> fotosCandidatas;
 
   const TripCreationState({
     this.currentStep = 0,
@@ -28,13 +40,16 @@ class TripCreationState extends Equatable {
     this.itinerario = const [],
     this.isSaving = false,
     this.selectedGuiaId,
+    this.coGuiasIds = const [], // Inicializar vacía
     this.location,
     this.isMultiDay = false,
-    this.availableGuides = const [
-      {'id': 'gui-01', 'name': 'Marcos R.', 'status': 'Disponible'},
-      {'id': 'gui-02', 'name': 'Ana G.', 'status': 'Ocupado'},
-      {'id': 'gui-03', 'name': 'Pedro S.', 'status': 'Disponible'},
-    ],
+    this.horaInicio,
+    this.horaFin,
+    this.searchQueryGuia = '',
+    this.availableGuides =
+        const [], // Lista vacía por defecto, se carga desde el repository
+    this.fotoPortadaUrl,
+    this.fotosCandidatas = const [],
   });
 
   TripCreationState copyWith({
@@ -45,8 +60,15 @@ class TripCreationState extends Equatable {
     List<ActividadItinerario>? itinerario,
     bool? isSaving,
     String? selectedGuiaId,
+    List<String>? coGuiasIds,
     LatLng? location,
     bool? isMultiDay,
+    TimeOfDay? horaInicio,
+    TimeOfDay? horaFin,
+    String? searchQueryGuia,
+    List<Map<String, dynamic>>? availableGuides,
+    String? fotoPortadaUrl,
+    List<String>? fotosCandidatas,
   }) {
     return TripCreationState(
       currentStep: currentStep ?? this.currentStep,
@@ -56,10 +78,37 @@ class TripCreationState extends Equatable {
       itinerario: itinerario ?? this.itinerario,
       isSaving: isSaving ?? this.isSaving,
       selectedGuiaId: selectedGuiaId ?? this.selectedGuiaId,
+      coGuiasIds: coGuiasIds ?? this.coGuiasIds,
       location: location ?? this.location,
       isMultiDay: isMultiDay ?? this.isMultiDay,
-      availableGuides: availableGuides,
+      horaInicio: horaInicio ?? this.horaInicio,
+      horaFin: horaFin ?? this.horaFin,
+      searchQueryGuia: searchQueryGuia ?? this.searchQueryGuia,
+      availableGuides: availableGuides ?? this.availableGuides,
+      fotoPortadaUrl: fotoPortadaUrl ?? this.fotoPortadaUrl,
+      fotosCandidatas: fotosCandidatas ?? this.fotosCandidatas,
     );
+  }
+
+  // Getter inteligente para ordenar guías
+  List<Map<String, dynamic>> get guiasFiltrados {
+    // 1. Filtrar por texto
+    var lista =
+        availableGuides
+            .where(
+              (g) => (g['name'] as String).toLowerCase().contains(
+                searchQueryGuia.toLowerCase(),
+              ),
+            )
+            .toList();
+
+    // 2. Ordenar: Disponibles arriba, Ocupados abajo
+    lista.sort((a, b) {
+      if (a['status'] == 'Disponible' && b['status'] != 'Disponible') return -1;
+      if (a['status'] != 'Disponible' && b['status'] == 'Disponible') return 1;
+      return 0;
+    });
+    return lista;
   }
 
   //Calculadora de Huella de Carbono Total
@@ -75,25 +124,207 @@ class TripCreationState extends Equatable {
     itinerario,
     isSaving,
     selectedGuiaId,
+    coGuiasIds,
     location,
     isMultiDay,
+    horaInicio,
+    horaFin,
+    searchQueryGuia,
     availableGuides,
+    fotoPortadaUrl,
+    fotosCandidatas,
   ];
 }
 
 // --- CUBIT ---
 class TripCreationCubit extends Cubit<TripCreationState> {
-  TripCreationCubit() : super(const TripCreationState());
+  final AgenciaRepository repository;
 
-  void updateBasicInfo(String destino, DateTime? inicio, DateTime? fin) {
-    emit(state.copyWith(destino: destino, fechaInicio: inicio, fechaFin: fin));
+  TripCreationCubit({required this.repository})
+    : super(const TripCreationState()) {
+    _loadGuides(); // Cargar guías al inicializar
   }
 
-  void setGuia(String? id) => emit(state.copyWith(selectedGuiaId: id));
+  // Cargar guías reales del mock database
+  Future<void> _loadGuides() async {
+    final guiasResult = await repository.getListaGuias();
+    final viajesResult = await repository.getListaViajes();
+
+    guiasResult.fold(
+      (failure) => {}, // Ignorar error por ahora
+      (guias) {
+        viajesResult.fold((failure) => {}, (viajes) {
+          // Calcular estado de disponibilidad de cada guía
+          final guiasConEstado =
+              guias.map((guia) {
+                String statusLabel;
+
+                // Verificar si el guía está en un viaje EN_CURSO
+                final viajeEnCurso = viajes.any(
+                  (v) =>
+                      v.estado == 'EN_CURSO' &&
+                      v.guiaNombre.contains(guia.nombre.split(' ')[0]),
+                );
+
+                // Verificar si el guía está en un viaje PROGRAMADO
+                final viajeProgramado = viajes.any(
+                  (v) =>
+                      v.estado == 'PROGRAMADO' &&
+                      v.guiaNombre.contains(guia.nombre.split(' ')[0]),
+                );
+
+                if (viajeEnCurso) {
+                  statusLabel = 'Ocupado en otro viaje';
+                } else if (viajeProgramado) {
+                  statusLabel = 'Tiene viaje programado';
+                } else if (guia.status == 'ONLINE') {
+                  statusLabel = 'Disponible';
+                } else {
+                  statusLabel = 'No disponible';
+                }
+
+                return <String, dynamic>{
+                  'id': guia.id,
+                  'name': guia.nombre,
+                  'status': statusLabel,
+                  'originalStatus': guia.status, // Para debugging
+                };
+              }).toList();
+
+          emit(state.copyWith(availableGuides: guiasConEstado));
+        });
+      },
+    );
+  }
+
+  // Integración Pexels
+  final PexelsService _pexelsService = PexelsService();
+  Timer? _debounce;
+
+  void onDestinoChanged(String query) {
+    print("🟢 1. El Cubit recibió el texto: $query"); // DEBUG 1
+    // 1. Actualizamos el texto en el estado inmediatamente
+    emit(state.copyWith(destino: query));
+
+    // 2. Cancelamos la búsqueda anterior si el usuario sigue escribiendo
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    // 3. Esperamos 1 segundo (1000 ms) de inactividad
+    _debounce = Timer(const Duration(milliseconds: 1000), () async {
+      print("🟡 2. Pasó 1 segundo, intentando buscar..."); // DEBUG 2
+
+      if (query.length > 3) {
+        print("🟠 3. Longitud válida, llamando a PexelsService..."); // DEBUG 3
+
+        try {
+          final fotos = await _pexelsService.buscarFotos(query);
+          print("🔵 4. Pexels respondió con ${fotos.length} fotos"); // DEBUG 4
+
+          if (fotos.isNotEmpty) {
+            emit(state.copyWith(fotosCandidatas: fotos));
+            print("🟣 5. Estado actualizado con fotos"); // DEBUG 5
+
+            // Opcional: Auto-seleccionar la primera foto bonita
+            if (state.fotoPortadaUrl == null ||
+                (state.fotoPortadaUrl?.contains('mapbox') ?? false)) {
+              emit(state.copyWith(fotoPortadaUrl: fotos.first));
+            }
+          }
+        } catch (e) {
+          print("🚨 Error explotó en el Cubit: $e");
+        }
+      } else {
+        print("⚪ Texto muy corto para buscar");
+      }
+    });
+  }
+
+  // Deprecated: Usar onDestinoChanged para el texto
+  void updateBasicInfo(String destino, DateTime? inicio, DateTime? fin) {
+    emit(state.copyWith(destino: destino, fechaInicio: inicio, fechaFin: fin));
+    if (destino.length > 3) {
+      // _cargarFotosCandidatas(destino); // Ya no se usa este método mock
+      onDestinoChanged(destino); // Reutilizamos lógica con debounce
+    }
+  }
+
+  void setGuia(String? id) {
+    List<String> currentCoGuias = List.from(state.coGuiasIds);
+    if (id != null && currentCoGuias.contains(id)) {
+      currentCoGuias.remove(id); // Lo sacamos de auxiliares si ahora es jefe
+    }
+    emit(state.copyWith(selectedGuiaId: id, coGuiasIds: currentCoGuias));
+  }
+
+  /// Agregar o Quitar un Co-Guía
+  void toggleCoGuia(String guiaId) {
+    // Regla de Oro: El principal no puede ser auxiliar
+    if (state.selectedGuiaId == guiaId) return;
+
+    final currentList = List<String>.from(state.coGuiasIds);
+    if (currentList.contains(guiaId)) {
+      currentList.remove(guiaId); // Si ya está, lo quitamos
+    } else {
+      currentList.add(guiaId); // Si no está, lo agregamos
+    }
+    emit(state.copyWith(coGuiasIds: currentList));
+  }
 
   void setLocation(LatLng loc) => emit(state.copyWith(location: loc));
 
-  void toggleMultiDay(bool value) => emit(state.copyWith(isMultiDay: value));
+  /// Método maestro: Se llama cuando el usuario selecciona un lugar en el mapa
+  /// Actualiza la ubicación, el nombre del destino Y dispara la búsqueda de fotos
+  void setLocationAndSearchPhotos(LatLng loc, String nombreLugar) {
+    // 1. Actualizamos ubicación y nombre en el estado
+    emit(state.copyWith(location: loc, destino: nombreLugar));
+
+    // 2. Disparamos la búsqueda de fotos inmediatamente (sin debounce)
+    if (nombreLugar.length > 3) {
+      _pexelsService
+          .buscarFotos(nombreLugar)
+          .then((fotos) {
+            if (fotos.isNotEmpty) {
+              emit(state.copyWith(fotosCandidatas: fotos));
+
+              // Si no hay portada o es el placeholder de mapbox, ponemos la primera foto
+              if (state.fotoPortadaUrl == null ||
+                  (state.fotoPortadaUrl?.contains('mapbox') ?? false)) {
+                emit(state.copyWith(fotoPortadaUrl: fotos.first));
+              }
+            }
+          })
+          .catchError((e) {
+            debugPrint("Error buscando fotos desde mapa: $e");
+          });
+    }
+  }
+
+  void toggleMultiDay(bool value) {
+    // Al cambiar de modo, crear un nuevo estado limpio con fechas y horas reseteadas
+    emit(
+      TripCreationState(
+        currentStep: state.currentStep,
+        destino: state.destino,
+        isMultiDay: value,
+        selectedGuiaId: state.selectedGuiaId,
+        coGuiasIds: state.coGuiasIds,
+        location: state.location,
+        searchQueryGuia: state.searchQueryGuia,
+        availableGuides: state.availableGuides,
+        fotoPortadaUrl: state.fotoPortadaUrl,
+        fotosCandidatas: state.fotosCandidatas,
+        // Resetear fechas y horas a null
+        fechaInicio: null,
+        fechaFin: null,
+        horaInicio: null,
+        horaFin: null,
+      ),
+    );
+  }
+
+  void setHoraInicio(TimeOfDay t) => emit(state.copyWith(horaInicio: t));
+  void setHoraFin(TimeOfDay t) => emit(state.copyWith(horaFin: t));
+  void searchGuia(String query) => emit(state.copyWith(searchQueryGuia: query));
 
   // Método auxiliar para setear fechas complejas
   void setDates({DateTime? start, DateTime? end}) {
@@ -114,7 +345,38 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     emit(state.copyWith(itinerario: lista));
   }
 
+  // Método para validar si puede avanzar al Paso 2
+  bool validateGeneralInfo() {
+    if (state.destino.isEmpty) return false;
+    if (state.selectedGuiaId == null) return false;
+    if (state.fechaInicio == null) return false;
+    if (state.horaInicio == null) return false;
+
+    // Validación Multidía
+    if (state.isMultiDay) {
+      if (state.fechaFin == null) return false;
+      // Validar que fin sea > inicio (ya lo hace el UI, pero por seguridad)
+      if (state.fechaFin!.isBefore(state.fechaInicio!)) return false;
+    } else {
+      // Validación 1 Día
+      if (state.horaFin == null) return false;
+      // Validar horas
+      final double start =
+          state.horaInicio!.hour + state.horaInicio!.minute / 60.0;
+      final double end = state.horaFin!.hour + state.horaFin!.minute / 60.0;
+      if (end <= start) return false;
+    }
+
+    return true;
+  }
+
   void nextStep() {
+    // Validar antes de avanzar desde el paso 0 (Datos Generales)
+    if (state.currentStep == 0 && !validateGeneralInfo()) {
+      // No avanzar si la validación falla
+      return;
+    }
+
     if (state.currentStep < 2) {
       emit(state.copyWith(currentStep: state.currentStep + 1));
     }
@@ -131,5 +393,9 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     // Aquí llamarías al Repository para guardar en la API real
     await Future.delayed(const Duration(seconds: 2)); // Simulación
     emit(state.copyWith(isSaving: false));
+  }
+
+  void seleccionarFoto(String url) {
+    emit(state.copyWith(fotoPortadaUrl: url));
   }
 }
