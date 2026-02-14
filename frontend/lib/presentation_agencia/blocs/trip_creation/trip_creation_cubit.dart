@@ -17,7 +17,8 @@ class TripCreationState extends Equatable {
   final bool isSaving;
 
   // Nuevos campos para Datos Generales Robustos
-  final String? selectedGuiaId; // ID del guía asignado
+  final String? selectedGuiaId; // El Principal (Jefe de expedición)
+  final List<String> coGuiasIds; // Los Auxiliares (Equipo de apoyo)
   final LatLng? location; // Coordenadas del destino principal
   final bool isMultiDay; // Switch para lógica de fechas
 
@@ -39,6 +40,7 @@ class TripCreationState extends Equatable {
     this.itinerario = const [],
     this.isSaving = false,
     this.selectedGuiaId,
+    this.coGuiasIds = const [], // Inicializar vacía
     this.location,
     this.isMultiDay = false,
     this.horaInicio,
@@ -58,6 +60,7 @@ class TripCreationState extends Equatable {
     List<ActividadItinerario>? itinerario,
     bool? isSaving,
     String? selectedGuiaId,
+    List<String>? coGuiasIds,
     LatLng? location,
     bool? isMultiDay,
     TimeOfDay? horaInicio,
@@ -75,6 +78,7 @@ class TripCreationState extends Equatable {
       itinerario: itinerario ?? this.itinerario,
       isSaving: isSaving ?? this.isSaving,
       selectedGuiaId: selectedGuiaId ?? this.selectedGuiaId,
+      coGuiasIds: coGuiasIds ?? this.coGuiasIds,
       location: location ?? this.location,
       isMultiDay: isMultiDay ?? this.isMultiDay,
       horaInicio: horaInicio ?? this.horaInicio,
@@ -120,6 +124,7 @@ class TripCreationState extends Equatable {
     itinerario,
     isSaving,
     selectedGuiaId,
+    coGuiasIds,
     location,
     isMultiDay,
     horaInicio,
@@ -243,9 +248,56 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     }
   }
 
-  void setGuia(String? id) => emit(state.copyWith(selectedGuiaId: id));
+  void setGuia(String? id) {
+    List<String> currentCoGuias = List.from(state.coGuiasIds);
+    if (id != null && currentCoGuias.contains(id)) {
+      currentCoGuias.remove(id); // Lo sacamos de auxiliares si ahora es jefe
+    }
+    emit(state.copyWith(selectedGuiaId: id, coGuiasIds: currentCoGuias));
+  }
+
+  /// Agregar o Quitar un Co-Guía
+  void toggleCoGuia(String guiaId) {
+    // Regla de Oro: El principal no puede ser auxiliar
+    if (state.selectedGuiaId == guiaId) return;
+
+    final currentList = List<String>.from(state.coGuiasIds);
+    if (currentList.contains(guiaId)) {
+      currentList.remove(guiaId); // Si ya está, lo quitamos
+    } else {
+      currentList.add(guiaId); // Si no está, lo agregamos
+    }
+    emit(state.copyWith(coGuiasIds: currentList));
+  }
 
   void setLocation(LatLng loc) => emit(state.copyWith(location: loc));
+
+  /// Método maestro: Se llama cuando el usuario selecciona un lugar en el mapa
+  /// Actualiza la ubicación, el nombre del destino Y dispara la búsqueda de fotos
+  void setLocationAndSearchPhotos(LatLng loc, String nombreLugar) {
+    // 1. Actualizamos ubicación y nombre en el estado
+    emit(state.copyWith(location: loc, destino: nombreLugar));
+
+    // 2. Disparamos la búsqueda de fotos inmediatamente (sin debounce)
+    if (nombreLugar.length > 3) {
+      _pexelsService
+          .buscarFotos(nombreLugar)
+          .then((fotos) {
+            if (fotos.isNotEmpty) {
+              emit(state.copyWith(fotosCandidatas: fotos));
+
+              // Si no hay portada o es el placeholder de mapbox, ponemos la primera foto
+              if (state.fotoPortadaUrl == null ||
+                  (state.fotoPortadaUrl?.contains('mapbox') ?? false)) {
+                emit(state.copyWith(fotoPortadaUrl: fotos.first));
+              }
+            }
+          })
+          .catchError((e) {
+            debugPrint("Error buscando fotos desde mapa: $e");
+          });
+    }
+  }
 
   void toggleMultiDay(bool value) {
     // Al cambiar de modo, crear un nuevo estado limpio con fechas y horas reseteadas
@@ -255,6 +307,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
         destino: state.destino,
         isMultiDay: value,
         selectedGuiaId: state.selectedGuiaId,
+        coGuiasIds: state.coGuiasIds,
         location: state.location,
         searchQueryGuia: state.searchQueryGuia,
         availableGuides: state.availableGuides,

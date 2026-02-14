@@ -210,31 +210,8 @@ class _TripCreationForm extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
 
-                        // 3. SELECTOR DE GUÍA (Reutilizando existente)
-                        InkWell(
-                          onTap: () => _showGuiaPicker(context, state),
-                          child: InputDecorator(
-                            decoration: _inputDecoration(
-                              'Guía Responsable',
-                              Icons.badge,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                state.selectedGuiaId == null
-                                    ? Text(
-                                      "Seleccionar Guía...",
-                                      style: TextStyle(color: Colors.grey[600]),
-                                    )
-                                    : _buildSelectedGuiaChip(context, state),
-                                const Icon(
-                                  Icons.arrow_drop_down,
-                                  color: Colors.grey,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        // 3. SELECTOR DE GUÍA CON CO-GUÍAS
+                        _buildGuiaSelector(context, state, cubit),
                         const SizedBox(height: 16),
 
                         // 4. SELECTOR DE FECHAS (Extraído)
@@ -462,7 +439,14 @@ class _TripCreationForm extends StatelessWidget {
   }
 
   // --- MODAL DE SELECCIÓN DE GUÍA ---
-  void _showGuiaPicker(BuildContext context, TripCreationState state) {
+  void _showGuiaPicker(
+    BuildContext context,
+    TripCreationState state, {
+    required bool isCoGuia,
+  }) {
+    final cubit = context.read<TripCreationCubit>();
+    cubit.searchGuia(''); // Resetear búsqueda al abrir
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -470,128 +454,196 @@ class _TripCreationForm extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder:
-          (ctx) => DraggableScrollableSheet(
-            initialChildSize: 0.7,
-            expand: false,
-            builder:
-                (_, scrollController) => Column(
-                  children: [
-                    // Cabecera del Modal
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Buscar guía por nombre...",
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                        ),
-                        onChanged:
-                            (v) =>
-                                context.read<TripCreationCubit>().searchGuia(v),
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    // Lista Filtrada y Ordenada
-                    Expanded(
-                      child: ListView.separated(
-                        controller: scrollController,
-                        itemCount: state.guiasFiltrados.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
-                        itemBuilder: (ctx, i) {
-                          final guia = state.guiasFiltrados[i];
-                          final String statusLabel = guia['status'] as String;
-                          final bool disponible = statusLabel == 'Disponible';
-
-                          // Colores e iconos según estado (Material Design, no emojis)
-                          Color statusColor;
-                          IconData statusIcon;
-
-                          if (statusLabel == 'Disponible') {
-                            statusColor = Colors.green;
-                            statusIcon = Icons.check_circle;
-                          } else if (statusLabel == 'Ocupado en otro viaje') {
-                            statusColor = Colors.red;
-                            statusIcon =
-                                Icons.sensors; // Consistente con "En Ruta"
-                          } else if (statusLabel == 'Tiene viaje programado') {
-                            statusColor = Colors.orange;
-                            statusIcon =
-                                Icons.event; // Consistente con "Próximo"
-                          } else {
-                            statusColor = Colors.grey;
-                            statusIcon = Icons.circle;
-                          }
-
-                          return ListTile(
-                            enabled:
-                                disponible, // Desactiva clic si está ocupado
-                            leading: CircleAvatar(
-                              backgroundColor:
-                                  disponible
-                                      ? Colors.blue[100]
-                                      : Colors.grey[300],
-                              child: Text(
-                                guia['name'][0],
-                                style: TextStyle(
-                                  color:
-                                      disponible
-                                          ? Colors.blue[900]
-                                          : Colors.grey,
-                                ),
-                              ),
-                            ),
-                            title: Text(
-                              guia['name'],
-                              style: TextStyle(
-                                color: disponible ? Colors.black : Colors.grey,
-                                decoration:
-                                    disponible
-                                        ? null
-                                        : TextDecoration.lineThrough,
-                              ),
-                            ),
-                            subtitle: Row(
-                              children: [
-                                Icon(statusIcon, size: 14, color: statusColor),
-                                const SizedBox(width: 4),
-                                Text(
-                                  statusLabel,
-                                  style: TextStyle(
-                                    color: statusColor,
-                                    fontWeight: FontWeight.w500,
+          (ctx) => BlocProvider<TripCreationCubit>.value(
+            value: cubit,
+            child: BlocBuilder<TripCreationCubit, TripCreationState>(
+              builder:
+                  (context, currentState) => DraggableScrollableSheet(
+                    initialChildSize: 0.7,
+                    expand: false,
+                    builder:
+                        (_, scrollController) => Column(
+                          children: [
+                            // Cabecera del Modal
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    isCoGuia
+                                        ? "Seleccionar Guía Auxiliar"
+                                        : "Seleccionar Guía Principal",
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    decoration: InputDecoration(
+                                      hintText: "Buscar guía por nombre...",
+                                      prefixIcon: const Icon(Icons.search),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.grey[100],
+                                    ),
+                                    onChanged:
+                                        (v) => context
+                                            .read<TripCreationCubit>()
+                                            .searchGuia(v),
+                                  ),
+                                ],
+                              ),
                             ),
-                            trailing:
-                                disponible
-                                    ? (state.selectedGuiaId == guia['id']
-                                        ? const Icon(
-                                          Icons.check_circle,
-                                          color: Colors.blue,
-                                        )
-                                        : null)
-                                    : null,
-                            onTap: () {
-                              if (disponible) {
-                                context.read<TripCreationCubit>().setGuia(
-                                  guia['id'],
-                                );
-                                Navigator.pop(ctx);
-                              }
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                            const Divider(height: 1),
+                            // Lista Filtrada y Ordenada
+                            Expanded(
+                              child: ListView.separated(
+                                controller: scrollController,
+                                itemCount: currentState.guiasFiltrados.length,
+                                separatorBuilder:
+                                    (_, __) => const Divider(height: 1),
+                                itemBuilder: (ctx, i) {
+                                  final guia = currentState.guiasFiltrados[i];
+
+                                  // FILTRO: Ocultar al Principal si estamos buscando Auxiliares
+                                  final bool esPrincipal =
+                                      guia['id'] == currentState.selectedGuiaId;
+                                  if (isCoGuia && esPrincipal) {
+                                    return const SizedBox.shrink();
+                                  }
+
+                                  final String statusLabel =
+                                      guia['status'] as String;
+                                  final bool disponible =
+                                      statusLabel == 'Disponible';
+                                  final bool isSelected = currentState
+                                      .coGuiasIds
+                                      .contains(guia['id']);
+
+                                  // Colores e iconos según estado (Material Design, no emojis)
+                                  Color statusColor;
+                                  IconData statusIcon;
+
+                                  if (statusLabel == 'Disponible') {
+                                    statusColor = Colors.green;
+                                    statusIcon = Icons.check_circle;
+                                  } else if (statusLabel ==
+                                      'Ocupado en otro viaje') {
+                                    statusColor = Colors.red;
+                                    statusIcon =
+                                        Icons
+                                            .sensors; // Consistente con "En Ruta"
+                                  } else if (statusLabel ==
+                                      'Tiene viaje programado') {
+                                    statusColor = Colors.orange;
+                                    statusIcon =
+                                        Icons
+                                            .event; // Consistente con "Próximo"
+                                  } else {
+                                    statusColor = Colors.grey;
+                                    statusIcon = Icons.circle;
+                                  }
+
+                                  return ListTile(
+                                    enabled:
+                                        disponible, // Desactiva clic si está ocupado
+                                    tileColor:
+                                        isSelected ? Colors.teal[50] : null,
+                                    leading: CircleAvatar(
+                                      backgroundColor:
+                                          disponible
+                                              ? Colors.blue[100]
+                                              : Colors.grey[300],
+                                      child: Text(
+                                        guia['name'][0],
+                                        style: TextStyle(
+                                          color:
+                                              disponible
+                                                  ? Colors.blue[900]
+                                                  : Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                    title: Text(
+                                      guia['name'],
+                                      style: TextStyle(
+                                        color:
+                                            disponible
+                                                ? Colors.black
+                                                : Colors.grey,
+                                        decoration:
+                                            disponible
+                                                ? null
+                                                : TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                    subtitle: Row(
+                                      children: [
+                                        Icon(
+                                          statusIcon,
+                                          size: 14,
+                                          color: statusColor,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          statusLabel,
+                                          style: TextStyle(
+                                            color: statusColor,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    trailing:
+                                        disponible
+                                            ? (isCoGuia
+                                                ? (isSelected
+                                                    ? const Icon(
+                                                      Icons.check_circle,
+                                                      color: Colors.teal,
+                                                    )
+                                                    : const Icon(
+                                                      Icons.add_circle_outline,
+                                                    ))
+                                                : (currentState
+                                                            .selectedGuiaId ==
+                                                        guia['id']
+                                                    ? const Icon(
+                                                      Icons.check_circle,
+                                                      color: Colors.blue,
+                                                    )
+                                                    : null))
+                                            : null,
+                                    onTap: () {
+                                      if (disponible) {
+                                        if (isCoGuia) {
+                                          // Agregar/Quitar de la lista de auxiliares
+                                          context
+                                              .read<TripCreationCubit>()
+                                              .toggleCoGuia(guia['id']);
+                                          // NO cerrar modal para permitir selección múltiple
+                                        } else {
+                                          // Setear principal
+                                          context
+                                              .read<TripCreationCubit>()
+                                              .setGuia(guia['id']);
+                                          Navigator.pop(ctx); // Cerrar modal
+                                        }
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                  ),
+            ),
           ),
-    );
+    ).whenComplete(() => cubit.searchGuia('')); // Limpiar búsqueda al cerrar
   }
 
   // --- WIDGETS AUXILIARES ---
@@ -703,7 +755,83 @@ class _TripCreationForm extends StatelessWidget {
     );
   }
 
-  Widget _buildSelectedGuiaChip(BuildContext context, TripCreationState state) {
+  // --- SELECTOR DE GUÍA CON CO-GUÍAS ---
+  Widget _buildGuiaSelector(
+    BuildContext context,
+    TripCreationState state,
+    TripCreationCubit cubit,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Selector de Guía Principal
+        InkWell(
+          onTap: () => _showGuiaPicker(context, state, isCoGuia: false),
+          child: InputDecorator(
+            decoration: _inputDecoration('Guía Responsable', Icons.badge),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                state.selectedGuiaId == null
+                    ? Text(
+                      "Seleccionar Guía...",
+                      style: TextStyle(color: Colors.grey[600]),
+                    )
+                    : _buildSelectedGuiaChip(
+                      context,
+                      state,
+                      guiaId: state.selectedGuiaId!,
+                      isRemovable: false,
+                    ),
+                const Icon(Icons.arrow_drop_down, color: Colors.grey),
+              ],
+            ),
+          ),
+        ),
+
+        // Botón para agregar Co-Guías
+        if (state.selectedGuiaId != null) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => _showGuiaPicker(context, state, isCoGuia: true),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text("Agregar Guía Auxiliar"),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.teal[700],
+              side: BorderSide(color: Colors.teal[300]!),
+            ),
+          ),
+        ],
+
+        // Lista de Co-Guías seleccionados
+        if (state.coGuiasIds.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children:
+                state.coGuiasIds
+                    .map(
+                      (id) => _buildSelectedGuiaChip(
+                        context,
+                        state,
+                        guiaId: id,
+                        isRemovable: true,
+                      ),
+                    )
+                    .toList(),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSelectedGuiaChip(
+    BuildContext context,
+    TripCreationState state, {
+    required String guiaId,
+    required bool isRemovable,
+  }) {
     // Manejar caso cuando no hay guías cargados aún
     if (state.availableGuides.isEmpty) {
       return const Text(
@@ -713,20 +841,28 @@ class _TripCreationForm extends StatelessWidget {
     }
 
     final Map<String, dynamic> guia = state.availableGuides.firstWhere(
-      (g) => g['id'] == state.selectedGuiaId,
+      (g) => g['id'] == guiaId,
       orElse: () => state.availableGuides.first,
     );
+
+    // Determinar si es principal o auxiliar
+    final bool isPrincipal = guiaId == state.selectedGuiaId;
+
     return Chip(
       avatar: CircleAvatar(
-        backgroundColor: Colors.blue[800],
+        backgroundColor: isPrincipal ? Colors.blue[800] : Colors.teal[700],
         child: Text(
           guia['name'][0],
           style: const TextStyle(fontSize: 10, color: Colors.white),
         ),
       ),
       label: Text(guia['name']),
-      deleteIcon: const Icon(Icons.close, size: 16),
-      onDeleted: () => context.read<TripCreationCubit>().setGuia(null),
+      deleteIcon: isRemovable ? const Icon(Icons.close, size: 16) : null,
+      onDeleted:
+          isRemovable
+              ? () => context.read<TripCreationCubit>().toggleCoGuia(guiaId)
+              : null,
+      backgroundColor: isPrincipal ? Colors.blue[50] : Colors.teal[50],
     );
   }
 
@@ -1642,7 +1778,12 @@ class _TripCreationForm extends StatelessWidget {
             Switch(
               value: state.isMultiDay,
               onChanged: (val) => cubit.toggleMultiDay(val),
-              activeThumbColor: Colors.blue[800],
+              thumbColor: WidgetStateProperty.resolveWith<Color>(
+                (states) =>
+                    states.contains(WidgetState.selected)
+                        ? Colors.blue[800]!
+                        : Colors.grey[400]!,
+              ),
             ),
           ],
         ),
