@@ -20,6 +20,7 @@ class TripCreationState extends Equatable {
   final String? selectedGuiaId; // El Principal (Jefe de expedición)
   final List<String> coGuiasIds; // Los Auxiliares (Equipo de apoyo)
   final LatLng? location; // Coordenadas del destino principal
+  final String? nombreUbicacionMapa; // Rastrea el nombre autocompletado
   final bool isMultiDay; // Switch para lógica de fechas
 
   // Añadimos TimeOfDay para manejo preciso de horas
@@ -42,6 +43,7 @@ class TripCreationState extends Equatable {
     this.selectedGuiaId,
     this.coGuiasIds = const [], // Inicializar vacía
     this.location,
+    this.nombreUbicacionMapa,
     this.isMultiDay = false,
     this.horaInicio,
     this.horaFin,
@@ -62,6 +64,7 @@ class TripCreationState extends Equatable {
     String? selectedGuiaId,
     List<String>? coGuiasIds,
     LatLng? location,
+    String? nombreUbicacionMapa,
     bool? isMultiDay,
     TimeOfDay? horaInicio,
     TimeOfDay? horaFin,
@@ -80,6 +83,7 @@ class TripCreationState extends Equatable {
       selectedGuiaId: selectedGuiaId ?? this.selectedGuiaId,
       coGuiasIds: coGuiasIds ?? this.coGuiasIds,
       location: location ?? this.location,
+      nombreUbicacionMapa: nombreUbicacionMapa ?? this.nombreUbicacionMapa,
       isMultiDay: isMultiDay ?? this.isMultiDay,
       horaInicio: horaInicio ?? this.horaInicio,
       horaFin: horaFin ?? this.horaFin,
@@ -202,41 +206,13 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   Timer? _debounce;
 
   void onDestinoChanged(String query) {
-    print("🟢 1. El Cubit recibió el texto: $query"); // DEBUG 1
+    debugPrint("🟢 1. El Cubit recibió el texto: $query");
     // 1. Actualizamos el texto en el estado inmediatamente
     emit(state.copyWith(destino: query));
 
-    // 2. Cancelamos la búsqueda anterior si el usuario sigue escribiendo
+    // NOTA: Ya no buscamos fotos automáticamente al escribir.
+    // El usuario debe seleccionar del mapa para obtener fotos precisas.
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-
-    // 3. Esperamos 1 segundo (1000 ms) de inactividad
-    _debounce = Timer(const Duration(milliseconds: 1000), () async {
-      print("🟡 2. Pasó 1 segundo, intentando buscar..."); // DEBUG 2
-
-      if (query.length > 3) {
-        print("🟠 3. Longitud válida, llamando a PexelsService..."); // DEBUG 3
-
-        try {
-          final fotos = await _pexelsService.buscarFotos(query);
-          print("🔵 4. Pexels respondió con ${fotos.length} fotos"); // DEBUG 4
-
-          if (fotos.isNotEmpty) {
-            emit(state.copyWith(fotosCandidatas: fotos));
-            print("🟣 5. Estado actualizado con fotos"); // DEBUG 5
-
-            // Opcional: Auto-seleccionar la primera foto bonita
-            if (state.fotoPortadaUrl == null ||
-                (state.fotoPortadaUrl?.contains('mapbox') ?? false)) {
-              emit(state.copyWith(fotoPortadaUrl: fotos.first));
-            }
-          }
-        } catch (e) {
-          print("🚨 Error explotó en el Cubit: $e");
-        }
-      } else {
-        print("⚪ Texto muy corto para buscar");
-      }
-    });
   }
 
   // Deprecated: Usar onDestinoChanged para el texto
@@ -272,21 +248,68 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
   void setLocation(LatLng loc) => emit(state.copyWith(location: loc));
 
-  /// Método maestro: Se llama cuando el usuario selecciona un lugar en el mapa
-  /// Actualiza la ubicación, el nombre del destino Y dispara la búsqueda de fotos
-  void setLocationAndSearchPhotos(LatLng loc, String nombreLugar) {
-    // 1. Actualizamos ubicación y nombre en el estado
-    emit(state.copyWith(location: loc, destino: nombreLugar));
+  // Método maestro mejorado: Ubicación + Autocompletado + Fotos
 
-    // 2. Disparamos la búsqueda de fotos inmediatamente (sin debounce)
-    if (nombreLugar.length > 3) {
+  void setLocationAndSearchPhotos(LatLng loc, {String? nombreSugerido}) {
+    // 1. Decisión Inteligente: ¿Sobrescribimos el nombre?
+    String nuevoNombre = state.destino;
+    String terminoBusqueda = state.destino;
+
+    if (nombreSugerido != null && nombreSugerido.isNotEmpty) {
+      if (state.destino.trim().isEmpty) {
+        // Caso A: Estaba vacío -> Usamos el nombre del mapa tal cual
+        nuevoNombre = nombreSugerido;
+        terminoBusqueda = nombreSugerido;
+      }
+      // Caso B: El nombre actual es IGUAL al que puso el mapa anteriormente
+      // (Significa que el usuario NO lo editó manualmente, así que lo reemplazamos todo)
+      else if (state.nombreUbicacionMapa != null &&
+          state.destino == state.nombreUbicacionMapa) {
+        nuevoNombre = nombreSugerido;
+        terminoBusqueda = nombreSugerido;
+      }
+      // Caso C: El nombre actual contiene el nombre anterior del mapa entre paréntesis
+      // (Ej: "Boda (Cancún)" -> "Boda (Cabo)")
+      else if (state.nombreUbicacionMapa != null &&
+          state.destino.contains("(${state.nombreUbicacionMapa})")) {
+        nuevoNombre = state.destino.replaceAll(
+          "(${state.nombreUbicacionMapa})",
+          "($nombreSugerido)",
+        );
+        terminoBusqueda = nombreSugerido;
+      }
+      // Caso D: El usuario escribió algo propio y NO contiene el nombre actual del mapa
+      // (Ej: "Mi Viaje" -> "Mi Viaje (Cabo)")
+      // Solo anexamos si NO contiene ya el nombre nuevo (para evitar duplicados)
+      else if (!state.destino.toLowerCase().contains(
+        nombreSugerido.toLowerCase(),
+      )) {
+        nuevoNombre = "${state.destino} ($nombreSugerido)";
+        terminoBusqueda = nombreSugerido;
+      } else {
+        // Caso E: Ya contiene el nuevo nombre (Ej: "Viaje a Cabo" y seleccionas Cabo)
+        terminoBusqueda = nombreSugerido;
+      }
+    }
+
+    // 2. Actualizamos el estado (Ubicación + Nombre + MEMORIA del mapa)
+    emit(
+      state.copyWith(
+        location: loc,
+        destino: nuevoNombre,
+        nombreUbicacionMapa: nombreSugerido, // ¡Guardamos el nombre del mapa!
+      ),
+    );
+
+    // 3. Disparamos la búsqueda de fotos con el mejor término posible
+    if (terminoBusqueda.length > 3) {
+      debugPrint("Buscando fotos para: $terminoBusqueda");
       _pexelsService
-          .buscarFotos(nombreLugar)
+          .buscarFotos(terminoBusqueda)
           .then((fotos) {
             if (fotos.isNotEmpty) {
               emit(state.copyWith(fotosCandidatas: fotos));
-
-              // Si no hay portada o es el placeholder de mapbox, ponemos la primera foto
+              // Auto-selección de portada si no hay una o es mapbox
               if (state.fotoPortadaUrl == null ||
                   (state.fotoPortadaUrl?.contains('mapbox') ?? false)) {
                 emit(state.copyWith(fotoPortadaUrl: fotos.first));
@@ -297,6 +320,33 @@ class TripCreationCubit extends Cubit<TripCreationState> {
             debugPrint("Error buscando fotos desde mapa: $e");
           });
     }
+  }
+
+  // VALIDACIÓN EN TIEMPO REAL (Getters)
+  bool get isStep1Valid {
+    // Reglas de Negocio Obligatorias
+    final bool tieneNombre = state.destino.trim().isNotEmpty;
+    final bool tieneUbicacion = state.location != null;
+    final bool tieneGuia = state.selectedGuiaId != null;
+    final bool tieneFechaInicio = state.fechaInicio != null;
+    final bool tieneHoraInicio = state.horaInicio != null;
+
+    // Validación condicional de fechas
+    bool fechasValidas = true;
+    if (state.isMultiDay) {
+      // Si es multidía, DEBE tener fecha fin
+      fechasValidas = state.fechaFin != null;
+    } else {
+      // Si es un día, DEBE tener hora fin
+      fechasValidas = state.horaFin != null;
+    }
+
+    return tieneNombre &&
+        tieneUbicacion &&
+        tieneGuia &&
+        tieneFechaInicio &&
+        tieneHoraInicio &&
+        fechasValidas;
   }
 
   void toggleMultiDay(bool value) {
