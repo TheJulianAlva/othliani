@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../domain/repositories/trip_repository.dart';
 import '../../../../../../core/error/failures.dart';
 import '../../../../../../core/services/pexels_service.dart';
-import '../../../../../../data/datasources/agencia_mock_data_source.dart'; // Legacy datasource usage
+import 'package:frontend/features/agencia/shared/data/datasources/agencia_datasource.dart'; // Legacy datasource usage
 import '../../domain/entities/viaje.dart';
 import '../../../users/domain/entities/turista.dart';
 import '../../../users/domain/entities/guia.dart';

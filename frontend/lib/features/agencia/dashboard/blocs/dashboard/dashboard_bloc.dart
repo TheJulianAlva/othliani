@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/domain/usecases/get_dashboard_data.dart';
+import 'package:frontend/features/agencia/dashboard/domain/usecases/get_dashboard_data.dart';
 import 'package:frontend/features/agencia/dashboard/domain/entities/dashboard_data.dart';
 
 part 'dashboard_event.dart';

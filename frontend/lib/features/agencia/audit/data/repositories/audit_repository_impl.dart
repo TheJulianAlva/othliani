@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../domain/repositories/audit_repository.dart';
 import '../../../../../../core/error/failures.dart';
-import '../../../../../../data/datasources/agencia_mock_data_source.dart';
+import 'package:frontend/features/agencia/shared/data/datasources/agencia_datasource.dart';
 import '../../domain/entities/log_auditoria.dart';
 
 class AuditRepositoryImpl implements AuditRepository {

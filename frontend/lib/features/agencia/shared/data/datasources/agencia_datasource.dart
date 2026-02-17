@@ -1,10 +1,10 @@
 import 'package:frontend/features/agencia/shared/data/datasources/mock_agencia_datasource.dart';
-import '../../features/agencia/dashboard/domain/entities/dashboard_data.dart';
-import '../../features/agencia/trips/domain/entities/viaje.dart';
-import '../../features/agencia/users/domain/entities/guia.dart';
-import '../../features/agencia/users/domain/entities/turista.dart';
+import 'package:frontend/features/agencia/dashboard/domain/entities/dashboard_data.dart';
+import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart';
+import 'package:frontend/features/agencia/users/domain/entities/guia.dart';
+import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
 import 'package:frontend/features/agencia/shared/domain/entities/alerta.dart';
-import '../../features/agencia/audit/domain/entities/log_auditoria.dart';
+import 'package:frontend/features/agencia/audit/domain/entities/log_auditoria.dart';
 
 abstract class AgenciaDataSource {
   Future<DashboardData> getDashboardData();

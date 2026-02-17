@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../injection_container.dart' as di;
+import 'package:frontend/core/di/service_locator.dart' as di;
 import 'routes_agencia.dart';
 
 // Importa tus Widgets de Pantalla

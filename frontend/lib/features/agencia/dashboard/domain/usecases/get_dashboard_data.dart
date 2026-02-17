@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import '../../core/error/failures.dart';
-import '../../features/agencia/dashboard/domain/repositories/dashboard_repository.dart';
-import '../../features/agencia/dashboard/domain/entities/dashboard_data.dart';
+import 'package:frontend/core/error/failures.dart';
+import 'package:frontend/features/agencia/dashboard/domain/repositories/dashboard_repository.dart';
+import 'package:frontend/features/agencia/dashboard/domain/entities/dashboard_data.dart';
 
 class GetDashboardData {
   final DashboardRepository repository;

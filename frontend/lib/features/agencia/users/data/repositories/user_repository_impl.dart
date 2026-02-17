@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../../../../../core/error/failures.dart';
-import '../../../../../../data/datasources/agencia_mock_data_source.dart'; // Or abstract interface?
+import 'package:frontend/features/agencia/shared/data/datasources/agencia_datasource.dart'; // Or abstract interface?
 import '../../domain/entities/turista.dart';
 import '../../domain/entities/guia.dart';
 

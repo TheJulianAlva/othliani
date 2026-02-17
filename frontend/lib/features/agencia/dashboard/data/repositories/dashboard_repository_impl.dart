@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../../../../../core/error/failures.dart';
-import '../../../../../../data/datasources/agencia_mock_data_source.dart';
+import 'package:frontend/features/agencia/shared/data/datasources/agencia_datasource.dart';
 import '../../domain/entities/dashboard_data.dart'; // Correct relative path
 
 class DashboardRepositoryImpl implements DashboardRepository {

@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:window_manager/window_manager.dart';
 import 'features/agencia/shared/blocs/sync/sync_bloc.dart';
 import 'core/navigation/app_router_agencia.dart';
-import 'injection_container.dart' as di;
-import 'injection_container.dart'; // Para sl
+import 'core/di/service_locator.dart' as di;
+import 'core/di/service_locator.dart'; // Para sl
 
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importar dotenv
 import 'package:connectivity_plus/connectivity_plus.dart'; // Para Connectivity
@@ -15,7 +15,7 @@ void main() async {
   // Ensure window manager is initialized
   await windowManager.ensureInitialized();
   await dotenv.load(fileName: ".env"); // Cargar variables de entorno
-  await di.init(); // Initialize Dependency Injection
+  await di.initServiceLocator(); // Initialize Dependency Injection
 
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
