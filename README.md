@@ -1,40 +1,118 @@
-# ¡Bienvenido al Repositorio Oficial de OhtliAni!
+# OhtliAni
 
-Este es el **repo oficial** para todo el ecosistema de OhtliAni. Contiene el código fuente de todas nuestras aplicaciones:
+<p align="left">
+  <img src="https://img.shields.io/badge/Flutter-3.7.0%2B-02569B?logo=flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Windows%20%7C%20Web-blue" alt="Platform">
+  <img src="https://img.shields.io/badge/License-Proprietary-red" alt="License">
+  <img src="https://img.shields.io/badge/Status-In%20Development-yellow" alt="Status">
+</p>
 
-* **Aplicaciones Frontend** (Turista, Guía, Agencia) construidas con Flutter.
-* **Servidor Backend** (API) construido con Node.js (no implementado aún).
-* **Configuración de Base de Datos** (PostGIS) gestionada con Docker (no implementado aún).
+**Smart Management for Travel Safety & Logistics**
 
-Este repositorio es la única fuente de verdad para todo nuestro trabajo.
-
-## ¿Cómo Empezar?
-
-Si eres nuevo en el proyecto o necesitas configurar tu entorno, sigue estos pasos:
-
-1.  **Configura tu PC:** Revisa la [Guía de Configuración del Entorno](./docs/02-CONFIGURACION_ENTORNO.md) para instalar todo el software necesario.
-2.  **Entiende el Flujo de Trabajo:** Lee [Nuestro Flujo de Trabajo en Git](./CONTRIBUTING.md) para saber cómo contribuir código.
+OhtliAni is a comprehensive ecosystem designed to revolutionize how travel agencies manage safety, logistics, and communication. It connects tourists, guides, and agency staff through a unified platform, ensuring safer and more organized travel experiences.
 
 ---
 
-## Índice de Documentación
+## 📋 Table of Contents
 
-Toda nuestra documentación técnica y guías de arquitectura viven en la carpeta `/docs`. Consulta estos archivos para entender *cómo* y *por qué* construimos el software de esta manera.
+*   [Ecosystem](#-ecosystem)
+*   [Key Features](#-key-features)
+*   [Architecture](#-architecture)
+*   [Getting Started](#-getting-started)
+*   [Roadmap](#-roadmap)
+*   [Contributing](#-contributing)
+*   [License](#-license)
 
-### 1. Visión General
-* **[./docs/01-VISUALIZACION_PROYECTO.md](./docs/01-VISUALIZACION_PROYECTO.md):** Qué es este proyecto, estructura general de carpetas.
+---
 
-### 2. Configuración y Flujo de Trabajo
-* **[./docs/02-CONFIGURACION_ENTORNO.md](./docs/02-CONFIGURACION_ENTORNO.md):** 
-Checklist de instalación (Flutter, Node.js, Docker, etc.).
-* **[CONTRIBUTING.md](./CONTRIBUTING.md):** Reglas para las ramas (branches), Pull Requests y revisiones de código.
+## 🚀 Ecosystem
 
-### 3. Arquitectura (Frontend)
-* **[./docs/03-ARQUITECTURA_FRONTEND.md](./docs/03-ARQUITECTURA_FRONTEND.md):** (¡MUY IMPORTANTE!) Explica **Clean Architecture** *(Domain, Data, Presentation)* y el modelo multi-aplicación.
-* **[./docs/04-DEPENDENCIAS_FRONTEND.md](./docs/04-DEPENDENCIAS_FRONTEND.md):** Lista y descripción de las dependencias clave.
+The project consists of three integrated client applications and a central server, all managed within a single monorepository:
 
-### 4. Arquitectura (Backend)
-* **[./docs/05-ARQUITECTURA_BACKEND.md](./docs/05-ARQUITECTURA_BACKEND.md):** Resumen de la API de Node.js, el rol de PostGIS y las migraciones de base de datos.
+1.  **Tourist App (Mobile):** Empowering travelers with itinerary details, safety alerts, and real-time communication.
+2.  **Guide App (Mobile):** Tools for guides to manage participants, track locations, and handle incidents efficiently.
+3.  **Agency App (Desktop/Web):** A powerful administrative dashboard for staff to manage trips, users, and system configurations.
 
-### 5. Estándares
-* **[./docs/06-ESTANDARES_DE_CODIGO.md](./docs/06-ESTANDARES_DE_CODIGO.md):** Reglas de nomenclatura y estilo para mantener el código limpio y consistente.
+## ✨ Key Features
+
+*   **Real-time Tracking:** Monitor group locations for enhanced safety.
+*   **Incident Management:** Quick reporting and handling of emergencies.
+*   **Itinerary Management:** Digital itineraries always available to tourists.
+*   **Unified Communication:** Seamless connection between the agency, guides, and tourists.
+*   **Offline Capabilities:** Essential features work even without internet access in remote areas.
+
+## 🏗️ Architecture
+
+OhtliAni is built using a **Clean Architecture** approach to ensure scalability, testability, and maintainability.
+
+*   **Monorepo:** A single source of truth for all frontend and backend code.
+*   **Shared Core:** The three Flutter applications share 100% of the **Domain** (Business Logic) and **Data** (Repository/API) layers, ensuring consistency across the platform. Only the Presentation layer (UI) is specific to each app.
+*   **Tech Stack:**
+    *   **Frontend:** Flutter (Dart)
+    *   **State Management:** flutter_bloc
+    *   **Routing:** go_router
+    *   **Maps:** Google Maps & OpenStreetMap (flutter_map)
+    *   **Backend:** Node.js (In Development)
+    *   **Database:** PostGIS (In Development)
+
+## 🛠️ Getting Started
+
+Follow these instructions to set up the project locally.
+
+### Prerequisites
+
+*   [Flutter SDK](https://flutter.dev/docs/get-started/install) (latest stable version)
+*   VS Code or Android Studio
+*   Android Emulator or Physical Device
+
+### Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/ohtliani-mvp.git
+    cd ohtliani-mvp
+    ```
+
+2.  **Install dependencies:**
+    Navigate to the frontend directory and fetch dependencies.
+    ```bash
+    cd frontend
+    flutter pub get
+    ```
+
+### Running the Applications
+
+Since this project contains multiple entry points, you must specify the target file when running.
+
+*   **Run Tourist App:**
+    ```bash
+    flutter run -t lib/main_turista.dart
+    ```
+
+*   **Run Guide App:**
+    ```bash
+    flutter run -t lib/main_guia.dart
+    ```
+
+*   **Run Agency App:**
+    ```bash
+    flutter run -t lib/main_agencia.dart -d windows  # or macos/linux/chrome
+    ```
+
+## 🗺️ Roadmap
+
+*   [x] MVP Frontend Interfaces (Tourist, Guide, Agency)
+*   [x] Shared Domain & Data Layers
+*   [ ] Backend API Implementation (Node.js)
+*   [ ] Database Integration (PostGIS)
+*   [ ] Real-time Socket Communication
+
+## 🤝 Contributing
+
+This is a collaborative project. Please refer to the [Contributing Guidelines](CONTRIBUTING.md) and follow the coding standards outlined in the `docs/` folder before submitting Pull Requests.
+
+## 📄 License
+
+**Copyright © 2024 OhtliAni. All Rights Reserved.**
+
+This project is proprietary software. Unauthorized copying, modification, distribution, or use of this software, in whole or in part, is strictly prohibited.
