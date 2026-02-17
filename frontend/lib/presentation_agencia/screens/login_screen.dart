@@ -16,6 +16,7 @@ class _AgencyLoginScreenState extends State<AgencyLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocusNode = FocusNode(); // FocusNode para auto-focus
 
   // Format: XX-XXXX-XX (alphanumeric allowed based on user request "X")
   final _passwordMaskFormatter = MaskTextInputFormatter(
@@ -30,6 +31,23 @@ class _AgencyLoginScreenState extends State<AgencyLoginScreen> {
   final RegExp _emailRegex = RegExp(
     r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
   );
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-focus en el campo de correo cuando se carga la pantalla
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _emailFocusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _emailFocusNode.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
@@ -70,6 +88,7 @@ class _AgencyLoginScreenState extends State<AgencyLoginScreen> {
             // Email Input
             TextFormField(
               controller: _emailController,
+              focusNode: _emailFocusNode, // Asignar FocusNode
               textInputAction: TextInputAction.next,
               decoration: const InputDecoration(
                 labelText: 'Correo Electrónico',

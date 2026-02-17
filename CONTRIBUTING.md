@@ -1,94 +1,102 @@
-# Flujo de Trabajo en Git (Git Workflow)
+# Contributing to OhtliAni
 
-Para evitar el caos y asegurar la calidad del código, todo el equipo debe seguir este flujo de trabajo. Está basado en **Pull Requests (PRs)**.
+First off, thank you for taking the time to contribute! 🎉
 
-## Las Reglas de Oro
+To maintain code quality and ensure a smooth collaboration, all team members are expected to follow this workflow, which is centered around **Pull Requests (PRs)**.
 
-1.  La rama `main` está **protegida**. Nadie puede hacer `push` directamente a `main`.
-2.  Todo el trabajo (nuevas funcionalidades, corrección de bugs) **debe** hacerse en una rama separada.
-3.  Todo el código **debe** ser revisado y aprobado por al menos **un (1)** otro miembro del equipo antes de ser fusionado (merged) a `main`.
+---
 
-## El Proceso de Contribución (Paso a Paso)
+## 📋 Table of Contents
+*   [The Golden Rules](#-the-golden-rules)
+*   [Commit Message Convention](#-commit-message-convention)
+*   [Contribution Process](#-contribution-process)
+    *   [1. Syncing your Repository](#1-syncing-your-repository)
+    *   [2. Branching Strategy](#2-branching-strategy)
+    *   [3. Development and Commits](#3-development-and-commits)
+    *   [4. Pushing and Pull Requests](#4-pushing-and-pull-requests)
+    *   [5. Code Review and Merging](#5-code-review-and-merging)
 
-Este es el ciclo de vida de tu trabajo. Puedes usar la terminal (para poder) o la GUI de VS Code (para velocidad).
+---
 
-### 1. Sincronizar tu Repositorio Local
-Antes de empezar a programar, asegúrate de tener la última versión del código.
+## ⚖️ The Golden Rules
 
-* **Vía Terminal:**
+1.  **Protected Main:** The `main` branch is protected. Direct pushes are disabled.
+2.  **Atomic Branches:** Every feature or fix **must** be developed in a separate branch.
+3.  **Peer Review:** All code must be reviewed and approved by at least **one (1)** other team member before merging.
+4.  **Local Validation:** Run `flutter analyze` before committing to ensure no linting issues are introduced.
+
+---
+
+## 💬 Commit Message Convention
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). This helps in generating automated changelogs.
+
+*   `feat:` A new feature.
+*   `fix:` A bug fix.
+*   `docs:` Documentation only changes.
+*   `style:` Changes that do not affect the meaning of the code (white-space, formatting).
+*   `refactor:` A code change that neither fixes a bug nor adds a feature.
+*   `test:` Adding missing tests or correcting existing tests.
+
+**Example:** `feat: add login validation for tourist app`
+
+---
+
+## 🔄 Contribution Process
+
+### 1. Syncing your Repository
+Before starting any task, ensure you have the latest code.
+
+*   **Terminal:**
     ```bash
     git checkout main
     git pull origin main
     ```
-* **Vía VS Code (GUI):**
-    1.  Haz clic en el nombre de la rama actual en la esquina inferior izquierda (ej. `main`).
-    2.  Selecciona `main` de la lista para asegurar que estás en ella.
-    3.  Haz clic en el botón **"Sincronizar Cambios"** (el icono de nube o flechas circulares) en la barra de estado inferior. Esto hace `pull` y `push` (si tuvieras commits locales, pero no deberías en `main`).
+*   **VS Code (GUI)::** Click the branch name (bottom left corner), select `main`, and click the **"Sync Changes"** icon (refresh/cloud icon).
 
-### 2. Crear tu Rama de Trabajo (Feature Branch)
-Crea una nueva rama para tu tarea. Nómbrala de forma descriptiva.
+### 2. Branching Strategy
+Create a descriptive branch for your task using appropriate prefixes: `feature/`, `bugfix/`, or `docs/`.
 
-**Prefijos:** `feature/`, `bugfix/`, `docs/`.
-
-* **Vía Terminal:**
+*   **Terminal:**
     ```bash
-    # Crea y muévete a tu nueva rama
-    git checkout -b feature/auth-login-screen
+    git checkout -b feature/your-feature-name
     ```
-* **Vía VS Code (GUI):**
-    1.  Haz clic en el nombre de la rama (`main`) en la esquina inferior izquierda.
-    2.  En el menú superior, selecciona `+ Crear nueva rama...`.
-    3.  Escribe el nombre de tu nueva rama (ej. `feature/auth-login-screen`) y presiona Enter.
+*   **VS Code (GUI)::** Click the branch name -> Select `+ Create new branch...` -> Type the name and press Enter.
 
-### 3. Trabajar y Hacer Commits
-Trabaja en tu código. Haz "commits" pequeños y frecuentes con buenos mensajes.
+### 3. Development and Commits
+*   Work on your changes following the **Clean Architecture** patterns defined in `docs/`.
+*   Make small, frequent commits with clear messages.
 
-* **Vía Terminal:**
+*   **Terminal:**
     ```bash
     git add .
-    git commit -m "feat: Implementa la pantalla de login para Turista"
+    git commit -m "feat: implement logic for X"
     ```
-* **Vía VS Code (GUI):**
-    1.  Abre el panel de **Control de Código Fuente** (el icono de las tres ramas).
-    2.  Los archivos modificados aparecerán en "Cambios".
-    3.  Haz clic en el **icono `+`** junto a cada archivo para "prepararlo" (Stage Changes), o en el `+` junto a "Cambios" para prepararlos todos.
-    4.  Escribe tu mensaje de commit (ej. `feat: Implementa la pantalla de login`) en el cuadro de texto superior.
-    5.  Presiona el **icono de check (✓)** o `Ctrl+Enter` para hacer el commit.
+*   **VS Code (GUI)::** Use the **Source Control** panel (Ctrl+Shift+G), stage your changes with `+`, and type your commit message.
 
-### 4. Subir tu Rama a GitHub
-Cuando tu trabajo esté listo para ser revisado (o al final del día), sube tu rama al repositorio remoto.
+### 4. Pushing and Pull Requests
+Once ready or when finishing your day, push your changes.
 
-* **Vía Terminal:**
+*   **Terminal:**
     ```bash
-    git push -u origin feature/auth-login-screen
+    git push -u origin your-branch-name
     ```
-* **Vía VS Code (GUI):**
-    * La primera vez que hagas commit en una rama nueva, verás un botón que dice **"Publicar Rama"** (Publish Branch) en el panel de Control de Código Fuente. Haz clic en él.
-    * Si la rama ya existe en el remoto, el botón "Sincronizar Cambios" subirá tus commits.
+*   **VS Code (GUI)::** Click the **"Publish Branch"** button.
 
-### 5. Crear el Pull Request (PR)
-* **Vía GitHub.com (Recomendado):**
-    1.  Ve a la página del repositorio en GitHub.
-    2.  Verás un botón amarillo para "Compare & pull request". Haz clic.
-    3.  **Título:** Coloca un título descriptivo.
-    4.  **Descripción:** Explica *qué*, *por qué* y *cómo* probarlo.
-    5.  **Revisores:** Asigna al menos a un miembro del equipo.
-* **Vía VS Code (GUI):**
-    1.  Después de "Publicar Rama", VS Code usualmente te mostrará una notificación emergente con un botón para **"Crear Pull Request"**.
-    2.  Alternativamente, puedes ir al panel de **"GitHub Pull Requests and Issues"** (instalado con las extensiones de GitHub), encontrar tu rama y hacer clic en el icono de crear PR.
+**Create the PR on GitHub:**
+1.  Go to the repository on GitHub.
+2.  Click "Compare & pull request".
+3.  **Description:** Explain *what* you changed and *how* to test it.
+4.  **Reviewers:** Assign at least one teammate.
 
+### 5. Code Review and Merging
+*   **Address Feedback:** If reviewers request changes, commit them to the same branch.
+*   **Merge Policy:** Use **"Squash and merge"** on GitHub to keep a clean commit history in `main`.
+*   **Clean Up:** After merging, switch to `main`, sync changes, and delete your local branch.
 
-### 6. Revisión de Pares (Code Review)
-* **Como Revisor (Vía VS Code):**
-    1.  Abre el panel "GitHub Pull Requests and Issues".
-    2.  Busca el PR, haz clic en "Revisar".
-    3.  Puedes ver todos los archivos cambiados, dejar comentarios en líneas específicas y, finalmente, "Aprobar" (Approve) directamente desde VS Code.
-* **Como Autor:** Atiende los comentarios, haz los cambios (paso 3) y sube tus nuevos commits (paso 4). El PR se actualizará automáticamente.
+---
 
-### 7. Fusionar (Merge) y Limpiar
-* **Fusionar (Merge):** Esto se hace mejor en **GitHub.com** para usar el botón **"Squash and merge"**. Esto mantiene nuestro historial de `main` limpio.
-* **Limpiar (Vía VS Code):**
-    1.  Haz clic en el nombre de tu rama (ej. `feature/auth-login-screen`) en la esquina inferior.
-    2.  Selecciona `main` para cambiar a ella.
-    3.  Haz clic en **"Sincronizar Cambios"** (las flechas circulares) para bajar el código que acabas de fusionar.
-    4.  (Opcional) Haz clic en el nombre de la rama (`main`) de nuevo, busca tu rama `feature/...` en la lista, y haz clic en el icono de la papelera a su lado para borrarla de tu local.
+## 🛡️ Style Guide Reference
+Please refer to the detailed documentation in the `docs/` folder for specific patterns:
+- [Frontend Architecture](docs/03-ARQUITECTURA_FRONTEND.md)
+- [Coding Standards](docs/06-ESTANDARES_DE_CODIGO.md)

@@ -8,18 +8,18 @@ environment:
 
 dependencies:
   dartz: ^0.10.1
-  dio: ^5.9.0
-  equatable: ^2.0.7
+  dio: ^5.9.1
+  equatable: ^2.0.8
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
   flutter_bloc: ^9.1.1
-  get_it: ^9.0.5
-  go_router: ^17.0.0
+  get_it: ^9.2.0
+  go_router: ^14.6.0
   mask_text_input_formatter: ^2.9.0
   country_picker: ^2.0.26
-  google_maps_flutter: ^2.5.0
+  google_maps_flutter: ^2.14.0
   geolocator: ^10.1.0
   permission_handler: ^11.0.1
   # Camera and Image
@@ -39,6 +39,9 @@ dependencies:
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
   window_manager: ^0.5.1
+  rxdart: ^0.28.0
+  connectivity_plus: ^6.1.0
+  flutter_dotenv: ^6.0.0
 
 
 dev_dependencies:
@@ -49,3 +52,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - .env

@@ -1,67 +1,172 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/mock/mock_models.dart';
 import 'package:intl/intl.dart';
+import '../../domain/entities/alerta.dart';
 
-class IncidentPanel extends StatelessWidget {
-  final List<MockAlerta>? incidentes;
+class IncidentPanel extends StatefulWidget {
+  final List<Alerta>? incidentes;
 
   const IncidentPanel({super.key, this.incidentes});
 
   @override
+  State<IncidentPanel> createState() => _IncidentPanelState();
+}
+
+class _IncidentPanelState extends State<IncidentPanel> {
+  // Estado de Filtros (Por defecto 'Críticos' y 'Advertencia' activos)
+  bool _showCritico = true;
+  bool _showAdvertencia = true;
+  bool _showInfo = false; // Info oculto para limpiar ruido
+
+  @override
   Widget build(BuildContext context) {
-    // If no incidents provided, show empty state or default list
-    final alerts = incidentes ?? [];
+    final alerts = widget.incidentes ?? [];
+
+    // 1. Lógica de Filtrado
+    final filteredList =
+        alerts.where((incidente) {
+          final severity = _mapSeverity(incidente.tipo);
+          if (severity == IncidentSeverity.critical && _showCritico) {
+            return true;
+          }
+          if (severity == IncidentSeverity.warning && _showAdvertencia) {
+            return true;
+          }
+          if (severity == IncidentSeverity.info && _showInfo) return true;
+          return false;
+        }).toList();
 
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Flexible(
-                  child: Text(
-                    'PANEL DE INCIDENTES',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
+          // CABECERA CON FILTROS
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Últimos Incidentes",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              // Botón "Ver Todo" que lleva a la bitácora completa
+              IconButton(
+                icon: const Icon(
+                  Icons.open_in_new,
+                  size: 18,
+                  color: Colors.grey,
                 ),
-                SizedBox(width: 4),
-                Icon(Icons.filter_list, size: 18, color: Colors.grey),
+                tooltip: "Ir a Auditoría Completa",
+                onPressed: () => context.go('/auditoria'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // BARRA DE CHIPS (IGUAL QUE EL MAPA)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip(
+                  'Críticos',
+                  Colors.red,
+                  _showCritico,
+                  (v) => setState(() => _showCritico = v),
+                ),
+                const SizedBox(width: 8),
+                _buildFilterChip(
+                  'Alertas',
+                  Colors.amber.shade800,
+                  _showAdvertencia,
+                  (v) => setState(() => _showAdvertencia = v),
+                ),
+                const SizedBox(width: 8),
+                _buildFilterChip(
+                  'Info',
+                  Colors.blue,
+                  _showInfo,
+                  (v) => setState(() => _showInfo = v),
+                ),
               ],
             ),
           ),
+          const Divider(height: 24),
 
-          // List
+          // LISTA FILTRADA
           Expanded(
             child:
-                alerts.isEmpty
-                    ? const Center(child: Text("No hay incidentes recientes"))
-                    : ListView.builder(
-                      padding: const EdgeInsets.all(0),
-                      itemCount: alerts.length,
+                filteredList.isEmpty
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            size: 40,
+                            color: Colors.green.withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "Sin incidentes visibles",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    )
+                    : ListView.separated(
+                      itemCount: filteredList.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, index) {
-                        final alerta = alerts[index];
-                        return _buildIncidentItem(
-                          context: context,
-                          alerta: alerta,
+                        final item = filteredList[index];
+                        final severity = _mapSeverity(item.tipo);
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: _getColor(severity).withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _getIcon(severity),
+                              color: _getColor(severity),
+                              size: 18,
+                            ),
+                          ),
+                          title: Text(
+                            item.mensaje,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            "${DateFormat('HH:mm').format(item.hora)} • Viaje #${item.viajeId}",
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          onTap: () {
+                            // Navegación inteligente al contexto
+                            // Si la alerta tiene turistaId, resaltar ese turista
+                            // Si no (alerta de sistema), solo navegar al viaje
+                            final focusParam =
+                                item.turistaId != null
+                                    ? '?alert_focus=${item.turistaId}&return_to=dashboard'
+                                    : '?return_to=dashboard';
+
+                            context.push('/viajes/${item.viajeId}$focusParam');
+                          },
                         );
                       },
                     ),
@@ -71,165 +176,70 @@ class IncidentPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildIncidentItem({
-    required BuildContext context,
-    required MockAlerta alerta,
-  }) {
-    final severity = _mapSeverity(alerta.tipo);
-    final color = _getColor(severity);
-    final timeStr = DateFormat('hh:mm a').format(alerta.hora);
-
-    return InkWell(
-      onTap:
-          () => context.go(
-            '/viajes/${alerta.idViaje}/detalle?focus_user=${Uri.encodeComponent(alerta.nombreTurista)}',
-          ),
-      hoverColor: color.withOpacity(0.05),
-      child: Container(
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Color(0xFFF5F5F5))),
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Severity Indicator
-              Container(width: 4, color: color),
-
-              // Content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          if (alerta.esCritica)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 6),
-                              child: Icon(
-                                Icons.warning,
-                                size: 14,
-                                color: color,
-                              ),
-                            ),
-                          Text(
-                            timeStr,
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 11,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              '${alerta.tipo.name} - Viaje #${alerta.idViaje}',
-                              style: TextStyle(
-                                color: color,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Turista: ${alerta.nombreTurista}.',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black87,
-                        ),
-                      ),
-
-                      if (alerta.esCritica) ...[
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                // Mock Call Modal
-                                showDialog(
-                                  context: context,
-                                  builder:
-                                      (ctx) => AlertDialog(
-                                        title: const Text(
-                                          '📞 Iniciando Llamada VoIP',
-                                        ),
-                                        content: const Text(
-                                          'Conectando con Guía...',
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(ctx),
-                                            child: const Text('Colgar'),
-                                          ),
-                                        ],
-                                      ),
-                                );
-                              },
-                              child: Text(
-                                'Llamar Guía',
-                                style: TextStyle(
-                                  color: Colors.blue.shade700,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap:
-                                  () => context.go(
-                                    '/viajes/${alerta.idViaje}/detalle',
-                                  ),
-                              child: Text(
-                                'Ver Ubicación',
-                                style: TextStyle(
-                                  color: Colors.blue.shade700,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  IncidentSeverity _mapSeverity(TipoAlerta tipo) {
-    switch (tipo) {
-      case TipoAlerta.PANICO:
-        return IncidentSeverity.critical;
-      case TipoAlerta.DESCONEXION:
-        return IncidentSeverity.warning;
-      case TipoAlerta.LEJANIA:
-        return IncidentSeverity.warning;
-    }
-  }
-
-  Color _getColor(IncidentSeverity severity) {
-    switch (severity) {
+  // Helpers de Estilo
+  Color _getColor(IncidentSeverity s) {
+    switch (s) {
       case IncidentSeverity.critical:
         return Colors.red;
       case IncidentSeverity.warning:
-        return Colors.amber.shade700;
+        return Colors.amber.shade800;
       case IncidentSeverity.info:
         return Colors.blue;
     }
+  }
+
+  IconData _getIcon(IncidentSeverity s) {
+    switch (s) {
+      case IncidentSeverity.critical:
+        return Icons.report_problem;
+      case IncidentSeverity.warning:
+        return Icons.warning_amber;
+      case IncidentSeverity.info:
+        return Icons.info_outline;
+    }
+  }
+
+  IncidentSeverity _mapSeverity(String tipo) {
+    switch (tipo) {
+      case 'PANICO':
+      case 'CONECTIVIDAD': // Pérdida de conexión es crítica
+        return IncidentSeverity.critical;
+      case 'DESCONEXION':
+      case 'LEJANIA':
+      case 'BATERIA': // Batería baja es advertencia
+        return IncidentSeverity.warning;
+      default:
+        return IncidentSeverity.info;
+    }
+  }
+
+  Widget _buildFilterChip(
+    String label,
+    Color color,
+    bool isSelected,
+    Function(bool) onChanged,
+  ) {
+    return FilterChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : color,
+          fontSize: 11,
+        ),
+      ),
+      selected: isSelected,
+      onSelected: onChanged,
+      backgroundColor: Colors.white,
+      selectedColor: color,
+      checkmarkColor: Colors.white,
+      padding: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? Colors.transparent : color.withValues(alpha: 0.3),
+        ),
+      ),
+    );
   }
 }
 
