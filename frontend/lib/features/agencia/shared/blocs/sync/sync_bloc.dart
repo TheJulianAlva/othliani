@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:frontend/domain/repositories/agencia_repository.dart'; // ✨ Nuevo Import
 
 // --- EVENTOS ---
 abstract class SyncEvent {}
@@ -31,12 +30,12 @@ class SyncState {
 // --- BLOC ---
 class SyncBloc extends Bloc<SyncEvent, SyncState> {
   late StreamSubscription<List<ConnectivityResult>> _subscription;
-  final AgenciaRepository repository; // ✨ Nueva dependecia
+  final Connectivity connectivity;
 
-  SyncBloc({required this.repository})
+  SyncBloc({required this.connectivity})
     : super(SyncState(status: SyncStatus.online, label: "Verificando...")) {
-    // 1. AL INICIAR: Nos suscribimos al stream del repositorio
-    _subscription = repository.onConnectivityChanged.listen((result) {
+    // 1. AL INICIAR: Nos suscribimos al stream de connectivity
+    _subscription = connectivity.onConnectivityChanged.listen((result) {
       add(ConnectionChangedEvent(result));
     });
 

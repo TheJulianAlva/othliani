@@ -1,8 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'features/agencia/shared/data/datasources/mock_agencia_datasource.dart';
 import 'data/datasources/agencia_mock_data_source.dart';
-import 'data/repositories/agencia_repository_impl.dart';
-import 'domain/repositories/agencia_repository.dart';
 import 'features/agencia/dashboard/data/repositories/dashboard_repository_impl.dart'; // ✨ New Repo Impl
 import 'features/agencia/dashboard/domain/repositories/dashboard_repository.dart'; // ✨ New Repo Interface
 import 'features/agencia/trips/data/repositories/trip_repository_impl.dart';
@@ -39,15 +37,12 @@ Future<void> init() async {
   sl.registerFactory(() => UsuariosBloc(repository: sl()));
   sl.registerFactory(() => AuditoriaBloc(repository: sl()));
   sl.registerFactory(() => TripCreationCubit(repository: sl()));
-  sl.registerFactory(() => SyncBloc(repository: sl()));
+  sl.registerFactory(() => SyncBloc(connectivity: sl()));
 
   // Use cases
   sl.registerLazySingleton(() => GetDashboardData(sl()));
 
-  // Repository
-  sl.registerLazySingleton<AgenciaRepository>(
-    () => AgenciaRepositoryImpl(sl(), sl(), sl()),
-  );
+  // Repository (old AgenciaRepository removed - now using modular repositories)
 
   // ✨ Dashboard Repository
   sl.registerLazySingleton<DashboardRepository>(

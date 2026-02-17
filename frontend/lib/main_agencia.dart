@@ -6,9 +6,9 @@ import 'features/agencia/shared/blocs/sync/sync_bloc.dart';
 import 'core/navigation/app_router_agencia.dart';
 import 'injection_container.dart' as di;
 import 'injection_container.dart'; // Para sl
-import 'domain/repositories/agencia_repository.dart'; // Para el tipo
 
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importar dotenv
+import 'package:connectivity_plus/connectivity_plus.dart'; // Para Connectivity
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +42,7 @@ class AgencyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<SyncBloc>(
-          create: (_) => SyncBloc(repository: sl<AgenciaRepository>()),
+          create: (_) => SyncBloc(connectivity: sl<Connectivity>()),
         ),
       ],
       child: MaterialApp.router(
