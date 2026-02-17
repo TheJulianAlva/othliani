@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../widgets/settings/profile_settings.dart';
-import '../../widgets/settings/security_settings.dart';
-import '../../widgets/settings/subscription_settings.dart';
-import '../../widgets/settings/notification_settings.dart';
-import '../../widgets/settings/legal_settings.dart';
+import '../widgets/profile_settings.dart';
+import '../widgets/security_settings.dart';
+import '../widgets/subscription_settings.dart';
+import '../widgets/notification_settings.dart';
+import '../widgets/legal_settings.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

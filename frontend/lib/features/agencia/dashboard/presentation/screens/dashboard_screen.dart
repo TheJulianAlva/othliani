@@ -3,10 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/navigation/routes_agencia.dart';
 import 'package:frontend/core/di/service_locator.dart' as di;
-import '../../widgets/dashboard/kpi_card.dart';
-import '../../widgets/dashboard/incident_panel.dart';
-import '../../widgets/dashboard/agency_map_widget.dart';
-import 'package:frontend/features/agencia/dashboard/blocs/dashboard/dashboard_bloc.dart';
+import '../widgets/kpi_card.dart';
+import '../widgets/incident_panel.dart';
+import '../widgets/agency_map_widget.dart';
+import 'package:frontend/features/agencia/dashboard/presentation/blocs/dashboard/dashboard_bloc.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});

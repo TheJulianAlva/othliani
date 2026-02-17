@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/agencia/users/blocs/usuarios/usuarios_bloc.dart';
-import '../../widgets/users/guides_tab.dart';
-import '../../widgets/users/directory_tab.dart';
-import '../../widgets/users/new_guide_modal.dart';
+import 'package:frontend/features/agencia/users/presentation/blocs/usuarios/usuarios_bloc.dart';
+import '../widgets/guides_tab.dart';
+import '../widgets/directory_tab.dart';
+import '../widgets/new_guide_modal.dart';
 import 'package:frontend/core/di/service_locator.dart' as di;
 
 class UsersScreen extends StatelessWidget {

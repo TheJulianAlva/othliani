@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/agencia/users/blocs/usuarios/usuarios_bloc.dart';
+import 'package:frontend/features/agencia/users/presentation/blocs/usuarios/usuarios_bloc.dart';
 import 'package:frontend/features/agencia/users/domain/entities/guia.dart';
-import '../../widgets/trips/common/trip_status_chip.dart';
+import 'package:frontend/features/agencia/trips/presentation/widgets/common/trip_status_chip.dart';
 
 class GuidesTab extends StatelessWidget {
   const GuidesTab({super.key});

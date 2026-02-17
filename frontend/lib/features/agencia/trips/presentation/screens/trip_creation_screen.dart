@@ -6,11 +6,11 @@ import 'package:flutter_map/flutter_map.dart'; // <--- Importante
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:frontend/features/agencia/trips/blocs/trip_creation/trip_creation_cubit.dart';
+import 'package:frontend/features/agencia/trips/presentation/blocs/trip_creation/trip_creation_cubit.dart';
 import 'package:frontend/features/agencia/trips/domain/entities/actividad_itinerario.dart';
 import 'package:frontend/core/navigation/routes_agencia.dart'; // Importar rutas
 import 'package:frontend/core/di/service_locator.dart' as di; // Importar DI
-import '../../widgets/trips/destino_field_widget.dart'; // <--- Validar ubicación
+import '../widgets/destino_field_widget.dart'; // <--- Validar ubicación
 
 class TripCreationScreen extends StatelessWidget {
   const TripCreationScreen({super.key});

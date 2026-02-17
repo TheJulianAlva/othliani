@@ -1,10 +1,10 @@
 import 'dart:async'; // Para el Timer
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/agencia/trips/blocs/viajes/viajes_bloc.dart';
+import 'package:frontend/features/agencia/trips/presentation/blocs/viajes/viajes_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_agencia.dart';
-import '../../widgets/trips/trips_datagrid.dart'; // Tu tabla existente
+import '../widgets/trips_datagrid.dart'; // Tu tabla existente
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});

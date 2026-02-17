@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:frontend/features/agencia/trips/blocs/detalle_viaje/detalle_viaje_bloc.dart';
-import '../../widgets/trips/trip_detail/trip_control_panel.dart';
-import '../../widgets/trips/trip_detail/trip_map_viewer.dart';
-import '../../widgets/trips/trip_detail/trip_passenger_list.dart';
+import 'package:frontend/features/agencia/trips/presentation/blocs/detalle_viaje/detalle_viaje_bloc.dart';
+import '../widgets/trip_detail/trip_control_panel.dart';
+import '../widgets/trip_detail/trip_map_viewer.dart';
+import '../widgets/trip_detail/trip_passenger_list.dart';
 import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart';
 import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
 

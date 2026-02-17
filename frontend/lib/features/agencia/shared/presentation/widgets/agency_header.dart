@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_agencia.dart';
-import 'package:frontend/presentation_agencia/viewmodels/search_result.dart';
+import 'package:frontend/features/agencia/shared/presentation/viewmodels/search_result.dart';
 import 'package:frontend/features/agencia/shared/data/datasources/mock_agencia_datasource.dart';
 import 'package:frontend/features/agencia/shared/domain/entities/alerta.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/agencia/shared/blocs/sync/sync_bloc.dart';
+import 'package:frontend/features/agencia/shared/presentation/blocs/sync/sync_bloc.dart';
 
 class AgencyHeader extends StatefulWidget {
   final VoidCallback onMenuPressed;

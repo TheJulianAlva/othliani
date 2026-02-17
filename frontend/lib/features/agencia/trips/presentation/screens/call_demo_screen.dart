@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/trips/connected_call_dialog.dart';
+import '../widgets/connected_call_dialog.dart';
 
 class CallDemoScreen extends StatelessWidget {
   const CallDemoScreen({super.key});

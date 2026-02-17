@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/presentation_agencia/utils/trip_status_utils.dart';
+import 'package:frontend/features/agencia/trips/presentation/utils/trip_status_utils.dart';
 
 /// Widget reutilizable para mostrar el estado de un viaje
 /// con texto contextual, color e icono

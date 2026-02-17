@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/agencia/audit/blocs/auditoria/auditoria_bloc.dart';
+import 'package:frontend/features/agencia/audit/presentation/blocs/auditoria/auditoria_bloc.dart';
 import 'package:frontend/features/agencia/audit/domain/entities/log_auditoria.dart';
-import '../../widgets/audit/audit_toolbar.dart';
-import '../../widgets/audit/log_detail_modal.dart';
+import '../widgets/audit_toolbar.dart';
+import '../widgets/log_detail_modal.dart';
 
 class AuditScreen extends StatelessWidget {
   const AuditScreen({super.key});

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart'; // Importar localizaciones
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:window_manager/window_manager.dart';
-import 'features/agencia/shared/blocs/sync/sync_bloc.dart';
+import 'features/agencia/shared/presentation/blocs/sync/sync_bloc.dart';
 import 'core/navigation/app_router_agencia.dart';
 import 'core/di/service_locator.dart' as di_shared;
 import 'core/di/agencia_locator.dart' as di_agencia;
