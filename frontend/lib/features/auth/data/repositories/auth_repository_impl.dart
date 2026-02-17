@@ -34,7 +34,6 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, AuthUser?>> getCurrentUser() async {
-    // TODO: Implement persistence check
     return const Right(null);
   }
 }

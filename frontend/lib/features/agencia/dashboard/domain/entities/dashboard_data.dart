@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../trips/domain/entities/viaje.dart';
-import 'package:othliani/features/agencia/shared/domain/entities/alerta.dart';
+import 'package:frontend/features/agencia/shared/domain/entities/alerta.dart';
 
 class DashboardData extends Equatable {
   final int viajesActivos;

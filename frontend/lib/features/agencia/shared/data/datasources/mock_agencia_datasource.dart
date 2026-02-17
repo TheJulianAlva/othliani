@@ -1,8 +1,8 @@
-import '../../features/agencia/trips/domain/entities/viaje.dart';
-import '../../features/agencia/users/domain/entities/guia.dart';
-import '../../features/agencia/users/domain/entities/turista.dart';
-import '../../domain/entities/alerta.dart';
-import '../../features/agencia/audit/domain/entities/log_auditoria.dart';
+import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart';
+import 'package:frontend/features/agencia/users/domain/entities/guia.dart';
+import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
+import 'package:frontend/features/agencia/shared/domain/entities/alerta.dart';
+import 'package:frontend/features/agencia/audit/domain/entities/log_auditoria.dart';
 
 class MockAgenciaDataSource {
   static final MockAgenciaDataSource _instance =

@@ -12,13 +12,13 @@ import 'features/agencia/users/domain/repositories/user_repository.dart';
 import 'features/agencia/audit/data/repositories/audit_repository_impl.dart';
 import 'features/agencia/audit/domain/repositories/audit_repository.dart';
 import 'domain/usecases/get_dashboard_data.dart';
-import 'features/agencia/dashboard/presentation/blocs/dashboard/dashboard_bloc.dart'; // ✨ New Path
-import 'features/agencia/trips/presentation/blocs/viajes/viajes_bloc.dart'; // ✨ Nuevo Path
-import 'features/agencia/trips/presentation/blocs/detalle_viaje/detalle_viaje_bloc.dart'; // ✨ Nuevo Path
-import 'features/agencia/users/presentation/blocs/usuarios/usuarios_bloc.dart';
-import 'features/agencia/audit/presentation/blocs/auditoria/auditoria_bloc.dart';
-import 'features/agencia/trips/presentation/blocs/trip_creation/trip_creation_cubit.dart'; // ✨ Nuevo Path
-import 'features/agencia/shared/presentation/blocs/sync/sync_bloc.dart';
+import 'features/agencia/dashboard/blocs/dashboard/dashboard_bloc.dart'; // ✨ New Path
+import 'features/agencia/trips/blocs/viajes/viajes_bloc.dart'; // ✨ Nuevo Path
+import 'features/agencia/trips/blocs/detalle_viaje/detalle_viaje_bloc.dart'; // ✨ Nuevo Path
+import 'features/agencia/users/blocs/usuarios/usuarios_bloc.dart';
+import 'features/agencia/audit/blocs/auditoria/auditoria_bloc.dart';
+import 'features/agencia/trips/blocs/trip_creation/trip_creation_cubit.dart'; // ✨ Nuevo Path
+import 'features/agencia/shared/blocs/sync/sync_bloc.dart';
 import 'core/services/pexels_service.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
