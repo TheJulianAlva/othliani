@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart'; // Importar localizaciones
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:window_manager/window_manager.dart';
-import 'presentation_agencia/blocs/sync/sync_bloc.dart';
+import 'features/agencia/shared/blocs/sync/sync_bloc.dart';
 import 'core/navigation/app_router_agencia.dart';
-import 'injection_container.dart' as di;
-import 'injection_container.dart'; // Para sl
-import 'domain/repositories/agencia_repository.dart'; // Para el tipo
+import 'core/di/service_locator_temp.dart' as di;
+import 'core/di/service_locator_temp.dart'; // Para sl
 
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importar dotenv
+import 'package:connectivity_plus/connectivity_plus.dart'; // Para Connectivity
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Ensure window manager is initialized
   await windowManager.ensureInitialized();
   await dotenv.load(fileName: ".env"); // Cargar variables de entorno
-  await di.init(); // Initialize Dependency Injection
+  await di.initServiceLocator(); // Initialize Dependency Injection
 
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
@@ -42,7 +42,7 @@ class AgencyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<SyncBloc>(
-          create: (_) => SyncBloc(repository: sl<AgenciaRepository>()),
+          create: (_) => SyncBloc(connectivity: sl<Connectivity>()),
         ),
       ],
       child: MaterialApp.router(

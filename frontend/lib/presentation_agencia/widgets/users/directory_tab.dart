@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../blocs/usuarios/usuarios_bloc.dart';
-import '../../../domain/entities/turista.dart';
+import 'package:frontend/features/agencia/users/blocs/usuarios/usuarios_bloc.dart';
+import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
 
 class DirectoryTab extends StatelessWidget {
   const DirectoryTab({super.key});

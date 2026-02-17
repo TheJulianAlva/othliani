@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:convert';
-import '../../../domain/entities/log_auditoria.dart';
+import 'package:frontend/features/agencia/audit/domain/entities/log_auditoria.dart';
 
 class LogDetailModal extends StatelessWidget {
   final LogAuditoria log;

@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../injection_container.dart' as di;
+import 'package:frontend/core/di/service_locator_temp.dart' as di;
 import 'routes_agencia.dart';
 
 // Importa tus Widgets de Pantalla
-import '../../presentation_agencia/screens/login_screen.dart';
-import '../../presentation_agencia/screens/dashboard_screen.dart';
-import '../../presentation_agencia/screens/trips_screen.dart';
-import '../../presentation_agencia/screens/trip_detail_screen.dart';
-import '../../presentation_agencia/screens/trip_creation_screen.dart'; // <--- Importante
-import '../../presentation_agencia/screens/users_screen.dart';
-import '../../presentation_agencia/screens/audit_screen.dart';
-import '../../presentation_agencia/screens/settings_screen.dart'; // Settings Screen
-import '../../presentation_agencia/widgets/agency_layout.dart'; // Tu Layout con Sidebar
+import '../../features/agencia/auth/presentation/screens/login_screen.dart';
+import '../../presentation_agencia/screens/dashboard/dashboard_screen.dart';
+import '../../presentation_agencia/screens/trips/trips_screen.dart';
+import '../../presentation_agencia/screens/trips/trip_detail_screen.dart';
+import '../../presentation_agencia/screens/trips/trip_creation_screen.dart';
+import '../../presentation_agencia/screens/users/users_screen.dart';
+import '../../presentation_agencia/screens/audit/audit_screen.dart';
+import '../../presentation_agencia/screens/settings/settings_screen.dart';
+import '../../presentation_agencia/widgets/shared/agency_layout.dart'; // Tu Layout con Sidebar
 
 // Importa tus BLoCs
-import '../../presentation_agencia/blocs/dashboard/dashboard_bloc.dart';
-import '../../presentation_agencia/blocs/viajes/viajes_bloc.dart';
-import '../../presentation_agencia/blocs/detalle_viaje/detalle_viaje_bloc.dart';
-import '../../presentation_agencia/blocs/usuarios/usuarios_bloc.dart';
-import '../../presentation_agencia/blocs/auditoria/auditoria_bloc.dart';
+import '../../features/agencia/dashboard/blocs/dashboard/dashboard_bloc.dart';
+import '../../features/agencia/trips/blocs/viajes/viajes_bloc.dart';
+import '../../features/agencia/trips/blocs/detalle_viaje/detalle_viaje_bloc.dart';
+import '../../features/agencia/users/blocs/usuarios/usuarios_bloc.dart';
+import '../../features/agencia/audit/blocs/auditoria/auditoria_bloc.dart';
 
 class AppRouterAgencia {
   static final GlobalKey<NavigatorState> _rootNavigatorKey =

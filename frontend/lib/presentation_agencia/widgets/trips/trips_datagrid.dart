@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../domain/entities/viaje.dart';
+import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart';
 
 class TripsDatagrid extends StatefulWidget {
   final List<Viaje> viajes; // Recibe la datos desde el padre

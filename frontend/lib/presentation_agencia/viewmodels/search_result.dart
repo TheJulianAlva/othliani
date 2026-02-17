@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/trip_status_utils.dart';
+import 'package:frontend/presentation_agencia/utils/trip_status_utils.dart';
 
 enum SearchResultType { guide, tourist, trip }
 
