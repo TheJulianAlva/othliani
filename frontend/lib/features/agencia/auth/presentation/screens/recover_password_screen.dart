@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/navigation/routes_agencia.dart';
+import '../../../../../core/navigation/routes_agencia.dart';
 import '../widgets/agency_auth_layout.dart';
 
 class AgencyRecoverPasswordScreen extends StatefulWidget {

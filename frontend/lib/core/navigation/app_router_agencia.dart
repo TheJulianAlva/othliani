@@ -5,7 +5,7 @@ import '../../injection_container.dart' as di;
 import 'routes_agencia.dart';
 
 // Importa tus Widgets de Pantalla
-import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/agencia/auth/presentation/screens/login_screen.dart';
 import '../../presentation_agencia/screens/dashboard/dashboard_screen.dart';
 import '../../presentation_agencia/screens/trips/trips_screen.dart';
 import '../../presentation_agencia/screens/trips/trip_detail_screen.dart';

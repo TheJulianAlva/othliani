@@ -18,9 +18,9 @@ import 'features/agencia/audit/blocs/auditoria/auditoria_bloc.dart';
 import 'features/agencia/trips/blocs/trip_creation/trip_creation_cubit.dart'; // ✨ Nuevo Path
 import 'features/agencia/shared/blocs/sync/sync_bloc.dart';
 import 'core/services/pexels_service.dart';
-import 'features/auth/data/repositories/auth_repository_impl.dart';
-import 'features/auth/domain/repositories/auth_repository.dart';
-import 'features/auth/presentation/blocs/login/login_bloc.dart';
+import 'features/agencia/auth/data/repositories/auth_repository_impl.dart';
+import 'features/agencia/auth/domain/repositories/auth_repository.dart';
+import 'features/agencia/auth/presentation/blocs/login/login_bloc.dart';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 
