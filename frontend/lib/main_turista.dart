@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/di/service_locator.dart' as di_shared;
+import 'package:frontend/core/di/turista_locator.dart' as di_turista;
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:frontend/core/navigation/enrutador_app_turista.dart';
@@ -14,7 +16,8 @@ import 'package:frontend/features/turista/settings/presentation/cubit/theme_cubi
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await setupServiceLocator();
+  await di_shared.initSharedDependencies();
+  await di_turista.initTuristaDependencies();
 
   runApp(const MyApp());
 }
@@ -29,9 +32,9 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => sl<AuthBloc>()..add(AuthCheckRequested())),
         // Settings Cubits
-        BlocProvider(create: (_) => ThemeCubit(sharedPreferences: sl())),
-        BlocProvider(create: (_) => LocaleCubit(sharedPreferences: sl())),
-        BlocProvider(create: (_) => AccessibilityCubit()),
+        BlocProvider(create: (_) => sl<ThemeCubit>()),
+        BlocProvider(create: (_) => sl<LocaleCubit>()),
+        BlocProvider(create: (_) => sl<AccessibilityCubit>()),
       ],
       child: const _AppView(),
     );
