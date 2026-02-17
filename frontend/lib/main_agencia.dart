@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // Importar localizaciones
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:window_manager/window_manager.dart';
+import 'presentation_agencia/blocs/sync/sync_bloc.dart';
 import 'core/navigation/app_router_agencia.dart';
+import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Ensure window manager is initialized
   await windowManager.ensureInitialized();
+  await di.init(); // Initialize Dependency Injection
 
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
@@ -29,22 +34,35 @@ class AgencyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'OthliAni Agencia',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1A237E), // Azul oscuro serio
-          brightness: Brightness.light,
+    return MultiBlocProvider(
+      providers: [BlocProvider<SyncBloc>(create: (_) => SyncBloc())],
+      child: MaterialApp.router(
+        title: 'OthliAni Agencia',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF1A237E), // Azul oscuro serio
+            brightness: Brightness.light,
+          ),
+          useMaterial3: true,
+          fontFamily:
+              'Roboto', // Usando fuente del sistema por defecto o Roboto si está disponible
+          scaffoldBackgroundColor: const Color(
+            0xFFF4F6F8,
+          ), // Gris muy claro especificado en wireframe
         ),
-        useMaterial3: true,
-        fontFamily:
-            'Roboto', // Usando fuente del sistema por defecto o Roboto si está disponible
-        scaffoldBackgroundColor: const Color(
-          0xFFF4F6F8,
-        ), // Gris muy claro especificado en wireframe
+        routerConfig: AppRouterAgencia.router,
+        debugShowCheckedModeBanner: false,
+        // Configuración de Localización
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('es', 'ES'), // Español
+          Locale('en', 'US'), // Inglés (fallback)
+        ],
       ),
-      routerConfig: AppRouterAgencia.router,
-      debugShowCheckedModeBanner: false,
     );
   }
 }
