@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:connectivity_plus/connectivity_plus.dart'; // Domain agnostic enough?
 import '../../core/error/failures.dart';
 // Importamos las entidades que acabamos de crear:
 import '../entities/dashboard_data.dart';
@@ -23,4 +24,13 @@ abstract class AgenciaRepository {
 
   // Métodos para gestión de usuarios
   Future<Either<Failure, List<Turista>>> getListaClientes();
+
+  // ✨ NUEVO: Contrato para Servicios Externos (sin depender de la implementación)
+  Future<List<String>> buscarFotosDestino(String query);
+
+  // ✨ NUEVO: Método para guardar el viaje
+  Future<void> crearViaje(Viaje viaje);
+
+  // ✨ NUEVO: Stream de Conectividad (Clean Architecture)
+  Stream<List<ConnectivityResult>> get onConnectivityChanged;
 }
