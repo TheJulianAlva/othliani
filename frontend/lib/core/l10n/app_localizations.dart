@@ -853,6 +853,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Comunicate con la empresa o persona que te registró si crees que pudo haber ocurrido un error al registrar tus datos.'**
   String get incorrectDataContent;
+
+  /// No description provided for @supportChat.
+  ///
+  /// In es, this message translates to:
+  /// **'Chat de Soporte'**
+  String get supportChat;
+
+  /// No description provided for @noMessages.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay mensajes'**
+  String get noMessages;
+
+  /// No description provided for @writeMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe un mensaje...'**
+  String get writeMessage;
 }
 
 class _AppLocalizationsDelegate

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
+import 'package:go_router/go_router.dart';
+import 'package:frontend/core/navigation/routes_turista.dart';
 import '../widgets/walkie_talkie_button.dart';
-import 'pantalla_inicio_viaje.dart';
+import 'package:frontend/features/turista/home/presentation/screens/trip_home_screen.dart';
+
 import 'pantalla_chat.dart';
 import 'pantalla_configuracion.dart';
 import 'pantalla_mapa.dart';
-import 'pantalla_perfil.dart';
 import 'pantalla_conversor_divisas.dart';
 
 class MainShellScreen extends StatefulWidget {
@@ -55,10 +57,7 @@ class _MainShellScreenState extends State<MainShellScreen>
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
+              context.push(RoutesTurista.profile);
             },
           ),
         ],

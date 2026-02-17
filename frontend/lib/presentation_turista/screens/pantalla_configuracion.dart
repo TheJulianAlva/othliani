@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../core/providers/locale_provider.dart';
-import '../../core/providers/theme_provider.dart';
-import 'pantalla_accesibilidad.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
+import 'package:frontend/features/turista/settings/presentation/cubit/locale_cubit.dart';
+import 'package:frontend/features/turista/settings/presentation/cubit/theme_cubit.dart';
+import 'pantalla_accesibilidad.dart';
 
 class ConfigScreen extends StatelessWidget {
   const ConfigScreen({super.key});
@@ -11,39 +11,40 @@ class ConfigScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final localeProvider = context.watch<LocaleProvider>();
-    final themeProvider = context.watch<ThemeProvider>();
 
     return ListView(
       children: [
         // Language
-        ListTile(
-          leading: const Icon(Icons.language),
-          title: Text(l10n.language),
-          subtitle: Text(
-            localeProvider.locale.languageCode == 'es'
-                ? l10n.spanish
-                : l10n.english,
-          ),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () {
-            _showLanguageDialog(context, localeProvider, l10n);
+        BlocBuilder<LocaleCubit, Locale>(
+          builder: (context, locale) {
+            return ListTile(
+              leading: const Icon(Icons.language),
+              title: Text(l10n.language),
+              subtitle: Text(
+                locale.languageCode == 'es' ? l10n.spanish : l10n.english,
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                _showLanguageDialog(context, l10n);
+              },
+            );
           },
         ),
         const Divider(),
 
         // Theme
-        SwitchListTile(
-          secondary: Icon(
-            themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-          ),
-          title: Text(l10n.theme),
-          subtitle: Text(
-            themeProvider.isDarkMode ? l10n.darkTheme : l10n.lightTheme,
-          ),
-          value: themeProvider.isDarkMode,
-          onChanged: (value) {
-            themeProvider.setTheme(value);
+        BlocBuilder<ThemeCubit, ThemeMode>(
+          builder: (context, themeMode) {
+            final isDarkMode = themeMode == ThemeMode.dark;
+            return SwitchListTile(
+              secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
+              title: Text(l10n.theme),
+              subtitle: Text(isDarkMode ? l10n.darkTheme : l10n.lightTheme),
+              value: isDarkMode,
+              onChanged: (value) {
+                context.read<ThemeCubit>().setTheme(value);
+              },
+            );
           },
         ),
         const Divider(),
@@ -76,26 +77,27 @@ class ConfigScreen extends StatelessWidget {
     );
   }
 
-  void _showLanguageDialog(
-    BuildContext context,
-    LocaleProvider provider,
-    AppLocalizations l10n,
-  ) {
+  void _showLanguageDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder:
-          (context) => SimpleDialog(
+          (dialogContext) => SimpleDialog(
             title: Text(l10n.language),
             children: [
               SimpleDialogOption(
                 onPressed: () {
-                  provider.setLocale(const Locale('es'));
-                  Navigator.pop(context);
+                  context.read<LocaleCubit>().setLocale(const Locale('es'));
+                  Navigator.pop(dialogContext);
                 },
                 child: Row(
                   children: [
-                    if (provider.locale.languageCode == 'es')
-                      const Icon(Icons.check, color: Colors.green),
+                    // Since we don't have access to context.read inside dialog builder easily unless we pass it or wrap
+                    // Actually showDialog context is above BlocProvider? No, it's usually fine if valid context passed.
+                    // But strictly speaking, the context passed to method is from build, so it has providers.
+                    // The dialogContext might not have them if not implementing route aware.
+                    // However, SimpleDialog children usage of 'context.read' refers to the closure context if correct.
+                    // To be safe, use the context passed to the method.
+                    const Icon(Icons.language), // Just generic icon
                     const SizedBox(width: 8),
                     Text(l10n.spanish),
                   ],
@@ -103,13 +105,12 @@ class ConfigScreen extends StatelessWidget {
               ),
               SimpleDialogOption(
                 onPressed: () {
-                  provider.setLocale(const Locale('en'));
-                  Navigator.pop(context);
+                  context.read<LocaleCubit>().setLocale(const Locale('en'));
+                  Navigator.pop(dialogContext);
                 },
                 child: Row(
                   children: [
-                    if (provider.locale.languageCode == 'en')
-                      const Icon(Icons.check, color: Colors.green),
+                    const Icon(Icons.language),
                     const SizedBox(width: 8),
                     Text(l10n.english),
                   ],

@@ -125,5 +125,8 @@
   "gallery": "Galería",
   "incorrectDataButton": "¿Tus datos son incorrectos?",
   "incorrectDataTitle": "¿Datos incorrectos?",
-  "incorrectDataContent": "Comunicate con la empresa o persona que te registró si crees que pudo haber ocurrido un error al registrar tus datos."
+  "incorrectDataContent": "Comunicate con la empresa o persona que te registró si crees que pudo haber ocurrido un error al registrar tus datos.",
+  "supportChat": "Chat de Soporte",
+  "noMessages": "No hay mensajes",
+  "writeMessage": "Escribe un mensaje..."
 }
