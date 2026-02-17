@@ -1,12 +1,12 @@
 import 'package:dartz/dartz.dart';
 import '../../domain/repositories/agencia_repository.dart';
-import '../../domain/entities/dashboard_data.dart';
+import '../../features/agencia/dashboard/domain/entities/dashboard_data.dart';
 import '../datasources/agencia_mock_data_source.dart';
 import '../../core/error/failures.dart';
-import '../../domain/entities/viaje.dart';
-import '../../domain/entities/guia.dart';
-import '../../domain/entities/turista.dart';
-import '../../domain/entities/log_auditoria.dart';
+import '../../features/agencia/trips/domain/entities/viaje.dart';
+// import '../../features/agencia/users/domain/entities/guia.dart';
+// import '../../features/agencia/users/domain/entities/turista.dart';
+// import '../../features/agencia/audit/domain/entities/log_auditoria.dart';
 
 import 'package:connectivity_plus/connectivity_plus.dart'; // ✨ Nuevo Import
 import '../../core/services/pexels_service.dart'; // Restaurado
@@ -74,60 +74,6 @@ class AgenciaRepositoryImpl implements AgenciaRepository {
       } else {
         return Left(ServerFailure());
       }
-    } catch (e) {
-      return Left(ServerFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<Guia>>> getListaGuias() async {
-    try {
-      final result = await dataSource.getListaGuias();
-      return Right(result);
-    } catch (e) {
-      return Left(ServerFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<LogAuditoria>>> getAuditLogs() async {
-    try {
-      final result = await dataSource.getAuditLogs();
-      return Right(result);
-    } catch (e) {
-      return Left(ServerFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<Turista>>> getTuristasPorViaje(String id) async {
-    try {
-      final result = await dataSource.getTuristasByViajeId(id);
-      return Right(result);
-    } catch (e) {
-      return Left(ServerFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> cancelarViaje(String id) async {
-    try {
-      final result = await dataSource.simularDeleteViaje(id);
-      if (result) {
-        return const Right(null);
-      } else {
-        return Left(ServerFailure());
-      }
-    } catch (e) {
-      return Left(ServerFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<Turista>>> getListaClientes() async {
-    try {
-      final result = await dataSource.getTuristas();
-      return Right(result);
     } catch (e) {
       return Left(ServerFailure());
     }
