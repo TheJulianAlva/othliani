@@ -1,5 +1,6 @@
-import 'package:frontend/presentation_turista/screens/pantalla_telefono.dart';
-import 'package:frontend/presentation_turista/screens/pantalla_verificacion_sms.dart';
+import 'package:frontend/features/turista/auth/presentation/screens/folio_screen.dart';
+import 'package:frontend/features/turista/auth/presentation/screens/phone_screen.dart';
+import 'package:frontend/features/turista/auth/presentation/screens/sms_verification_screen.dart';
 
 import 'package:frontend/features/turista/auth/presentation/screens/onboarding_screen.dart';
 import 'package:frontend/features/turista/auth/presentation/screens/register_screen.dart';
@@ -7,18 +8,17 @@ import 'package:frontend/features/turista/auth/presentation/screens/register_scr
 import 'package:frontend/features/turista/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/turista/auth/presentation/screens/forgot_password_screen.dart';
 
-import 'package:frontend/presentation_turista/screens/pantalla_verificacion_email.dart';
+import 'package:frontend/features/turista/auth/presentation/screens/email_verification_screen.dart';
 
-import 'package:frontend/presentation_turista/screens/pantalla_inicio.dart';
-import 'package:frontend/presentation_turista/screens/pantalla_itinerario.dart';
-import 'package:frontend/presentation_turista/screens/pantalla_mapa.dart';
-import 'package:frontend/presentation_turista/screens/pantalla_chat.dart';
-import 'package:frontend/presentation_turista/screens/pantalla_configuracion.dart';
-import 'package:frontend/presentation_turista/screens/pantalla_perfil.dart';
-import 'package:frontend/presentation_turista/screens/pantalla_conversor_divisas.dart';
-import 'package:frontend/presentation_turista/screens/pantalla_accesibilidad.dart';
+import 'package:frontend/features/turista/home/presentation/screens/main_shell_screen.dart';
+import 'package:frontend/features/turista/home/presentation/screens/itinerary_screen.dart';
+import 'package:frontend/features/turista/home/presentation/screens/map_screen.dart';
+import 'package:frontend/features/turista/chat/presentation/screens/chat_screen.dart';
+import 'package:frontend/features/turista/settings/presentation/screens/config_screen.dart';
+import 'package:frontend/features/turista/profile/presentation/screens/profile_screen.dart';
+import 'package:frontend/features/turista/tools/presentation/screens/currency_converter_screen.dart';
+import 'package:frontend/features/turista/settings/presentation/screens/accessibility_screen.dart';
 import 'package:go_router/go_router.dart';
-import '../../presentation_turista/screens/pantalla_folio.dart';
 
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_state.dart';

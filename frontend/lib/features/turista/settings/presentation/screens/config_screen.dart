@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:frontend/features/turista/settings/presentation/cubit/locale_cubit.dart';
 import 'package:frontend/features/turista/settings/presentation/cubit/theme_cubit.dart';
-import 'pantalla_accesibilidad.dart';
+import 'accessibility_screen.dart';
 
 class ConfigScreen extends StatelessWidget {
   const ConfigScreen({super.key});

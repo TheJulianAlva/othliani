@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_constants.dart';
+import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_constants.dart';
 
 class ChatBubble extends StatelessWidget {
   final String message;
@@ -16,9 +16,8 @@ class ChatBubble extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: isSent
-              ? AppColors.chatBubbleSent
-              : AppColors.chatBubbleReceived,
+          color:
+              isSent ? AppColors.chatBubbleSent : AppColors.chatBubbleReceived,
           borderRadius: BorderRadius.circular(AppBorderRadius.md),
         ),
         constraints: BoxConstraints(

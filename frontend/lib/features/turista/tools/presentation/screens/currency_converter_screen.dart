@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:io';
-import '../../core/theme/app_constants.dart';
+import 'package:frontend/core/theme/app_constants.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/features/turista/tools/currency/presentation/cubit/currency_cubit.dart';
@@ -318,13 +318,12 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
 
                         Center(
                           child: IconButton(
-                            onPressed: () {
-                              context
+                            onPressed: () async {
+                              await context
                                   .read<CurrencyCubit>()
-                                  .swapCurrencies()
-                                  .then((_) {
-                                    _convertCurrency(context);
-                                  });
+                                  .swapCurrencies();
+                              if (!context.mounted) return;
+                              _convertCurrency(context);
                             },
                             icon: const Icon(Icons.swap_vert, size: 32),
                             style: IconButton.styleFrom(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/presentation_turista/widgets/circular_timer.dart';
+import 'package:frontend/features/turista/auth/presentation/widgets/circular_timer.dart';
 
 class VerificationStatusWidget extends StatefulWidget {
   final String message;
