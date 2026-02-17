@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../widgets/chat_bubble.dart';
-import '../widgets/message_input_field.dart';
+import 'package:frontend/features/turista/chat/presentation/widgets/chat_bubble.dart';
+import 'package:frontend/features/turista/chat/presentation/widgets/message_input_field.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 
 class ChatScreen extends StatefulWidget {

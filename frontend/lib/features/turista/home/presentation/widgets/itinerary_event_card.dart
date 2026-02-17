@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_constants.dart';
+import 'package:frontend/core/theme/app_constants.dart';
 
 class ItineraryEventCard extends StatelessWidget {
   final String time;
@@ -16,7 +16,7 @@ class ItineraryEventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Padding(
@@ -48,23 +48,14 @@ class ItineraryEventCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium,
-                  ),
+                  Text(title, style: theme.textTheme.titleMedium),
                   const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: theme.textTheme.bodyMedium,
-                  ),
+                  Text(description, style: theme.textTheme.bodyMedium),
                 ],
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            Icon(
-              Icons.location_on,
-              color: theme.colorScheme.primary,
-            ),
+            Icon(Icons.location_on, color: theme.colorScheme.primary),
           ],
         ),
       ),

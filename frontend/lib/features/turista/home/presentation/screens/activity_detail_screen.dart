@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_constants.dart';
-import '../../core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_constants.dart';
+import 'package:frontend/core/theme/app_colors.dart';
 
 class ActivityDetailScreen extends StatelessWidget {
   final String activityTitle;

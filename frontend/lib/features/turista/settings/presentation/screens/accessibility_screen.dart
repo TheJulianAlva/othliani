@@ -33,35 +33,40 @@ class AccessibilityScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      ...FontSizeOption.values.map((option) {
-                        String label;
-                        switch (option) {
-                          case FontSizeOption.small:
-                            label = l10n.small;
-                            break;
-                          case FontSizeOption.medium:
-                            label = l10n.medium;
-                            break;
-                          case FontSizeOption.large:
-                            label = l10n.large;
-                            break;
-                          case FontSizeOption.extraLarge:
-                            label = l10n.extraLarge;
-                            break;
-                        }
-                        return RadioListTile<FontSizeOption>(
-                          title: Text(label),
-                          value: option,
-                          groupValue: state.fontSize,
-                          onChanged: (value) {
-                            if (value != null) {
-                              context.read<AccessibilityCubit>().setFontSize(
-                                value,
-                              );
-                            }
-                          },
-                        );
-                      }),
+                      RadioGroup<FontSizeOption>(
+                        groupValue: state.fontSize,
+                        onChanged: (value) {
+                          if (value != null) {
+                            context.read<AccessibilityCubit>().setFontSize(
+                              value,
+                            );
+                          }
+                        },
+                        child: Column(
+                          children:
+                              FontSizeOption.values.map((option) {
+                                String label;
+                                switch (option) {
+                                  case FontSizeOption.small:
+                                    label = l10n.small;
+                                    break;
+                                  case FontSizeOption.medium:
+                                    label = l10n.medium;
+                                    break;
+                                  case FontSizeOption.large:
+                                    label = l10n.large;
+                                    break;
+                                  case FontSizeOption.extraLarge:
+                                    label = l10n.extraLarge;
+                                    break;
+                                }
+                                return RadioListTile<FontSizeOption>(
+                                  title: Text(label),
+                                  value: option,
+                                );
+                              }).toList(),
+                        ),
+                      ),
                     ],
                   ),
                 ),

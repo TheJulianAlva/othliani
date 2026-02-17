@@ -7,7 +7,7 @@ import 'package:frontend/features/turista/home/domain/entities/activity.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/trip_bloc.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/trip_event.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/trip_state.dart';
-import 'package:frontend/presentation_turista/screens/pantalla_detalle_actividad.dart';
+import 'package:frontend/features/turista/home/presentation/screens/activity_detail_screen.dart';
 
 class TripHomeScreen extends StatelessWidget {
   const TripHomeScreen({super.key});
@@ -45,23 +45,26 @@ class _TripHomeViewState extends State<_TripHomeView>
       // Sort logic: 'inProgress' first
       sorted.sort((a, b) {
         if (a.status == ActivityStatus.inProgress &&
-            b.status != ActivityStatus.inProgress)
+            b.status != ActivityStatus.inProgress) {
           return -1;
+        }
         if (a.status != ActivityStatus.inProgress &&
-            b.status == ActivityStatus.inProgress)
+            b.status == ActivityStatus.inProgress) {
           return 1;
+        }
         return 0;
       });
       return sorted;
     }
 
     ActivityStatus statusFilter;
-    if (filter == 'Terminada')
+    if (filter == 'Terminada') {
       statusFilter = ActivityStatus.finished;
-    else if (filter == 'En_curso')
+    } else if (filter == 'En_curso') {
       statusFilter = ActivityStatus.inProgress;
-    else
+    } else {
       statusFilter = ActivityStatus.pending;
+    }
 
     return activities.where((a) => a.status == statusFilter).toList();
   }
@@ -140,7 +143,7 @@ class _TripHomeViewState extends State<_TripHomeView>
                   border: Border.all(color: theme.dividerColor),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),

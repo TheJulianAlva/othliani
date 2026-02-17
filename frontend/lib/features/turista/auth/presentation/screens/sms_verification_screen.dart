@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
-import 'package:frontend/presentation_turista/widgets/verification_status_widget.dart';
+import 'package:frontend/features/turista/auth/presentation/widgets/verification_status_widget.dart';
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/features/turista/auth/presentation/cubit/verification_cubit.dart';
 import 'package:frontend/features/turista/auth/presentation/cubit/verification_state.dart';

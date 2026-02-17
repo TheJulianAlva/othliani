@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_constants.dart';
+import 'package:frontend/core/theme/app_constants.dart';
 
 class MessageInputField extends StatelessWidget {
   final TextEditingController controller;

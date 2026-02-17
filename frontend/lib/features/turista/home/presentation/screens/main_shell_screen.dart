@@ -6,10 +6,10 @@ import 'package:frontend/core/navigation/routes_turista.dart';
 import '../widgets/walkie_talkie_button.dart';
 import 'package:frontend/features/turista/home/presentation/screens/trip_home_screen.dart';
 
-import 'pantalla_chat.dart';
-import 'pantalla_configuracion.dart';
-import 'pantalla_mapa.dart';
-import 'pantalla_conversor_divisas.dart';
+import 'package:frontend/features/turista/chat/presentation/screens/chat_screen.dart';
+import 'package:frontend/features/turista/settings/presentation/screens/config_screen.dart';
+import 'map_screen.dart';
+import 'package:frontend/features/turista/tools/presentation/screens/currency_converter_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});

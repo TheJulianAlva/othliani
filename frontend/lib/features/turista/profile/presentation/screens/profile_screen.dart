@@ -4,7 +4,7 @@ import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_constants.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
-import 'package:frontend/presentation_turista/widgets/walkie_talkie_button.dart';
+import 'package:frontend/features/turista/home/presentation/widgets/walkie_talkie_button.dart';
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
 
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_event.dart';
