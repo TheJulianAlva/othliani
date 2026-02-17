@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:window_manager/window_manager.dart';
 import 'features/agencia/shared/blocs/sync/sync_bloc.dart';
 import 'core/navigation/app_router_agencia.dart';
-import 'core/di/service_locator.dart' as di;
-import 'core/di/service_locator.dart'; // Para sl
+import 'core/di/service_locator_temp.dart' as di;
+import 'core/di/service_locator_temp.dart'; // Para sl
 
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importar dotenv
 import 'package:connectivity_plus/connectivity_plus.dart'; // Para Connectivity

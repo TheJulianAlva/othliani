@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../../../../../../core/navigation/routes_agencia.dart';
-import 'package:frontend/core/di/service_locator.dart';
+import 'package:frontend/core/di/service_locator_temp.dart';
 import '../widgets/agency_auth_layout.dart'; // Local import within feature
 import '../blocs/login/login_bloc.dart';
 

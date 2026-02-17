@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/navigation/routes_agencia.dart';
-import 'package:frontend/core/di/service_locator.dart' as di;
+import 'package:frontend/core/di/service_locator_temp.dart' as di;
 import '../../widgets/dashboard/kpi_card.dart';
 import '../../widgets/dashboard/incident_panel.dart';
 import '../../widgets/dashboard/agency_map_widget.dart';

@@ -4,7 +4,7 @@ import 'package:frontend/features/agencia/users/blocs/usuarios/usuarios_bloc.dar
 import '../../widgets/users/guides_tab.dart';
 import '../../widgets/users/directory_tab.dart';
 import '../../widgets/users/new_guide_modal.dart';
-import 'package:frontend/core/di/service_locator.dart' as di;
+import 'package:frontend/core/di/service_locator_temp.dart' as di;
 
 class UsersScreen extends StatelessWidget {
   final String initialTab;

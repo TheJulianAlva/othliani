@@ -9,7 +9,8 @@ import 'dart:convert';
 import 'package:frontend/features/agencia/trips/blocs/trip_creation/trip_creation_cubit.dart';
 import 'package:frontend/features/agencia/trips/domain/entities/actividad_itinerario.dart';
 import 'package:frontend/core/navigation/routes_agencia.dart'; // Importar rutas
-import 'package:frontend/core/di/service_locator.dart' as di; // Importar DI
+import 'package:frontend/core/di/service_locator_temp.dart'
+    as di; // Importar DI
 import '../../widgets/trips/destino_field_widget.dart'; // <--- Validar ubicación
 
 class TripCreationScreen extends StatelessWidget {
@@ -241,7 +242,7 @@ class _TripCreationForm extends StatelessWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: onContinue,
+                        onPressed: cubit.isStep1Valid ? onContinue : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue[800],
                           foregroundColor: Colors.white,
@@ -1579,9 +1580,37 @@ class _TripCreationForm extends StatelessWidget {
                           initialCenter:
                               initialCenter, // Usar ubicación calculada
                           initialZoom: initialZoom,
-                          onTap: (_, latlng) {
-                            cubit.setLocation(latlng);
-                            Navigator.pop(ctx);
+                          onTap: (_, latlng) async {
+                            // Hacer geocoding inverso para obtener el nombre
+                            try {
+                              final url = Uri.parse(
+                                'https://nominatim.openstreetmap.org/reverse?lat=${latlng.latitude}&lon=${latlng.longitude}&format=json',
+                              );
+                              final response = await http.get(
+                                url,
+                                headers: {'User-Agent': 'com.othliani.app'},
+                              );
+                              if (response.statusCode == 200) {
+                                final data = json.decode(response.body);
+                                final nombre =
+                                    data['address']['city'] ??
+                                    data['address']['town'] ??
+                                    data['address']['village'] ??
+                                    data['display_name'].split(',')[0];
+                                cubit.setLocationAndSearchPhotos(
+                                  latlng,
+                                  nombreSugerido: nombre,
+                                );
+                              } else {
+                                cubit.setLocationAndSearchPhotos(latlng);
+                              }
+                            } catch (e) {
+                              debugPrint('Error en geocoding: $e');
+                              cubit.setLocationAndSearchPhotos(latlng);
+                            }
+                            if (ctx.mounted) {
+                              Navigator.pop(ctx);
+                            }
                           },
                         ),
                         children: [
@@ -1698,7 +1727,17 @@ class _TripCreationForm extends StatelessWidget {
                                         // 2. Mover el mapa ahí
                                         mapController.move(nuevoPunto, 15);
 
-                                        // 3. Limpiar búsqueda
+                                        // 3. Extraer nombre del lugar
+                                        final nombreLugar =
+                                            lugar['display_name'].split(',')[0];
+
+                                        // 4. Guardar en el Cubit CON AUTOCOMPLETADO Y FOTOS
+                                        cubit.setLocationAndSearchPhotos(
+                                          nuevoPunto,
+                                          nombreSugerido: nombreLugar,
+                                        );
+
+                                        // 5. Limpiar búsqueda (mantener modal abierto)
                                         setModalState(() => searchResults = []);
                                       },
                                     );

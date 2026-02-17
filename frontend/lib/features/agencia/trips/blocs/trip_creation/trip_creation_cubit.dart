@@ -206,12 +206,12 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   Timer? _debounce;
 
   void onDestinoChanged(String query) {
-    debugPrint("🟢 1. El Cubit recibió el texto: $query");
-    // 1. Actualizamos el texto en el estado inmediatamente
+    debugPrint("🟢 Usuario escribió: $query");
+    // Solo actualizamos el texto, NO buscamos fotos
+    // Las fotos solo se buscan desde el mapa
     emit(state.copyWith(destino: query));
 
-    // NOTA: Ya no buscamos fotos automáticamente al escribir.
-    // El usuario debe seleccionar del mapa para obtener fotos precisas.
+    // Cancelar cualquier búsqueda pendiente
     if (_debounce?.isActive ?? false) _debounce!.cancel();
   }
 
@@ -251,67 +251,61 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   // Método maestro mejorado: Ubicación + Autocompletado + Fotos
 
   void setLocationAndSearchPhotos(LatLng loc, {String? nombreSugerido}) {
-    // 1. Decisión Inteligente: ¿Sobrescribimos el nombre?
     String nuevoNombre = state.destino;
     String terminoBusqueda = state.destino;
 
     if (nombreSugerido != null && nombreSugerido.isNotEmpty) {
       if (state.destino.trim().isEmpty) {
-        // Caso A: Estaba vacío -> Usamos el nombre del mapa tal cual
+        // Caso A: Campo vacío -> Usar nombre del mapa directamente
         nuevoNombre = nombreSugerido;
         terminoBusqueda = nombreSugerido;
-      }
-      // Caso B: El nombre actual es IGUAL al que puso el mapa anteriormente
-      // (Significa que el usuario NO lo editó manualmente, así que lo reemplazamos todo)
-      else if (state.nombreUbicacionMapa != null &&
-          state.destino == state.nombreUbicacionMapa) {
-        nuevoNombre = nombreSugerido;
-        terminoBusqueda = nombreSugerido;
-      }
-      // Caso C: El nombre actual contiene el nombre anterior del mapa entre paréntesis
-      // (Ej: "Boda (Cancún)" -> "Boda (Cabo)")
-      else if (state.nombreUbicacionMapa != null &&
-          state.destino.contains("(${state.nombreUbicacionMapa})")) {
-        nuevoNombre = state.destino.replaceAll(
-          "(${state.nombreUbicacionMapa})",
-          "($nombreSugerido)",
-        );
-        terminoBusqueda = nombreSugerido;
-      }
-      // Caso D: El usuario escribió algo propio y NO contiene el nombre actual del mapa
-      // (Ej: "Mi Viaje" -> "Mi Viaje (Cabo)")
-      // Solo anexamos si NO contiene ya el nombre nuevo (para evitar duplicados)
-      else if (!state.destino.toLowerCase().contains(
-        nombreSugerido.toLowerCase(),
-      )) {
-        nuevoNombre = "${state.destino} ($nombreSugerido)";
-        terminoBusqueda = nombreSugerido;
+      } else if (state.nombreUbicacionMapa != null) {
+        // Caso B: Ya hay una ubicación previa del mapa
+        // Buscar y reemplazar el nombre anterior en CUALQUIER parte del texto
+
+        final nombreAnterior = state.nombreUbicacionMapa!;
+
+        // Verificar si el texto contiene el nombre anterior
+        if (state.destino.contains(nombreAnterior)) {
+          // Reemplazar el nombre anterior por el nuevo
+          nuevoNombre = state.destino.replaceAll(
+            nombreAnterior,
+            nombreSugerido,
+          );
+          terminoBusqueda = nombreSugerido;
+        } else {
+          // El usuario editó el texto y quitó el nombre anterior
+          // Agregar el nuevo nombre entre paréntesis
+          nuevoNombre = "${state.destino} ($nombreSugerido)";
+          terminoBusqueda = nombreSugerido;
+        }
       } else {
-        // Caso E: Ya contiene el nuevo nombre (Ej: "Viaje a Cabo" y seleccionas Cabo)
+        // Caso C: Primera vez que selecciona del mapa y ya escribió algo
+        // Agregar ubicación entre paréntesis
+        nuevoNombre = "${state.destino} ($nombreSugerido)";
         terminoBusqueda = nombreSugerido;
       }
     }
 
-    // 2. Actualizamos el estado (Ubicación + Nombre + MEMORIA del mapa)
+    // Actualizamos el estado
     emit(
       state.copyWith(
         location: loc,
         destino: nuevoNombre,
-        nombreUbicacionMapa: nombreSugerido, // ¡Guardamos el nombre del mapa!
+        nombreUbicacionMapa: nombreSugerido,
       ),
     );
 
-    // 3. Disparamos la búsqueda de fotos con el mejor término posible
+    // Buscar fotos solo con el nombre de la ubicación
     if (terminoBusqueda.length > 3) {
-      debugPrint("Buscando fotos para: $terminoBusqueda");
+      debugPrint("🔍 Buscando fotos para: $terminoBusqueda");
 
-      // ✅ AHORA: Usamos el Repositorio
       repository
           .buscarFotosDestino(terminoBusqueda)
           .then((fotos) {
             if (fotos.isNotEmpty) {
+              debugPrint("📸 Encontradas ${fotos.length} fotos");
               emit(state.copyWith(fotosCandidatas: fotos));
-              // Auto-selección de portada si no hay una o es mapbox
               if (state.fotoPortadaUrl == null ||
                   (state.fotoPortadaUrl?.contains('mapbox') ?? false)) {
                 emit(state.copyWith(fotoPortadaUrl: fotos.first));
@@ -319,7 +313,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
             }
           })
           .catchError((e) {
-            debugPrint("Error buscando fotos desde mapa: $e");
+            debugPrint("❌ Error buscando fotos desde mapa: $e");
           });
     }
   }
