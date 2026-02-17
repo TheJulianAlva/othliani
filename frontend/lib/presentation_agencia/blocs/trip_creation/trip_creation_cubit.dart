@@ -3,7 +3,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'dart:async';
-import '../../../core/services/pexels_service.dart';
+// import '../../../core/services/pexels_service.dart'; // ELIMINADO: Clean Architecture
 import '../../../domain/entities/actividad_itinerario.dart';
 import '../../../domain/repositories/agencia_repository.dart';
 
@@ -201,8 +201,8 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     );
   }
 
-  // Integración Pexels
-  final PexelsService _pexelsService = PexelsService();
+  // Integración Pexels (ELIMINADA: Usamos Repository)
+  // final PexelsService _pexelsService = PexelsService();
   Timer? _debounce;
 
   void onDestinoChanged(String query) {
@@ -304,8 +304,10 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     // 3. Disparamos la búsqueda de fotos con el mejor término posible
     if (terminoBusqueda.length > 3) {
       debugPrint("Buscando fotos para: $terminoBusqueda");
-      _pexelsService
-          .buscarFotos(terminoBusqueda)
+
+      // ✅ AHORA: Usamos el Repositorio
+      repository
+          .buscarFotosDestino(terminoBusqueda)
           .then((fotos) {
             if (fotos.isNotEmpty) {
               emit(state.copyWith(fotosCandidatas: fotos));
@@ -440,8 +442,27 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
   Future<void> saveTrip() async {
     emit(state.copyWith(isSaving: true));
-    // Aquí llamarías al Repository para guardar en la API real
-    await Future.delayed(const Duration(seconds: 2)); // Simulación
+
+    // ✅ AHORA: Usamos el Repositorio para guardar
+    // Primero, convertimos el estado a una entidad Viaje (simplificado por ahora)
+    // En el futuro, haremos un mapper real.
+
+    /* 
+    final nuevoViaje = Viaje(
+      id: const Uuid().v4(),
+      destino: state.destino,
+      encargado: state.selectedGuiaId ?? "Sin Asignar",
+      estado: "PROGRAMADO",
+      // ... más campos
+    );
+    */
+
+    // Llamada abstracta al repositorio
+    // await repository.crearViaje(nuevoViaje);
+
+    // Simulamos guardado por ahora hasta tener el mapper completo
+    await Future.delayed(const Duration(seconds: 2));
+
     emit(state.copyWith(isSaving: false));
   }
 

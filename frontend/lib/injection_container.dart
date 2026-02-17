@@ -10,6 +10,9 @@ import 'presentation_agencia/blocs/detalle_viaje/detalle_viaje_bloc.dart';
 import 'presentation_agencia/blocs/usuarios/usuarios_bloc.dart';
 import 'presentation_agencia/blocs/auditoria/auditoria_bloc.dart';
 import 'presentation_agencia/blocs/trip_creation/trip_creation_cubit.dart';
+import 'presentation_agencia/blocs/sync/sync_bloc.dart'; // ✨ Nuevo Import
+import 'core/services/pexels_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart'; // ✨ Nuevo Import
 
 final sl = GetIt.instance;
 
@@ -24,13 +27,18 @@ Future<void> init() async {
   sl.registerFactory(() => UsuariosBloc(repository: sl()));
   sl.registerFactory(() => AuditoriaBloc(repository: sl()));
   sl.registerFactory(() => TripCreationCubit(repository: sl()));
+  sl.registerFactory(() => SyncBloc(repository: sl())); // ✨ Nuevo Factory
 
   // Use cases
   sl.registerLazySingleton(() => GetDashboardData(sl()));
 
   // Repository
   sl.registerLazySingleton<AgenciaRepository>(
-    () => AgenciaRepositoryImpl(sl()),
+    () => AgenciaRepositoryImpl(
+      sl(),
+      sl(),
+      sl(),
+    ), // Inyectamos DataSource, PexelsService y Connectivity
   );
 
   // Data sources
@@ -40,4 +48,8 @@ Future<void> init() async {
 
   //! Core
   sl.registerLazySingleton(() => MockAgenciaDataSource());
+
+  //! External Services
+  sl.registerLazySingleton(() => PexelsService());
+  sl.registerLazySingleton(() => Connectivity());
 }

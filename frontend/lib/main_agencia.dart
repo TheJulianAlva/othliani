@@ -5,6 +5,8 @@ import 'package:window_manager/window_manager.dart';
 import 'presentation_agencia/blocs/sync/sync_bloc.dart';
 import 'core/navigation/app_router_agencia.dart';
 import 'injection_container.dart' as di;
+import 'injection_container.dart'; // Para sl
+import 'domain/repositories/agencia_repository.dart'; // Para el tipo
 
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importar dotenv
 
@@ -38,7 +40,11 @@ class AgencyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider<SyncBloc>(create: (_) => SyncBloc())],
+      providers: [
+        BlocProvider<SyncBloc>(
+          create: (_) => SyncBloc(repository: sl<AgenciaRepository>()),
+        ),
+      ],
       child: MaterialApp.router(
         title: 'OthliAni Agencia',
         theme: ThemeData(
