@@ -7,6 +7,10 @@ enum TipoActividad {
   checkIn, // Punto específico
   tiempoLibre, // PRIVACIDAD TOTAL (GPS OFF)
   comida, // Holgura amplia
+  hospedaje, // Hotel/alojamiento
+  aventura, // Actividades de aventura
+  cultura, // Museos, sitios históricos
+  otro, // Otros tipos
 }
 
 class ActividadItinerario extends Equatable {
@@ -56,6 +60,9 @@ class ActividadItinerario extends Equatable {
 
   // Lógica de Negocio: ¿El sistema debe rastrear?
   bool get esMonitoreable => tipo != TipoActividad.tiempoLibre;
+
+  // Getter para duración en minutos
+  int get duracionMinutos => horaFin.difference(horaInicio).inMinutes;
 
   @override
   List<Object?> get props => [

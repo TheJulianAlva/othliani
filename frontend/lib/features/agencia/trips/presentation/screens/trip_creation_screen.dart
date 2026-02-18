@@ -7,10 +7,10 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:frontend/features/agencia/trips/presentation/blocs/trip_creation/trip_creation_cubit.dart';
-import 'package:frontend/features/agencia/trips/domain/entities/actividad_itinerario.dart';
 import 'package:frontend/core/navigation/routes_agencia.dart'; // Importar rutas
 import 'package:frontend/core/di/service_locator.dart' as di; // Importar DI
 import '../widgets/destino_field_widget.dart'; // <--- Validar ubicación
+import 'itinerary_builder_screen.dart'; // <--- Pantalla del constructor
 
 class TripCreationScreen extends StatelessWidget {
   const TripCreationScreen({super.key});
@@ -19,9 +19,29 @@ class TripCreationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => di.sl<TripCreationCubit>(), // Usar DI
-      child: Scaffold(
-        appBar: AppBar(title: const Text("Nuevo Viaje Inteligente")),
-        body: const _TripCreationForm(),
+      child: BlocBuilder<TripCreationCubit, TripCreationState>(
+        builder: (context, state) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Nuevo Viaje Inteligente"),
+              // Override del botón de atrás para manejar navegación entre pasos
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  final cubit = context.read<TripCreationCubit>();
+                  if (state.currentStep > 0) {
+                    // Si estamos en paso 2 o 3, regresar al paso anterior
+                    cubit.prevStep();
+                  } else {
+                    // Si estamos en paso 1, salir a la lista de viajes
+                    context.go(RoutesAgencia.viajes);
+                  }
+                },
+              ),
+            ),
+            body: const _TripCreationForm(),
+          );
+        },
       ),
     );
   }
@@ -697,6 +717,8 @@ class _TripCreationForm extends StatelessWidget {
     TimeOfDay? val,
     Function(TimeOfDay) onPick, {
     TimeOfDay? minTime, // Parámetro opcional para hora mínima
+    DateTime?
+    selectedDate, // ✨ NUEVO: Fecha seleccionada para validar si es hoy
     bool disabled = false, // Parámetro para deshabilitar el campo
   }) {
     return InkWell(
@@ -722,6 +744,28 @@ class _TripCreationForm extends StatelessWidget {
                 );
 
                 if (t != null) {
+                  // ✨ VALIDACIÓN MEJORADA: Verificar si la fecha es hoy y la hora es pasada
+                  final now = DateTime.now();
+                  final isToday =
+                      selectedDate != null &&
+                      selectedDate.year == now.year &&
+                      selectedDate.month == now.month &&
+                      selectedDate.day == now.day;
+
+                  if (isToday) {
+                    // Si es hoy, validar contra la hora actual
+                    final currentTime = TimeOfDay.now();
+                    final selectedMinutes = t.hour * 60 + t.minute;
+                    final currentMinutes =
+                        currentTime.hour * 60 + currentTime.minute;
+
+                    if (selectedMinutes <= currentMinutes) {
+                      // ignore: use_build_context_synchronously
+                      _showPastTimeErrorModal(context);
+                      return; // No guardamos el valor inválido
+                    }
+                  }
+
                   // VALIDACIÓN DE LÓGICA HORARIA (Solo aplica si minTime existe)
                   if (minTime != null) {
                     final double selected = t.hour + t.minute / 60.0;
@@ -866,75 +910,85 @@ class _TripCreationForm extends StatelessWidget {
 
   // --- PASO 2: CONSTRUCTOR DE ITINERARIO ---
   Widget _buildItineraryStep(BuildContext context, TripCreationState state) {
-    return Column(
-      children: [
-        // Botón para agregar actividad
-        ElevatedButton.icon(
-          icon: const Icon(Icons.add),
-          label: const Text("Agregar Actividad"),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue[800],
-            foregroundColor: Colors.white,
-          ),
-          onPressed: () => _showAddActivityModal(context),
-        ),
-        const SizedBox(height: 16),
+    // Calcular duración del viaje en días
+    final int duracionDias;
+    if (state.isMultiDay &&
+        state.fechaInicio != null &&
+        state.fechaFin != null) {
+      duracionDias = state.fechaFin!.difference(state.fechaInicio!).inDays + 1;
+    } else {
+      duracionDias = 1; // Viaje de un solo día
+    }
 
-        // Lista visual de actividades
-        if (state.itinerario.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Text(
-              "El itinerario está vacío. Agrega actividades para configurar la seguridad.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.map_outlined, size: 80, color: Colors.blue[800]),
+            const SizedBox(height: 24),
+            Text(
+              "Constructor de Itinerario Visual",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
             ),
-          )
-        else
-          ...state.itinerario.map((actividad) => _buildActivityCard(actividad)),
-      ],
-    );
-  }
-
-  // Tarjeta de Actividad (Muestra si es Segura o Privada)
-  Widget _buildActivityCard(ActividadItinerario actividad) {
-    // Distinción visual clara entre Tiempo Libre y Actividad Monitoreada
-    final bool esPrivado = actividad.tipo == TipoActividad.tiempoLibre;
-
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 12),
-      // Borde lateral: Verde (Monitoreado) o Gris (Privado)
-      shape: Border(
-        left: BorderSide(
-          color: esPrivado ? Colors.grey : Colors.green,
-          width: 4,
+            const SizedBox(height: 12),
+            Text(
+              "Crea tu itinerario de $duracionDias ${duracionDias == 1 ? 'día' : 'días'} con nuestra herramienta visual",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.edit_road, size: 24),
+              label: const Text(
+                "Abrir Constructor",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[800],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 20,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 4,
+              ),
+              onPressed: () {
+                // Navegar al Itinerary Builder usando Navigator.push
+                // para preservar el estado del formulario
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder:
+                        (_) => ItineraryBuilderScreen(
+                          duracionDias: duracionDias,
+                          horaInicio:
+                              state.horaInicio, // ✨ Pasar hora de inicio
+                          horaFin: state.horaFin, // ✨ Pasar hora de fin
+                        ),
+                  ),
+                );
+                // Al regresar, permanecerá en el Paso 2 (Itinerario)
+              },
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "💡 Arrastra y suelta actividades en la línea de tiempo",
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ),
-      ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: esPrivado ? Colors.grey[200] : Colors.green[50],
-          child: Icon(
-            esPrivado ? Icons.visibility_off : Icons.security,
-            color: esPrivado ? Colors.grey : Colors.green[800],
-            size: 20,
-          ),
-        ),
-        title: Text(
-          actividad.titulo,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          "${actividad.horaInicio.hour.toString().padLeft(2, '0')}:${actividad.horaInicio.minute.toString().padLeft(2, '0')} - ${actividad.horaFin.hour.toString().padLeft(2, '0')}:${actividad.horaFin.minute.toString().padLeft(2, '0')}\n${esPrivado ? '🔒 Rastreo GPS Desactivado' : '📡 Monitoreo Activo'}",
-          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-        ),
-        trailing:
-            actividad.huellaCarbono > 0
-                ? Chip(
-                  label: Text("${actividad.huellaCarbono}kg CO2"),
-                  avatar: const Icon(Icons.eco, size: 14, color: Colors.green),
-                )
-                : null,
       ),
     );
   }
@@ -1371,6 +1425,132 @@ class _TripCreationForm extends StatelessWidget {
     );
   }
 
+  // --- MODAL: ERROR DE HORA PASADA ---
+  void _showPastTimeErrorModal(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder:
+          (ctx) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 8,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.red.shade50, Colors.white],
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Icono
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade100,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.access_time,
+                      size: 48,
+                      color: Colors.red.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Título
+                  Text(
+                    "Hora No Válida",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red.shade900,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Mensaje
+                  Text(
+                    "La hora de inicio no puede ser anterior a la hora actual.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade600,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Sugerencia
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red.shade200, width: 1),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 20,
+                          color: Colors.red.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            "Por favor, selecciona una hora futura",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.red.shade900,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Botón de acción
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: const Text(
+                        "Entendido",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
+  }
+
   // --- MODAL: HORA DE INICIO REQUERIDA ---
   void _showTimeRequiredModal(BuildContext context) {
     showDialog(
@@ -1494,27 +1674,6 @@ class _TripCreationForm extends StatelessWidget {
               ),
             ),
           ),
-    );
-  }
-
-  // --- MODAL: AGREGAR ACTIVIDAD (Simplificado para Demo) ---
-  void _showAddActivityModal(BuildContext context) {
-    // Simulación de agregar una actividad rápida
-    final nueva = ActividadItinerario(
-      id: DateTime.now().toString(),
-      titulo: "Visita a Pirámides",
-      tipo: TipoActividad.visitaGuiada,
-      horaInicio: DateTime.now(),
-      horaFin: DateTime.now().add(const Duration(hours: 2)),
-      ubicacionCentral: const LatLng(19.6925, -98.8439),
-      huellaCarbono: 2.5,
-      guiaResponsableId: 'gui-01',
-    );
-
-    context.read<TripCreationCubit>().addActivity(nueva);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Actividad agregada al itinerario")),
     );
   }
 
@@ -1847,6 +2006,7 @@ class _TripCreationForm extends StatelessWidget {
                   "Inicio",
                   state.horaInicio,
                   (t) => cubit.setHoraInicio(t),
+                  selectedDate: state.fechaInicio, // ✨ Validar hora pasada
                 ),
               ),
               const SizedBox(width: 12),
@@ -1899,6 +2059,7 @@ class _TripCreationForm extends StatelessWidget {
                       "A las...",
                       state.horaInicio,
                       (t) => cubit.setHoraInicio(t),
+                      selectedDate: state.fechaInicio, // ✨ Validar hora pasada
                     ),
                   ),
                 ],

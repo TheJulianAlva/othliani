@@ -330,8 +330,8 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     // Validación condicional de fechas
     bool fechasValidas = true;
     if (state.isMultiDay) {
-      // Si es multidía, DEBE tener fecha fin
-      fechasValidas = state.fechaFin != null;
+      // Si es multidía, DEBE tener fecha fin Y hora fin
+      fechasValidas = state.fechaFin != null && state.horaFin != null;
     } else {
       // Si es un día, DEBE tener hora fin
       fechasValidas = state.horaFin != null;
@@ -431,6 +431,13 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   void prevStep() {
     if (state.currentStep > 0) {
       emit(state.copyWith(currentStep: state.currentStep - 1));
+    }
+  }
+
+  // Ir a un paso específico
+  void goToStep(int step) {
+    if (step >= 0 && step <= 2) {
+      emit(state.copyWith(currentStep: step));
     }
   }
 

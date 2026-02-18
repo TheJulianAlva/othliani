@@ -10,6 +10,7 @@ import '../../features/agencia/dashboard/presentation/screens/dashboard_screen.d
 import '../../features/agencia/trips/presentation/screens/trips_screen.dart';
 import '../../features/agencia/trips/presentation/screens/trip_detail_screen.dart';
 import '../../features/agencia/trips/presentation/screens/trip_creation_screen.dart';
+import '../../features/agencia/trips/presentation/screens/itinerary_builder_screen.dart';
 import '../../features/agencia/users/presentation/screens/users_screen.dart';
 import '../../features/agencia/audit/presentation/screens/audit_screen.dart';
 import '../../features/agencia/settings/presentation/screens/settings_screen.dart';
@@ -102,7 +103,16 @@ class AppRouterAgencia {
                 builder: (context, state) => const TripCreationScreen(),
               ),
 
-              // 2. DETALLE (/viajes/:id)
+              // 2. CONSTRUCTOR DE ITINERARIO
+              GoRoute(
+                path: 'itinerary-builder',
+                builder: (context, state) {
+                  final int dias = state.extra as int? ?? 3;
+                  return ItineraryBuilderScreen(duracionDias: dias);
+                },
+              ),
+
+              // 3. DETALLE (/viajes/:id)
               GoRoute(
                 path: ':id', // Parámetro dinámico
                 builder: (context, state) {
