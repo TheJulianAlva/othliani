@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/itinerary_builder/itinerary_builder_cubit.dart';
 import '../../domain/entities/actividad_itinerario.dart'; // Para TipoActividad
+import '../widgets/itinerary_builder/activity_edit_dialog.dart'; // ✨ Fase 4
 
 // Configuración visual de las herramientas
 final List<Map<String, dynamic>> _catalogoHerramientas = [
@@ -44,9 +45,9 @@ final List<Map<String, dynamic>> _catalogoHerramientas = [
 ];
 
 class ItineraryBuilderScreen extends StatelessWidget {
-  final int duracionDias; // Viene de la pantalla anterior o del viaje
-  final TimeOfDay? horaInicio; // ✨ Hora de inicio del viaje
-  final TimeOfDay? horaFin; // ✨ Hora de fin del viaje
+  final int duracionDias;
+  final TimeOfDay? horaInicio;
+  final TimeOfDay? horaFin;
 
   const ItineraryBuilderScreen({
     super.key,
@@ -63,23 +64,17 @@ class ItineraryBuilderScreen extends StatelessWidget {
               ItineraryBuilderCubit()
                 ..init(duracionDias, horaInicio: horaInicio, horaFin: horaFin),
       child: Scaffold(
-        backgroundColor: Colors.grey[50], // Fondo neutro
+        backgroundColor: Colors.grey[50],
         appBar: AppBar(
           title: const Text("Constructor de Itinerario"),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black87,
           elevation: 0.5,
-          // Override del botón de atrás para usar Navigator.pop
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              // Usar Navigator.pop para regresar a la pantalla anterior
-              // preservando el estado del formulario
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
           ),
           actions: [
-            // Botón para guardar todo
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton.icon(
@@ -96,7 +91,6 @@ class ItineraryBuilderScreen extends StatelessWidget {
         ),
         body: BlocListener<ItineraryBuilderCubit, ItineraryBuilderState>(
           listener: (context, state) {
-            // Mostrar Modal cuando hay un error
             if (state.errorMessage != null) {
               showDialog(
                 context: context,
@@ -107,7 +101,7 @@ class ItineraryBuilderScreen extends StatelessWidget {
                         color: Colors.orange,
                         size: 48,
                       ),
-                      title: const Text('Tiempo Insuficiente'),
+                      title: const Text('Horario Inválido'),
                       content: Text(
                         state.errorMessage!,
                         textAlign: TextAlign.center,
@@ -157,8 +151,6 @@ class _BodyContent extends StatelessWidget {
                   style: TextStyle(color: Colors.grey[500], fontSize: 12),
                 ),
                 const SizedBox(height: 16),
-
-                // Lista Generada Dinámicamente
                 Expanded(
                   child: ListView.builder(
                     itemCount: _catalogoHerramientas.length,
@@ -178,7 +170,6 @@ class _BodyContent extends StatelessWidget {
           ),
         ),
 
-        // Separador vertical
         const VerticalDivider(width: 1, thickness: 1),
 
         // ---------------------------------------------
@@ -188,20 +179,16 @@ class _BodyContent extends StatelessWidget {
           flex: 5,
           child: Column(
             children: [
-              // Navegación de Días
               const _DaysTabBar(),
-
-              // La Línea de Tiempo
               Expanded(child: const _TimelineDropZone()),
             ],
           ),
         ),
 
-        // Separador vertical
         const VerticalDivider(width: 1, thickness: 1),
 
         // ---------------------------------------------
-        // PANEL DERECHO: VISTA PREVIA Y MAPA (30%)
+        // PANEL DERECHO: HORARIOS + MAPA + STATS (30%)
         // ---------------------------------------------
         Expanded(
           flex: 3,
@@ -216,7 +203,7 @@ class _BodyContent extends StatelessWidget {
                 ),
               ),
               const Divider(height: 1),
-              // Estadísticas / Eco Calc
+              // Panel de estadísticas y horarios
               Expanded(
                 flex: 1,
                 child: Container(
@@ -226,7 +213,13 @@ class _BodyContent extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ✨ NUEVO: Indicador de Tiempo Restante
+                        // ✨ NUEVO: Selector de horario del día
+                        const _DayTimeRangeSelector(),
+                        const SizedBox(height: 16),
+                        const Divider(),
+                        const SizedBox(height: 8),
+
+                        // Indicador de tiempo restante
                         const _TimeRemainingIndicator(),
                         const SizedBox(height: 20),
                         const Divider(),
@@ -264,14 +257,12 @@ class _BodyContent extends StatelessWidget {
     );
   }
 
-  // Widget Draggable para herramientas
   Widget _buildDraggableToolItem({
     required TipoActividad tipo,
     required IconData icon,
     required Color color,
     required String label,
   }) {
-    // El widget base que usaremos para el diseño
     final baseCard = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
@@ -309,26 +300,18 @@ class _BodyContent extends StatelessWidget {
     );
 
     return Draggable<TipoActividad>(
-      data: tipo, // 📦 EL DATO QUE VIAJA (Lo importante)
-      // 1. Lo que se ve bajo el dedo mientras arrastras
+      data: tipo,
       feedback: Material(
         color: Colors.transparent,
         child: Transform.scale(
-          scale: 1.05, // Un poco más grande para efecto 3D
+          scale: 1.05,
           child: SizedBox(
-            width: 200, // Ancho fijo para que no se deforme
-            child: Opacity(
-              opacity: 0.9,
-              child: baseCard, // Reutilizamos el diseño
-            ),
+            width: 200,
+            child: Opacity(opacity: 0.9, child: baseCard),
           ),
         ),
       ),
-
-      // 2. Lo que queda en la lista original (una sombra gris)
       childWhenDragging: Opacity(opacity: 0.3, child: baseCard),
-
-      // 3. El estado normal en reposo
       child: Padding(
         padding: const EdgeInsets.only(bottom: 12.0),
         child: baseCard,
@@ -352,9 +335,325 @@ class _BodyContent extends StatelessWidget {
   }
 }
 
-// Widget auxiliar para las pestañas de días
-class _DaysTabBar extends StatelessWidget {
+// ============================================
+// ✨ NUEVO: SELECTOR DE HORARIO DEL DÍA
+// ============================================
+class _DayTimeRangeSelector extends StatelessWidget {
+  const _DayTimeRangeSelector();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
+      builder: (context, state) {
+        final cubit = context.read<ItineraryBuilderCubit>();
+        final diaActual = state.diaSeleccionadoIndex;
+        final esUnSoloDia = state.totalDias == 1;
+
+        // Formatear horas para mostrar
+        String formatHora(DateTime dt) {
+          final h = dt.hour;
+          final m = dt.minute.toString().padLeft(2, '0');
+          final periodo = h >= 12 ? 'PM' : 'AM';
+          final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+          return "$h12:$m $periodo";
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.schedule, size: 16, color: Colors.blue[700]),
+                const SizedBox(width: 6),
+                Text(
+                  "Horario del Día ${diaActual + 1}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.blue[800],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // --- HORA DE INICIO ---
+            _buildTimeRow(
+              context: context,
+              label: "Inicio",
+              hora: formatHora(state.horaInicioDia),
+              esFijo: state.esHoraInicioFija || esUnSoloDia,
+              tooltipFijo:
+                  esUnSoloDia
+                      ? "Hora de inicio del viaje"
+                      : "Hora de inicio fija del viaje",
+              onTap: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay(
+                    hour: state.horaInicioDia.hour,
+                    minute: state.horaInicioDia.minute,
+                  ),
+                  builder:
+                      (ctx, child) => MediaQuery(
+                        data: MediaQuery.of(
+                          ctx,
+                        ).copyWith(alwaysUse24HourFormat: false),
+                        child: child!,
+                      ),
+                );
+                if (picked != null) {
+                  final pickedDt = DateTime(
+                    2024,
+                    1,
+                    1,
+                    picked.hour,
+                    picked.minute,
+                  );
+                  if (!pickedDt.isBefore(state.horaFinDia)) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "La hora de inicio debe ser anterior a la hora de fin (${formatHora(state.horaFinDia)})",
+                          ),
+                          backgroundColor: Colors.orange,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                    return;
+                  }
+                  // ignore: use_build_context_synchronously
+                  cubit.setHoraInicioDia(diaActual, picked);
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+
+            // --- HORA DE FIN ---
+            _buildTimeRow(
+              context: context,
+              label: "Fin",
+              hora: formatHora(state.horaFinDia),
+              esFijo: state.esHoraFinFija || esUnSoloDia,
+              tooltipFijo:
+                  esUnSoloDia
+                      ? "Hora de fin del viaje"
+                      : "Hora de fin fija del viaje",
+              onTap: () async {
+                // ✨ Si horaFin ≤ horaInicio, sugerir horaInicio + 1h como valor inicial
+                final horaInicioActual = state.horaInicioDia;
+                final horaFinActual = state.horaFinDia;
+                final TimeOfDay initialTimeFin;
+                if (!horaFinActual.isAfter(horaInicioActual)) {
+                  final sugerida = horaInicioActual.add(
+                    const Duration(hours: 1),
+                  );
+                  initialTimeFin = TimeOfDay(
+                    hour: sugerida.hour % 24,
+                    minute: sugerida.minute,
+                  );
+                } else {
+                  initialTimeFin = TimeOfDay(
+                    hour: horaFinActual.hour,
+                    minute: horaFinActual.minute,
+                  );
+                }
+
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: initialTimeFin,
+                  builder:
+                      (ctx, child) => MediaQuery(
+                        data: MediaQuery.of(
+                          ctx,
+                        ).copyWith(alwaysUse24HourFormat: false),
+                        child: child!,
+                      ),
+                );
+                if (picked != null) {
+                  final pickedDt = DateTime(
+                    2024,
+                    1,
+                    1,
+                    picked.hour,
+                    picked.minute,
+                  );
+                  if (!pickedDt.isAfter(state.horaInicioDia)) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "La hora de fin debe ser posterior a la hora de inicio (${formatHora(state.horaInicioDia)})",
+                          ),
+                          backgroundColor: Colors.orange,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                    return;
+                  }
+                  // ignore: use_build_context_synchronously
+                  cubit.setHoraFinDia(diaActual, picked);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTimeRow({
+    required BuildContext context,
+    required String label,
+    required String hora,
+    required bool esFijo,
+    required String tooltipFijo,
+    required VoidCallback onTap,
+  }) {
+    return Row(
+      children: [
+        // Etiqueta
+        SizedBox(
+          width: 36,
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+          ),
+        ),
+        const SizedBox(width: 8),
+
+        // Campo de hora (editable o fijo)
+        Expanded(
+          child:
+              esFijo
+                  ? _buildFixedTimeChip(hora, tooltipFijo)
+                  : _buildEditableTimeChip(context, hora, onTap),
+        ),
+      ],
+    );
+  }
+
+  // Chip para hora FIJA (con candado)
+  Widget _buildFixedTimeChip(String hora, String tooltip) {
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.lock_outline, size: 13, color: Colors.grey[500]),
+            const SizedBox(width: 6),
+            Text(
+              hora,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Chip para hora EDITABLE (con lápiz, tappable)
+  Widget _buildEditableTimeChip(
+    BuildContext context,
+    String hora,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.blue[50],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.blue[200]!),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.edit, size: 13, color: Colors.blue[700]),
+            const SizedBox(width: 6),
+            Text(
+              hora,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue[800],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================
+// PESTAÑAS DE DÍAS (con scroll y flechas)
+// ============================================
+class _DaysTabBar extends StatefulWidget {
   const _DaysTabBar();
+
+  @override
+  State<_DaysTabBar> createState() => _DaysTabBarState();
+}
+
+class _DaysTabBarState extends State<_DaysTabBar> {
+  final ScrollController _scrollCtrl = ScrollController();
+  bool _canScrollLeft = false;
+  bool _canScrollRight = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateArrows());
+    _scrollCtrl.addListener(_updateArrows);
+  }
+
+  void _updateArrows() {
+    if (!_scrollCtrl.hasClients) return;
+    setState(() {
+      _canScrollLeft = _scrollCtrl.offset > 0;
+      _canScrollRight =
+          _scrollCtrl.offset < _scrollCtrl.position.maxScrollExtent;
+    });
+  }
+
+  void _scrollLeft() {
+    _scrollCtrl.animateTo(
+      (_scrollCtrl.offset - 120).clamp(0, double.infinity),
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _scrollRight() {
+    _scrollCtrl.animateTo(
+      _scrollCtrl.offset + 120,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -363,42 +662,109 @@ class _DaysTabBar extends StatelessWidget {
       color: Colors.white,
       child: BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
         builder: (context, state) {
-          return ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: state.totalDias,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            itemBuilder: (context, index) {
-              final isSelected = state.diaSeleccionadoIndex == index;
-              return GestureDetector(
-                onTap:
-                    () =>
-                        context.read<ItineraryBuilderCubit>().cambiarDia(index),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 8,
-                  ),
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.blue[800] : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(20),
-                    border:
-                        isSelected
-                            ? null
-                            : Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "Día ${index + 1}",
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.grey[700],
-                        fontWeight: FontWeight.bold,
+          return Row(
+            children: [
+              // Flecha izquierda
+              AnimatedOpacity(
+                opacity: _canScrollLeft ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 150),
+                child: InkWell(
+                  onTap: _canScrollLeft ? _scrollLeft : null,
+                  child: Container(
+                    width: 32,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white,
+                          Colors.white.withValues(alpha: 0),
+                        ],
                       ),
+                    ),
+                    child: Icon(
+                      Icons.chevron_left,
+                      color: Colors.blue[800],
+                      size: 20,
                     ),
                   ),
                 ),
-              );
-            },
+              ),
+
+              // Lista de días
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollCtrl,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: state.totalDias,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 10,
+                  ),
+                  itemBuilder: (context, index) {
+                    final isSelected = state.diaSeleccionadoIndex == index;
+                    return GestureDetector(
+                      onTap:
+                          () => context
+                              .read<ItineraryBuilderCubit>()
+                              .cambiarDia(index),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected ? Colors.blue[800] : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(20),
+                          border:
+                              isSelected
+                                  ? null
+                                  : Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Día ${index + 1}",
+                            style: TextStyle(
+                              color:
+                                  isSelected ? Colors.white : Colors.grey[700],
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // Flecha derecha
+              AnimatedOpacity(
+                opacity: _canScrollRight ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 150),
+                child: InkWell(
+                  onTap: _canScrollRight ? _scrollRight : null,
+                  child: Container(
+                    width: 32,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withValues(alpha: 0),
+                          Colors.white,
+                        ],
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.chevron_right,
+                      color: Colors.blue[800],
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -418,21 +784,31 @@ class _TimelineDropZone extends StatelessWidget {
       builder: (context, state) {
         final actividades = state.actividadesDelDiaActual;
 
-        // EL TARGET QUE ACEPTA EL DROP
         return DragTarget<TipoActividad>(
-          // 1. Validar si aceptamos (siempre true por ahora)
           onWillAcceptWithDetails: (details) => true,
-
           // 2. Cuando el usuario suelta el ítem
           onAcceptWithDetails: (details) {
-            context.read<ItineraryBuilderCubit>().onActivityDropped(
-              details.data,
-            );
-          },
+            final cubit = context.read<ItineraryBuilderCubit>();
+            cubit.onActivityDropped(details.data);
 
-          // 3. El constructor visual
+            // ✨ BONUS: Auto-abrir el dialog de edición al soltar
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final actividades = cubit.state.actividadesDelDiaActual;
+              if (actividades.isEmpty) return;
+              final ultimaActividad = actividades.last;
+              showDialog(
+                // ignore: use_build_context_synchronously
+                context: context,
+                builder:
+                    (ctx) => ActivityEditDialog(
+                      actividad: ultimaActividad,
+                      onSave: (updated) => cubit.updateActivity(updated),
+                      onDelete: (id) => cubit.deleteActivity(id),
+                    ),
+              );
+            });
+          },
           builder: (context, candidateData, rejectedData) {
-            // Si están arrastrando algo encima, cambiamos el color de fondo
             final isHovering = candidateData.isNotEmpty;
 
             return Container(
@@ -483,7 +859,7 @@ class _TimelineDropZone extends StatelessWidget {
 
   Widget _buildConnectorLine() {
     return Container(
-      margin: const EdgeInsets.only(left: 28), // Alineado con el timeline
+      margin: const EdgeInsets.only(left: 28),
       height: 20,
       width: 2,
       color: Colors.grey[300],
@@ -501,7 +877,6 @@ class _ItineraryItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Formato de hora simple
     final start =
         "${activity.horaInicio.hour}:${activity.horaInicio.minute.toString().padLeft(2, '0')}";
     final end =
@@ -510,7 +885,6 @@ class _ItineraryItemCard extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Columna de Hora
         Column(
           children: [
             Text(
@@ -522,15 +896,13 @@ class _ItineraryItemCard extends StatelessWidget {
           ],
         ),
         const SizedBox(width: 12),
-
-        // Línea vertical con punto (Timeline)
         Column(
           children: [
             Container(
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: Colors.blue[800], // Podrías variar color según tipo
+                color: Colors.blue[800],
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: const [
@@ -541,8 +913,6 @@ class _ItineraryItemCard extends StatelessWidget {
           ],
         ),
         const SizedBox(width: 12),
-
-        // Tarjeta de Contenido
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(12),
@@ -589,7 +959,16 @@ class _ItineraryItemCard extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.edit, size: 18, color: Colors.grey),
                   onPressed: () {
-                    // TODO: Abrir modal de edición (Fase 4)
+                    final cubit = context.read<ItineraryBuilderCubit>();
+                    showDialog(
+                      context: context,
+                      builder:
+                          (ctx) => ActivityEditDialog(
+                            actividad: activity,
+                            onSave: (updated) => cubit.updateActivity(updated),
+                            onDelete: (id) => cubit.deleteActivity(id),
+                          ),
+                    );
                   },
                 ),
               ],
@@ -601,7 +980,6 @@ class _ItineraryItemCard extends StatelessWidget {
   }
 
   IconData _getIconForType(TipoActividad tipo) {
-    // Mapeo rápido para visualización
     switch (tipo) {
       case TipoActividad.hospedaje:
         return Icons.hotel;
@@ -636,29 +1014,24 @@ class _TimeRemainingIndicator extends StatelessWidget {
         final tiempoTotal =
             state.horaFinDia.difference(state.horaInicioDia).inMinutes;
 
-        // Convertir a horas y minutos
         final horasRestantes = tiempoRestante ~/ 60;
         final minutosRestantes = tiempoRestante % 60;
         final horasUsadas = tiempoUsado ~/ 60;
         final minutosUsados = tiempoUsado % 60;
 
-        // Determinar color según tiempo restante
         Color indicatorColor;
         IconData indicatorIcon;
         String statusText;
 
         if (tiempoRestante > 240) {
-          // > 4 horas
           indicatorColor = Colors.green;
           indicatorIcon = Icons.check_circle;
           statusText = "Tiempo disponible";
         } else if (tiempoRestante > 120) {
-          // 2-4 horas
           indicatorColor = Colors.orange;
           indicatorIcon = Icons.warning;
           statusText = "Tiempo limitado";
         } else {
-          // < 2 horas
           indicatorColor = Colors.red;
           indicatorIcon = Icons.error;
           statusText = "Poco tiempo";
@@ -689,8 +1062,6 @@ class _TimeRemainingIndicator extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-
-              // Tiempo usado
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -705,8 +1076,6 @@ class _TimeRemainingIndicator extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 4),
-
-              // Tiempo restante
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -722,8 +1091,6 @@ class _TimeRemainingIndicator extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-
-              // Barra de progreso
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(

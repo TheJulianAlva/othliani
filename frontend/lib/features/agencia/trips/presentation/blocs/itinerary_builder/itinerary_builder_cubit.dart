@@ -11,7 +11,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
   // Inicializar con la duración del viaje creado previamente
   void init(int duracionDias, {TimeOfDay? horaInicio, TimeOfDay? horaFin}) {
-    // Convertir TimeOfDay a DateTime y guardar para cálculos dinámicos
     final DateTime? horaInicioViaje =
         horaInicio != null
             ? DateTime(2024, 1, 1, horaInicio.hour, horaInicio.minute)
@@ -37,16 +36,91 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     }
   }
 
-  // ✨ NUEVO: Método para recibir el Drop
+  // ✨ NUEVO: Establecer hora de inicio personalizada para un día
+  void setHoraInicioDia(int dia, TimeOfDay hora) {
+    final nuevaHora = DateTime(2024, 1, 1, hora.hour, hora.minute);
+
+    // Validar que la hora inicio sea menor que la hora fin del día
+    final horaFinActual = _getHoraFinParaDia(dia);
+    if (nuevaHora.isAfter(horaFinActual) ||
+        nuevaHora.isAtSameMomentAs(horaFinActual)) {
+      final finStr =
+          "${horaFinActual.hour}:${horaFinActual.minute.toString().padLeft(2, '0')}";
+      emit(
+        state.copyWith(
+          errorMessage:
+              "La hora de inicio debe ser anterior a la hora de fin ($finStr).",
+        ),
+      );
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!isClosed) emit(state.copyWith(errorMessage: null));
+      });
+      return;
+    }
+
+    final nuevoMapa = Map<int, DateTime>.from(state.horasInicioPorDia);
+    nuevoMapa[dia] = nuevaHora;
+    emit(state.copyWith(horasInicioPorDia: nuevoMapa, errorMessage: null));
+  }
+
+  // ✨ NUEVO: Establecer hora de fin personalizada para un día
+  void setHoraFinDia(int dia, TimeOfDay hora) {
+    final nuevaHora = DateTime(2024, 1, 1, hora.hour, hora.minute);
+
+    // Validar que la hora fin sea mayor que la hora inicio del día
+    final horaInicioActual = _getHoraInicioParaDia(dia);
+    if (nuevaHora.isBefore(horaInicioActual) ||
+        nuevaHora.isAtSameMomentAs(horaInicioActual)) {
+      final inicioStr =
+          "${horaInicioActual.hour}:${horaInicioActual.minute.toString().padLeft(2, '0')}";
+      emit(
+        state.copyWith(
+          errorMessage:
+              "La hora de fin debe ser posterior a la hora de inicio ($inicioStr).",
+        ),
+      );
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!isClosed) emit(state.copyWith(errorMessage: null));
+      });
+      return;
+    }
+
+    final nuevoMapa = Map<int, DateTime>.from(state.horasFinPorDia);
+    nuevoMapa[dia] = nuevaHora;
+    emit(state.copyWith(horasFinPorDia: nuevoMapa, errorMessage: null));
+  }
+
+  // Helpers privados para obtener la hora efectiva de un día específico
+  // (sin depender del día seleccionado actualmente en el estado)
+  DateTime _getHoraInicioParaDia(int dia) {
+    if (state.horasInicioPorDia.containsKey(dia)) {
+      return state.horasInicioPorDia[dia]!;
+    }
+    if (dia == 0 && state.horaInicioViaje != null) {
+      return state.horaInicioViaje!;
+    }
+    return DateTime(2024, 1, 1, 6, 0);
+  }
+
+  DateTime _getHoraFinParaDia(int dia) {
+    if (state.horasFinPorDia.containsKey(dia)) {
+      return state.horasFinPorDia[dia]!;
+    }
+    if (dia == state.totalDias - 1 && state.horaFinViaje != null) {
+      return state.horaFinViaje!;
+    }
+    return DateTime(2024, 1, 1, 22, 0);
+  }
+
+  // Método para recibir el Drop de una actividad
   void onActivityDropped(TipoActividad tipo) {
     final int dia = state.diaSeleccionadoIndex;
     final List<ActividadItinerario> listaActual = List.from(
       state.actividadesDelDiaActual,
     );
 
-    // 1. Calcular hora sugerida (hora de inicio del viaje o 30 min después de la última)
-    DateTime horaInicio =
-        state.horaInicioDia; // ✨ Usar hora de inicio del viaje
+    // 1. Calcular hora sugerida
+    DateTime horaInicio = state.horaInicioDia;
     if (listaActual.isNotEmpty) {
       horaInicio = listaActual.last.horaFin.add(const Duration(minutes: 30));
     }
@@ -55,7 +129,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     final int duracionMinutos = (tipo == TipoActividad.traslado) ? 60 : 90;
     final DateTime horaFin = horaInicio.add(Duration(minutes: duracionMinutos));
 
-    // ✨ VALIDACIÓN: Verificar que no exceda el límite de tiempo
+    // Validación: Verificar que no exceda el límite de tiempo
     if (_wouldExceedTimeLimit(horaFin)) {
       final horaFinStr =
           "${horaFin.hour}:${horaFin.minute.toString().padLeft(2, '0')}";
@@ -67,11 +141,10 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
               "Esta actividad terminaría a las $horaFinStr, excediendo el horario límite de las $limiteStr.\n\nPor favor, ajusta las actividades existentes o reduce la duración.",
         ),
       );
-      // Limpiar error después de mostrar el modal
       Future.delayed(const Duration(milliseconds: 500), () {
         if (!isClosed) emit(state.copyWith(errorMessage: null));
       });
-      return; // No agregar la actividad
+      return;
     }
 
     // 2. Crear la nueva actividad
@@ -82,7 +155,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       horaInicio: horaInicio,
       horaFin: horaFin,
       tipo: tipo,
-      // Ubicación vacía por ahora
     );
 
     listaActual.add(nuevaActividad);
@@ -96,7 +168,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     emit(state.copyWith(actividadesPorDia: nuevoMapa, errorMessage: null));
   }
 
-  // ✨ Helper: Verificar si excedería el límite de tiempo
+  // Helper: Verificar si excedería el límite de tiempo
   bool _wouldExceedTimeLimit(DateTime proposedEndTime) {
     return proposedEndTime.isAfter(state.horaFinDia);
   }
@@ -118,5 +190,42 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       default:
         return "Nueva Actividad";
     }
+  }
+
+  // ✨ FASE 4: ACTUALIZAR ACTIVIDAD EXISTENTE
+  void updateActivity(ActividadItinerario actividadActualizada) {
+    final int dia = state.diaSeleccionadoIndex;
+    final List<ActividadItinerario> lista = List.from(
+      state.actividadesPorDia[dia] ?? [],
+    );
+
+    final index = lista.indexWhere((a) => a.id == actividadActualizada.id);
+    if (index != -1) {
+      lista[index] = actividadActualizada;
+      // Mantenemos el orden cronológico siempre
+      lista.sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
+
+      final nuevoMapa = Map<int, List<ActividadItinerario>>.from(
+        state.actividadesPorDia,
+      );
+      nuevoMapa[dia] = lista;
+      emit(state.copyWith(actividadesPorDia: nuevoMapa));
+    }
+  }
+
+  // 🗑️ FASE 4: ELIMINAR ACTIVIDAD
+  void deleteActivity(String id) {
+    final int dia = state.diaSeleccionadoIndex;
+    final List<ActividadItinerario> lista = List.from(
+      state.actividadesPorDia[dia] ?? [],
+    );
+
+    lista.removeWhere((a) => a.id == id);
+
+    final nuevoMapa = Map<int, List<ActividadItinerario>>.from(
+      state.actividadesPorDia,
+    );
+    nuevoMapa[dia] = lista;
+    emit(state.copyWith(actividadesPorDia: nuevoMapa));
   }
 }
