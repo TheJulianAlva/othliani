@@ -6,11 +6,27 @@ class ActivityEditDialog extends StatefulWidget {
   final Function(ActividadItinerario) onSave;
   final Function(String) onDelete;
 
+  /// Si es true, cancelar elimina la actividad (recién creada, sin guardar aún)
+  final bool isNew;
+
+  /// Lista de actividades del día para validar solapamiento y nombres únicos
+  final List<ActividadItinerario> actividadesDelDia;
+
+  /// Hora mínima permitida para el inicio (ej. hora de inicio del día)
+  final DateTime? minTime;
+
+  /// Hora máxima permitida para el fin (ej. hora fin del día o límite con horas extra)
+  final DateTime? maxTime;
+
   const ActivityEditDialog({
     super.key,
     required this.actividad,
     required this.onSave,
     required this.onDelete,
+    this.isNew = false,
+    this.actividadesDelDia = const [],
+    this.minTime,
+    this.maxTime,
   });
 
   @override
@@ -24,16 +40,57 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
   late DateTime _horaInicio;
   late DateTime _horaFin;
 
+  // Textos por defecto (placeholder)
+  static const String _tituloDefault = "Nombre de la actividad";
+  static const String _descDefault = "Describe la actividad para el turista...";
+
+  bool _tituloEsPlaceholder = false;
+  bool _descEsPlaceholder = false;
+
+  // Errores de validación
+  String? _errorTitulo;
+  String? _errorHoras;
+
   @override
   void initState() {
     super.initState();
-    _tituloCtrl = TextEditingController(text: widget.actividad.titulo);
-    _descCtrl = TextEditingController(text: widget.actividad.descripcion);
+
+    // Si el título es el default del cubit, tratarlo como placeholder
+    final tituloInicial = widget.actividad.titulo;
+    _tituloEsPlaceholder = _esTituloDefault(tituloInicial);
+    _tituloCtrl = TextEditingController(
+      text: _tituloEsPlaceholder ? _tituloDefault : tituloInicial,
+    );
+
+    // Si la descripción es el default del cubit, tratarla como placeholder
+    final descInicial = widget.actividad.descripcion;
+    _descEsPlaceholder = _esDescDefault(descInicial);
+    _descCtrl = TextEditingController(
+      text: _descEsPlaceholder ? _descDefault : descInicial,
+    );
+
     _recomendacionesCtrl = TextEditingController(
       text: widget.actividad.recomendaciones,
     );
     _horaInicio = widget.actividad.horaInicio;
     _horaFin = widget.actividad.horaFin;
+  }
+
+  bool _esTituloDefault(String titulo) {
+    const defaults = [
+      "Check-in Hotel",
+      "Alimentos",
+      "Traslado",
+      "Visita Cultural",
+      "Actividad Aventura",
+      "Tiempo Libre",
+      "Nueva Actividad",
+    ];
+    return defaults.contains(titulo);
+  }
+
+  bool _esDescDefault(String desc) {
+    return desc == "Toca para editar detalles" || desc.isEmpty;
   }
 
   @override
@@ -42,6 +99,38 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
     _descCtrl.dispose();
     _recomendacionesCtrl.dispose();
     super.dispose();
+  }
+
+  // ¿El formulario está listo para guardar?
+  bool get _puedeGuardar {
+    final tituloValido =
+        !_tituloEsPlaceholder && _tituloCtrl.text.trim().isNotEmpty;
+    final descValida = !_descEsPlaceholder && _descCtrl.text.trim().isNotEmpty;
+    final horasValidas = _horaFin.isAfter(_horaInicio);
+
+    // Validar minTime (solo chequear horas/minutos para evitar problemas de fecha base)
+    bool inicioValido = true;
+    if (widget.minTime != null) {
+      final min = widget.minTime!;
+      if (_horaInicio.isBefore(min)) {
+        inicioValido = false;
+      }
+    }
+
+    // Validar maxTime
+    bool finValido = true;
+    if (widget.maxTime != null) {
+      final max = widget.maxTime!;
+      if (_horaFin.isAfter(max)) {
+        finValido = false;
+      }
+    }
+
+    return tituloValido &&
+        descValida &&
+        horasValidas &&
+        inicioValido &&
+        finValido;
   }
 
   @override
@@ -67,9 +156,9 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
             ),
           ),
           const SizedBox(width: 12),
-          const Text(
-            "Editar Actividad",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            widget.isNew ? "Nueva Actividad" : "Editar Actividad",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -83,14 +172,47 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
               const SizedBox(height: 16),
 
               // --- TÍTULO ---
-              TextField(
-                controller: _tituloCtrl,
-                decoration: InputDecoration(
-                  labelText: "Título de la actividad",
-                  prefixIcon: const Icon(Icons.title),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+              GestureDetector(
+                onTap: () {
+                  if (_tituloEsPlaceholder) {
+                    setState(() {
+                      _tituloEsPlaceholder = false;
+                      _tituloCtrl.clear();
+                    });
+                  }
+                },
+                child: TextField(
+                  controller: _tituloCtrl,
+                  onChanged: (_) => setState(() => _errorTitulo = null),
+                  style: TextStyle(
+                    color: _tituloEsPlaceholder ? Colors.grey[400] : null,
+                    fontStyle:
+                        _tituloEsPlaceholder
+                            ? FontStyle.italic
+                            : FontStyle.normal,
                   ),
+                  decoration: InputDecoration(
+                    labelText: "Título de la actividad",
+                    errorText: _errorTitulo,
+                    prefixIcon: const Icon(Icons.title),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    helperText:
+                        _tituloEsPlaceholder ? "Toca para escribir" : null,
+                    helperStyle: TextStyle(
+                      color: Colors.blue[400],
+                      fontSize: 11,
+                    ),
+                  ),
+                  onTap: () {
+                    if (_tituloEsPlaceholder) {
+                      setState(() {
+                        _tituloEsPlaceholder = false;
+                        _tituloCtrl.clear();
+                      });
+                    }
+                  },
                 ),
               ),
               const SizedBox(height: 16),
@@ -103,7 +225,11 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
                       label: "Inicio",
                       time: _horaInicio,
                       icon: Icons.play_circle_outline,
-                      onChanged: (t) => setState(() => _horaInicio = t),
+                      onChanged:
+                          (t) => setState(() {
+                            _horaInicio = t;
+                            _errorHoras = null;
+                          }),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -112,34 +238,88 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
                       label: "Fin",
                       time: _horaFin,
                       icon: Icons.stop_circle_outlined,
-                      onChanged: (t) => setState(() => _horaFin = t),
+                      onChanged:
+                          (t) => setState(() {
+                            _horaFin = t;
+                            _errorHoras = null;
+                          }),
                     ),
                   ),
                 ],
               ),
 
-              // Duración calculada en tiempo real
+              // Duración calculada + error de horas
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Builder(
                   builder: (_) {
                     final diff = _horaFin.difference(_horaInicio).inMinutes;
                     final valido = diff > 0;
+
+                    // Validar minTime
+                    bool inicioValido = true;
+                    if (widget.minTime != null &&
+                        _horaInicio.isBefore(widget.minTime!)) {
+                      inicioValido = false;
+                    }
+
+                    // Validar maxTime
+                    bool finValido = true;
+                    if (widget.maxTime != null &&
+                        _horaFin.isAfter(widget.maxTime!)) {
+                      finValido = false;
+                    }
+
+                    String mensaje;
+                    if (_errorHoras != null) {
+                      mensaje = _errorHoras!;
+                    } else if (!valido) {
+                      mensaje = "⚠ La hora de fin debe ser posterior al inicio";
+                    } else if (!inicioValido) {
+                      final h = widget.minTime!.hour;
+                      final m = widget.minTime!.minute.toString().padLeft(
+                        2,
+                        '0',
+                      );
+                      final p = h >= 12 ? 'PM' : 'AM';
+                      final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+                      mensaje = "⚠ No puede iniciar antes de las $h12:$m $p";
+                    } else if (!finValido) {
+                      final h = widget.maxTime!.hour;
+                      final m = widget.maxTime!.minute.toString().padLeft(
+                        2,
+                        '0',
+                      );
+                      final p = h >= 12 ? 'PM' : 'AM';
+                      final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+                      // ✨ Mensaje más educativo: Explicar que el límite depende del horario del día
+                      mensaje =
+                          "⚠ Límite del día + extra: $h12:$m $p. Ajusta la Hora Fin del Día para extender.";
+                    } else {
+                      mensaje = "Duración: ${diff ~/ 60}h ${diff % 60}m";
+                    }
+
+                    final esError =
+                        _errorHoras != null ||
+                        !valido ||
+                        !inicioValido ||
+                        !finValido;
+
                     return Row(
                       children: [
                         Icon(
-                          valido ? Icons.timer_outlined : Icons.warning_amber,
+                          esError ? Icons.error_outline : Icons.timer_outlined,
                           size: 14,
-                          color: valido ? Colors.grey[500] : Colors.orange,
+                          color: esError ? Colors.orange : Colors.grey[500],
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          valido
-                              ? "Duración: ${diff ~/ 60}h ${diff % 60}m"
-                              : "⚠ La hora de fin debe ser posterior al inicio",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: valido ? Colors.grey[500] : Colors.orange,
+                        Expanded(
+                          child: Text(
+                            mensaje,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: esError ? Colors.orange : Colors.grey[500],
+                            ),
                           ),
                         ),
                       ],
@@ -150,29 +330,62 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
               const SizedBox(height: 8),
 
               // --- DESCRIPCIÓN ---
-              TextField(
-                controller: _descCtrl,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: "Descripción para el turista",
-                  alignLabelWithHint: true,
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.only(bottom: 48),
-                    child: Icon(Icons.description_outlined),
+              GestureDetector(
+                onTap: () {
+                  if (_descEsPlaceholder) {
+                    setState(() {
+                      _descEsPlaceholder = false;
+                      _descCtrl.clear();
+                    });
+                  }
+                },
+                child: TextField(
+                  controller: _descCtrl,
+                  maxLines: 3,
+                  onChanged: (_) => setState(() {}),
+                  style: TextStyle(
+                    color: _descEsPlaceholder ? Colors.grey[400] : null,
+                    fontStyle:
+                        _descEsPlaceholder
+                            ? FontStyle.italic
+                            : FontStyle.normal,
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  decoration: InputDecoration(
+                    labelText: "Descripción para el turista",
+                    alignLabelWithHint: true,
+                    prefixIcon: const Padding(
+                      padding: EdgeInsets.only(bottom: 48),
+                      child: Icon(Icons.description_outlined),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    helperText:
+                        _descEsPlaceholder ? "Toca para escribir" : null,
+                    helperStyle: TextStyle(
+                      color: Colors.blue[400],
+                      fontSize: 11,
+                    ),
                   ),
+                  onTap: () {
+                    if (_descEsPlaceholder) {
+                      setState(() {
+                        _descEsPlaceholder = false;
+                        _descCtrl.clear();
+                      });
+                    }
+                  },
                 ),
               ),
               const SizedBox(height: 16),
 
-              // --- RECOMENDACIONES ---
+              // --- RECOMENDACIONES (opcional) ---
               TextField(
                 controller: _recomendacionesCtrl,
                 maxLines: 2,
                 decoration: InputDecoration(
-                  labelText: "Recomendaciones (ej: Llevar botas)",
+                  labelText: "Recomendaciones (opcional)",
+                  hintText: "Ej: Llevar botas, protector solar...",
                   alignLabelWithHint: true,
                   prefixIcon: const Padding(
                     padding: EdgeInsets.only(bottom: 24),
@@ -188,7 +401,6 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
               // --- PLACEHOLDER: UBICACIÓN ---
               OutlinedButton.icon(
                 onPressed: () {
-                  // TODO Fase 5: Abrir selector de mapa
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text("Selector de mapa próximamente (Fase 5)"),
@@ -205,65 +417,170 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
                   ),
                 ),
               ),
+
+              // Indicador de validación dinámico
+              Builder(
+                builder: (context) {
+                  final tituloOk =
+                      !_tituloEsPlaceholder &&
+                      _tituloCtrl.text.trim().isNotEmpty;
+                  final descOk =
+                      !_descEsPlaceholder && _descCtrl.text.trim().isNotEmpty;
+                  final textosOk = tituloOk && descOk;
+
+                  if (!textosOk) {
+                    return Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.amber.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Colors.amber.shade700,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Completa el título y la descripción para guardar",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.amber.shade800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  // Si textos ok pero no puede guardar, es error de hora
+                  if (!_puedeGuardar) {
+                    return Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.access_time_filled,
+                                size: 16,
+                                color: Colors.red.shade700,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Horario inválido. Revisa las horas marcadas.",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.red.shade800,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
+              ),
               const SizedBox(height: 8),
             ],
           ),
         ),
       ),
+      actionsAlignment: MainAxisAlignment.spaceBetween,
       actions: [
-        // BOTÓN ELIMINAR
-        TextButton.icon(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder:
-                  (ctx) => AlertDialog(
-                    title: const Text("¿Eliminar actividad?"),
-                    content: Text(
-                      "Se eliminará \"${widget.actividad.titulo}\" del itinerario.",
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: const Text("Cancelar"),
+        // BOTÓN ELIMINAR (solo si no es nueva) — queda a la izquierda
+        if (!widget.isNew)
+          TextButton.icon(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder:
+                    (ctx) => AlertDialog(
+                      title: const Text("¿Eliminar actividad?"),
+                      content: Text(
+                        "Se eliminará \"${widget.actividad.titulo}\" del itinerario.",
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(ctx); // Cierra confirmación
-                          widget.onDelete(widget.actividad.id);
-                          Navigator.pop(context); // Cierra el dialog principal
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text("Cancelar"),
                         ),
-                        child: const Text("Eliminar"),
-                      ),
-                    ],
-                  ),
-            );
-          },
-          icon: const Icon(Icons.delete_outline, color: Colors.red),
-          label: const Text("Eliminar", style: TextStyle(color: Colors.red)),
-        ),
-        const Spacer(),
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancelar"),
-        ),
-        const SizedBox(width: 4),
-        // BOTÓN GUARDAR
-        ElevatedButton.icon(
-          onPressed: _guardarCambios,
-          icon: const Icon(Icons.check),
-          label: const Text("Guardar"),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue[800],
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            widget.onDelete(widget.actividad.id);
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text("Eliminar"),
+                        ),
+                      ],
+                    ),
+              );
+            },
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            label: const Text("Eliminar", style: TextStyle(color: Colors.red)),
           ),
+        // Cancelar y Guardar — quedan a la derecha
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: () {
+                if (widget.isNew) {
+                  widget.onDelete(widget.actividad.id);
+                }
+                Navigator.pop(context);
+              },
+              child: const Text("Cancelar"),
+            ),
+            const SizedBox(width: 4),
+            ElevatedButton.icon(
+              onPressed: _puedeGuardar ? _guardarCambios : null,
+              icon: const Icon(Icons.check),
+              label: const Text("Guardar"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[800],
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey[300],
+                disabledForegroundColor: Colors.grey[500],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -318,27 +635,63 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
   }
 
   void _guardarCambios() {
-    // Validar que horaFin > horaInicio
+    final titulo = _tituloCtrl.text.trim();
+    final desc = _descCtrl.text.trim();
+
+    // Validar título no vacío
+    if (titulo.isEmpty || _tituloEsPlaceholder) {
+      setState(() => _errorTitulo = "El título es obligatorio");
+      return;
+    }
+
+    // Validar nombre único (excluyendo la actividad actual)
+    final nombreDuplicado = widget.actividadesDelDia.any(
+      (a) =>
+          a.id != widget.actividad.id &&
+          a.titulo.trim().toLowerCase() == titulo.toLowerCase(),
+    );
+    if (nombreDuplicado) {
+      setState(() => _errorTitulo = "Ya existe una actividad con este nombre");
+      return;
+    }
+
+    // Validar horas
     if (!_horaFin.isAfter(_horaInicio)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "La hora de fin debe ser posterior a la hora de inicio",
-          ),
-          backgroundColor: Colors.orange,
-        ),
+      setState(
+        () => _errorHoras = "La hora de fin debe ser posterior al inicio",
       );
       return;
+    }
+
+    // Validar solapamiento con otras actividades del día
+    for (final otra in widget.actividadesDelDia) {
+      if (otra.id == widget.actividad.id) continue;
+      final seSolapa =
+          _horaInicio.isBefore(otra.horaFin) &&
+          _horaFin.isAfter(otra.horaInicio);
+      if (seSolapa) {
+        final h1 = otra.horaInicio.hour;
+        final m1 = otra.horaInicio.minute.toString().padLeft(2, '0');
+        final p1 = h1 >= 12 ? 'PM' : 'AM';
+        final h12a = h1 == 0 ? 12 : (h1 > 12 ? h1 - 12 : h1);
+        final h2 = otra.horaFin.hour;
+        final m2 = otra.horaFin.minute.toString().padLeft(2, '0');
+        final p2 = h2 >= 12 ? 'PM' : 'AM';
+        final h12b = h2 == 0 ? 12 : (h2 > 12 ? h2 - 12 : h2);
+        setState(
+          () =>
+              _errorHoras =
+                  "Se solapa con \"${otra.titulo}\" ($h12a:$m1 $p1 – $h12b:$m2 $p2)",
+        );
+        return;
+      }
     }
 
     final actividadActualizada = ActividadItinerario(
       id: widget.actividad.id,
       tipo: widget.actividad.tipo,
-      titulo:
-          _tituloCtrl.text.trim().isEmpty
-              ? widget.actividad.titulo
-              : _tituloCtrl.text.trim(),
-      descripcion: _descCtrl.text.trim(),
+      titulo: titulo,
+      descripcion: desc,
       horaInicio: _horaInicio,
       horaFin: _horaFin,
       recomendaciones: _recomendacionesCtrl.text.trim(),

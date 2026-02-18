@@ -372,9 +372,69 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   void setHoraFin(TimeOfDay t) => emit(state.copyWith(horaFin: t));
   void searchGuia(String query) => emit(state.copyWith(searchQueryGuia: query));
 
-  // Método auxiliar para setear fechas complejas
+  /// Establece la fecha de inicio con validaciones inteligentes:
+  /// - Si la nueva fecha es hoy y la horaInicio ya pasó → resetea horaInicio
+  /// - Si la nueva fecha es posterior a fechaFin → resetea fechaFin y horaFin
+  void setFechaInicio(DateTime nuevaFecha) {
+    final ahora = DateTime.now();
+    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
+    final nuevaFechaSinHora = DateTime(
+      nuevaFecha.year,
+      nuevaFecha.month,
+      nuevaFecha.day,
+    );
+
+    // ¿La hora de inicio ya pasó si el viaje es hoy?
+    TimeOfDay? nuevaHoraInicio = state.horaInicio;
+    if (nuevaFechaSinHora == hoy && state.horaInicio != null) {
+      final horaActualEnMinutos = ahora.hour * 60 + ahora.minute;
+      final horaGuardadaEnMinutos =
+          state.horaInicio!.hour * 60 + state.horaInicio!.minute;
+      if (horaGuardadaEnMinutos <= horaActualEnMinutos) {
+        nuevaHoraInicio = null; // Resetear hora inválida
+      }
+    }
+
+    // ¿La nueva fecha de inicio es posterior a la fecha de fin?
+    DateTime? nuevaFechaFin = state.fechaFin;
+    TimeOfDay? nuevaHoraFin = state.horaFin;
+    if (state.fechaFin != null && nuevaFecha.isAfter(state.fechaFin!)) {
+      nuevaFechaFin = null;
+      nuevaHoraFin = null;
+    }
+
+    emit(
+      TripCreationState(
+        currentStep: state.currentStep,
+        destino: state.destino,
+        isMultiDay: state.isMultiDay,
+        selectedGuiaId: state.selectedGuiaId,
+        coGuiasIds: state.coGuiasIds,
+        location: state.location,
+        nombreUbicacionMapa: state.nombreUbicacionMapa,
+        searchQueryGuia: state.searchQueryGuia,
+        availableGuides: state.availableGuides,
+        fotoPortadaUrl: state.fotoPortadaUrl,
+        fotosCandidatas: state.fotosCandidatas,
+        itinerario: state.itinerario,
+        isSaving: state.isSaving,
+        fechaInicio: nuevaFecha,
+        fechaFin: nuevaFechaFin,
+        horaInicio: nuevaHoraInicio,
+        horaFin: nuevaHoraFin,
+      ),
+    );
+  }
+
+  /// Establece la fecha de fin (sin lógica especial, la UI ya valida que sea > inicio)
+  void setFechaFin(DateTime nuevaFecha) {
+    emit(state.copyWith(fechaFin: nuevaFecha));
+  }
+
+  // Método legacy mantenido por compatibilidad
   void setDates({DateTime? start, DateTime? end}) {
-    emit(state.copyWith(fechaInicio: start, fechaFin: end));
+    if (start != null) setFechaInicio(start);
+    if (end != null) setFechaFin(end);
   }
 
   void addActivity(ActividadItinerario actividad) {

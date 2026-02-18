@@ -962,16 +962,37 @@ class _TripCreationForm extends StatelessWidget {
                 elevation: 4,
               ),
               onPressed: () {
-                // Navegar al Itinerary Builder usando Navigator.push
-                // para preservar el estado del formulario
+                // Construir fechas completas combinando fecha y hora
+                DateTime? fechaI = state.fechaInicio;
+                if (fechaI != null && state.horaInicio != null) {
+                  fechaI = DateTime(
+                    fechaI.year,
+                    fechaI.month,
+                    fechaI.day,
+                    state.horaInicio!.hour,
+                    state.horaInicio!.minute,
+                  );
+                }
+
+                DateTime? fechaF =
+                    (state.isMultiDay ? state.fechaFin : state.fechaInicio);
+                if (fechaF != null && state.horaFin != null) {
+                  fechaF = DateTime(
+                    fechaF.year,
+                    fechaF.month,
+                    fechaF.day,
+                    state.horaFin!.hour,
+                    state.horaFin!.minute,
+                  );
+                }
+
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder:
                         (_) => ItineraryBuilderScreen(
                           duracionDias: duracionDias,
-                          horaInicio:
-                              state.horaInicio, // ✨ Pasar hora de inicio
-                          horaFin: state.horaFin, // ✨ Pasar hora de fin
+                          fechaInicio: fechaI,
+                          fechaFin: fechaF,
                         ),
                   ),
                 );
@@ -1273,6 +1294,135 @@ class _TripCreationForm extends StatelessWidget {
                       onPressed: () => Navigator.pop(ctx),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: const Text(
+                        "Entendido",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
+  }
+
+  // --- MODAL: HORA DE INICIO RESETEADA ---
+  void _showTimeResetModal(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder:
+          (ctx) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 8,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.orange.shade50, Colors.white],
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Icono
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade100,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.schedule,
+                      size: 48,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Título
+                  Text(
+                    "Hora Reseteada",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Mensaje
+                  Text(
+                    "La hora de inicio se ha reseteado porque ya pasó para el día de hoy.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade600,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Sugerencia
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.amber.shade200,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 20,
+                          color: Colors.amber.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            "Por favor, selecciona una nueva hora de inicio",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.amber.shade900,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Botón
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange.shade600,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -1995,7 +2145,30 @@ class _TripCreationForm extends StatelessWidget {
                   context,
                   "Fecha",
                   state.fechaInicio,
-                  (d) => cubit.setDates(start: d, end: d),
+                  (d) {
+                    final hadHoraInicio = state.horaInicio != null;
+                    cubit.setFechaInicio(d);
+                    // Mostrar modal si la hora fue reseteada
+                    // (solo puede pasar si la nueva fecha es hoy)
+                    final ahora = DateTime.now();
+                    final esHoy =
+                        d.year == ahora.year &&
+                        d.month == ahora.month &&
+                        d.day == ahora.day;
+                    if (hadHoraInicio && esHoy && state.horaInicio != null) {
+                      final horaEnMinutos =
+                          state.horaInicio!.hour * 60 +
+                          state.horaInicio!.minute;
+                      final ahoraEnMinutos = ahora.hour * 60 + ahora.minute;
+                      if (horaEnMinutos <= ahoraEnMinutos) {
+                        Future.delayed(
+                          const Duration(milliseconds: 100),
+                          // ignore: use_build_context_synchronously
+                          () => _showTimeResetModal(context),
+                        );
+                      }
+                    }
+                  },
                   firstDate: DateTime.now(), // Regla 1: No viajes al pasado
                 ),
               ),
@@ -2037,16 +2210,44 @@ class _TripCreationForm extends StatelessWidget {
                       "Inicia el...",
                       state.fechaInicio,
                       (d) {
-                        // Si cambia inicio y había una fecha fin, mostrar modal
                         final hadEndDate = state.fechaFin != null;
-                        cubit.setDates(start: d, end: null);
+                        final endDateWasAfterNew =
+                            state.fechaFin != null &&
+                            d.isAfter(state.fechaFin!);
+                        final hadHoraInicio = state.horaInicio != null;
 
-                        if (hadEndDate) {
-                          // Mostrar modal informando el reset
+                        cubit.setFechaInicio(d);
+
+                        // Modal de fecha fin reseteada
+                        if (hadEndDate && endDateWasAfterNew) {
                           Future.delayed(const Duration(milliseconds: 100), () {
                             // ignore: use_build_context_synchronously
                             _showDateResetModal(context);
                           });
+                        }
+
+                        // Modal de hora de inicio reseteada
+                        final ahora = DateTime.now();
+                        final esHoy =
+                            d.year == ahora.year &&
+                            d.month == ahora.month &&
+                            d.day == ahora.day;
+                        if (hadHoraInicio &&
+                            esHoy &&
+                            state.horaInicio != null) {
+                          final horaEnMinutos =
+                              state.horaInicio!.hour * 60 +
+                              state.horaInicio!.minute;
+                          final ahoraEnMinutos = ahora.hour * 60 + ahora.minute;
+                          if (horaEnMinutos <= ahoraEnMinutos) {
+                            Future.delayed(
+                              const Duration(milliseconds: 200),
+                              () {
+                                // ignore: use_build_context_synchronously
+                                _showTimeResetModal(context);
+                              },
+                            );
+                          }
                         }
                       },
                       firstDate: DateTime.now(), // Regla 1: No viajes al pasado

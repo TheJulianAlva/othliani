@@ -51,10 +51,13 @@ class AccessibilityScreen extends StatelessWidget {
                                   label = l10n.extraLarge;
                                   break;
                               }
+                              // ignore: deprecated_member_use
                               return RadioListTile<FontSizeOption>(
                                 title: Text(label),
                                 value: option,
+                                // ignore: deprecated_member_use
                                 groupValue: state.fontSize,
+                                // ignore: deprecated_member_use
                                 onChanged: (value) {
                                   if (value != null) {
                                     context
