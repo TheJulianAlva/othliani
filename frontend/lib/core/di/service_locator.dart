@@ -4,6 +4,7 @@ import '../../features/agencia/trips/data/datasources/trip_local_data_source.dar
 import '../../features/agencia/shared/data/datasources/mock_agencia_datasource.dart'; // 📌 Necesario para MockAgenciaDataSource
 import 'package:frontend/core/network/dio_client.dart';
 import 'package:frontend/core/services/pexels_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 final sl = GetIt.instance;
 
@@ -18,4 +19,5 @@ Future<void> initSharedDependencies() async {
   ); // 💾 Persistencia Local
   sl.registerLazySingleton<DioClient>(() => DioClient());
   sl.registerLazySingleton(() => PexelsService());
+  sl.registerLazySingleton(() => Connectivity());
 }

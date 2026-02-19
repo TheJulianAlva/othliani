@@ -1,5 +1,5 @@
 import 'package:frontend/core/di/service_locator.dart';
-import 'package:frontend/features/agencia/shared/data/datasources/mock_agencia_datasource.dart';
+
 import 'package:frontend/features/agencia/shared/data/datasources/agencia_datasource.dart';
 import 'package:frontend/features/agencia/auth/data/repositories/auth_repository_impl.dart';
 import 'package:frontend/features/agencia/auth/domain/repositories/auth_repository.dart';
@@ -25,7 +25,7 @@ Future<void> initAgenciaDependencies() async {
   // ====================================================
   // 1. DATA SOURCES (Fuentes de datos compartidas)
   // ====================================================
-  sl.registerLazySingleton(() => MockAgenciaDataSource());
+
   sl.registerLazySingleton<AgenciaDataSource>(
     () => AgenciaMockDataSourceImpl(sl()),
   );
