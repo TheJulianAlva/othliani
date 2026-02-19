@@ -9,18 +9,22 @@ import 'package:frontend/features/agencia/trips/domain/repositories/trip_reposit
 
 import 'package:frontend/features/agencia/trips/data/datasources/trip_local_data_source.dart'; // 💾 Persistencia
 import 'package:frontend/features/agencia/trips/data/models/trip_draft_model.dart'; // 💾 Modelo
+import 'package:frontend/core/services/unsaved_changes_service.dart';
 part 'itinerary_builder_state.dart';
 
 class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
   final TripRepository _repository;
   final TripLocalDataSource _localDataSource; // 💾 Inyección
+  final UnsavedChangesService _unsavedChangesService;
   Timer? _debounce;
 
   ItineraryBuilderCubit({
     required TripRepository repository,
     required TripLocalDataSource localDataSource,
+    required UnsavedChangesService unsavedChangesService,
   }) : _repository = repository,
        _localDataSource = localDataSource,
+       _unsavedChangesService = unsavedChangesService,
        super(const ItineraryBuilderState());
 
   // --- AUTOGUARDADO (Fase 13) ---
@@ -44,6 +48,9 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
         _localDataSource.saveDraft(updatedDraft);
       }
     });
+    _unsavedChangesService.setDirty(
+      true,
+    ); // 📝 Trabajo en progreso en Itinerario
   }
 
   // Inicializar con la duración del viaje y fechas reales
@@ -575,6 +582,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
       if (!isClosed) {
         emit(state.copyWith(isSaving: false, isSaved: true));
+        _unsavedChangesService.setDirty(false); // 📝 Guardado final = Limpio
       }
     } catch (e) {
       if (!isClosed) {

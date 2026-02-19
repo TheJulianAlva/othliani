@@ -13,6 +13,7 @@ import 'package:frontend/features/agencia/trips/domain/repositories/trip_reposit
 import 'package:frontend/features/agencia/trips/presentation/blocs/viajes/viajes_bloc.dart';
 import 'package:frontend/features/agencia/trips/presentation/blocs/detalle_viaje/detalle_viaje_bloc.dart';
 import 'package:frontend/features/agencia/trips/presentation/blocs/trip_creation/trip_creation_cubit.dart';
+import 'package:frontend/features/agencia/trips/presentation/blocs/itinerary_builder/itinerary_builder_cubit.dart';
 import 'package:frontend/features/agencia/users/data/repositories/user_repository_impl.dart';
 import 'package:frontend/features/agencia/users/domain/repositories/user_repository.dart';
 import 'package:frontend/features/agencia/users/presentation/blocs/usuarios/usuarios_bloc.dart';
@@ -72,7 +73,18 @@ Future<void> initAgenciaDependencies() async {
   sl.registerFactory(() => ViajesBloc(repository: sl()));
   sl.registerFactory(() => DetalleViajeBloc(repository: sl()));
   sl.registerFactory(
-    () => TripCreationCubit(repository: sl(), localDataSource: sl()),
+    () => TripCreationCubit(
+      repository: sl(),
+      localDataSource: sl(),
+      unsavedChangesService: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => ItineraryBuilderCubit(
+      repository: sl(),
+      localDataSource: sl(),
+      unsavedChangesService: sl(),
+    ),
   );
 
   // Users

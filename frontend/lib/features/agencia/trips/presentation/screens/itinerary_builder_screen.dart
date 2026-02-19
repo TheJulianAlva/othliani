@@ -9,6 +9,7 @@ import 'itinerary_builder_route_map.dart'; // ✨ Widget del mapa de ruta
 import '../../domain/entities/viaje.dart'; // ✨ Import necesario
 import 'package:frontend/features/agencia/trips/data/datasources/trip_local_data_source.dart'; // 💾 Import necesario
 import '../../../shared/presentation/widgets/draft_guard_widget.dart'; // 🛡️ Draft Guard
+import 'package:frontend/core/services/unsaved_changes_service.dart';
 
 // Configuración visual de las herramientas
 final List<Map<String, dynamic>> _catalogoHerramientas = [
@@ -62,6 +63,7 @@ class ItineraryBuilderScreen extends StatelessWidget {
           (_) => ItineraryBuilderCubit(
             repository: di.sl<TripRepository>(), // ✨ FASE 5: Inyectar repo
             localDataSource: di.sl<TripLocalDataSource>(), // 💾 Persistencia
+            unsavedChangesService: di.sl<UnsavedChangesService>(),
           )..init(
             // Calculamos duración aquí o en el Cubit.
             // Si es 1 día, duration es 1. Si son fechas diferentes, diff + 1.

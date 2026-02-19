@@ -6,6 +6,7 @@ class TripDraftModel {
   final String? fechaInicio; // ISO String
   final String? fechaFin;
   final String? guiaId;
+  final String? fotoPortadaUrl; // 📸 Persistencia de foto elegida
   final double? lat;
   final double? lng;
 
@@ -17,6 +18,7 @@ class TripDraftModel {
     this.fechaInicio,
     this.fechaFin,
     this.guiaId,
+    this.fotoPortadaUrl,
     this.lat,
     this.lng,
     this.actividades = const [],
@@ -27,6 +29,7 @@ class TripDraftModel {
     'fechaInicio': fechaInicio,
     'fechaFin': fechaFin,
     'guiaId': guiaId,
+    'fotoPortadaUrl': fotoPortadaUrl,
     'lat': lat,
     'lng': lng,
     'actividades': actividades.map((x) => x.toJson()).toList(),
@@ -37,6 +40,7 @@ class TripDraftModel {
     fechaInicio: json['fechaInicio'],
     fechaFin: json['fechaFin'],
     guiaId: json['guiaId'],
+    fotoPortadaUrl: json['fotoPortadaUrl'],
     lat: json['lat'],
     lng: json['lng'],
     actividades:

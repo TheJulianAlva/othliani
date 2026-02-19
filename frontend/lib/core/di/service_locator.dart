@@ -5,6 +5,7 @@ import '../../features/agencia/shared/data/datasources/mock_agencia_datasource.d
 import 'package:frontend/core/network/dio_client.dart';
 import 'package:frontend/core/services/pexels_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:frontend/core/services/unsaved_changes_service.dart';
 
 final sl = GetIt.instance;
 
@@ -20,4 +21,5 @@ Future<void> initSharedDependencies() async {
   sl.registerLazySingleton<DioClient>(() => DioClient());
   sl.registerLazySingleton(() => PexelsService());
   sl.registerLazySingleton(() => Connectivity());
+  sl.registerLazySingleton(() => UnsavedChangesService());
 }

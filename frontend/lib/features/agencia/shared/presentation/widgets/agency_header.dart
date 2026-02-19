@@ -6,6 +6,8 @@ import 'package:frontend/features/agencia/shared/data/datasources/mock_agencia_d
 import 'package:frontend/features/agencia/shared/domain/entities/alerta.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/agencia/shared/presentation/blocs/sync/sync_bloc.dart';
+import 'package:frontend/core/di/service_locator.dart' as di;
+import 'package:frontend/core/services/unsaved_changes_service.dart';
 
 class AgencyHeader extends StatefulWidget {
   final VoidCallback onMenuPressed;
@@ -267,7 +269,41 @@ class _AgencyHeaderState extends State<AgencyHeader> {
     _navigateToResult(result);
   }
 
-  void _navigateToResult(SearchResult result) {
+  Future<bool> _checkUnsavedChanges() async {
+    final unsavedService = di.sl<UnsavedChangesService>();
+    if (!unsavedService.isDirty) return true;
+
+    final shouldProceed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text("⚠️ Cambios sin guardar"),
+            content: const Text(
+              "Si navegas ahora, perderás los cambios no guardados.\n\n¿Deseas continuar?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text("Cancelar"),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () {
+                  unsavedService.setDirty(false);
+                  Navigator.of(context).pop(true);
+                },
+                child: const Text("Salir de todas formas"),
+              ),
+            ],
+          ),
+    );
+    return shouldProceed ?? false;
+  }
+
+  void _navigateToResult(SearchResult result) async {
+    if (!await _checkUnsavedChanges()) return;
+    if (!mounted) return;
+
     switch (result.type) {
       case SearchResultType.guide:
         context.go('/usuarios?tab=guias&search=${result.name}');
@@ -276,6 +312,12 @@ class _AgencyHeaderState extends State<AgencyHeader> {
         context.go('/usuarios?tab=clientes&search=${result.name}');
         break;
       case SearchResultType.trip:
+        // push preserves the stack, so it might be safe?
+        // But if trip creation is a "modal" on top of trips, pushing another trip might be weird.
+        // Actually, TripCreation is /viajes/nuevo. TripDetail is /viajes/:id.
+        // context.push works if we want to come back.
+        // But standard requirement says "unsaved changes warning on navigation".
+        // Let's warn to be safe.
         context.push('/viajes/${result.id}');
         break;
     }
@@ -737,8 +779,12 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                     return PopupMenuItem(
                       onTap: () {
                         // Usar Future.microtask para navegar después de que el popup se cierre
-                        Future.microtask(() {
+                        Future.microtask(() async {
                           if (mounted) {
+                            // Validar cambios sin guardar antes de navegar
+                            if (!await _checkUnsavedChanges()) return;
+                            if (!mounted) return;
+
                             // Navegación inteligente con resaltado contextual
                             // Si la alerta tiene turistaId, resaltar ese turista
                             final focusParam =
@@ -747,7 +793,9 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                                     : '?return_to=dashboard';
 
                             // ignore: use_build_context_synchronously
-                            context.go('/viajes/${alerta.viajeId}$focusParam');
+                            context.push(
+                              '/viajes/${alerta.viajeId}$focusParam',
+                            );
                           }
                         });
                       },

@@ -10,6 +10,7 @@ import 'package:frontend/features/agencia/trips/domain/repositories/trip_reposit
 import 'package:frontend/features/agencia/trips/data/datasources/trip_local_data_source.dart'; // 💾 Persistencia
 import 'package:frontend/features/agencia/trips/data/models/trip_draft_model.dart'; // 💾 Modelo Borrador
 import 'package:uuid/uuid.dart';
+import 'package:frontend/core/services/unsaved_changes_service.dart';
 
 // --- ESTADO ---
 class TripCreationState extends Equatable {
@@ -161,12 +162,15 @@ class TripCreationState extends Equatable {
 class TripCreationCubit extends Cubit<TripCreationState> {
   final TripRepository _repository;
   final TripLocalDataSource _localDataSource; // 💾 Inyección
+  final UnsavedChangesService _unsavedChangesService;
 
   TripCreationCubit({
     required TripRepository repository,
     required TripLocalDataSource localDataSource,
+    required UnsavedChangesService unsavedChangesService,
   }) : _repository = repository,
        _localDataSource = localDataSource,
+       _unsavedChangesService = unsavedChangesService,
        super(const TripCreationState()) {
     _loadGuides(); // Cargar guías al inicializar
   }
@@ -176,6 +180,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     final draft = TripDraftModel(
       destino: state.destino,
       guiaId: state.selectedGuiaId,
+      fotoPortadaUrl: state.fotoPortadaUrl,
       fechaInicio: state.fechaInicio?.toIso8601String(),
       fechaFin: state.fechaFin?.toIso8601String(),
       lat: state.location?.latitude,
@@ -183,6 +188,9 @@ class TripCreationCubit extends Cubit<TripCreationState> {
       actividades: [], // Paso 1 no tiene actividades aún
     );
     _localDataSource.saveDraft(draft);
+    _unsavedChangesService.setDirty(
+      true,
+    ); // 📝 Marcar como sucio al guardar borrador
     // print("💾 Auto-guardado Paso 1: ${state.destino}");
   }
 
@@ -212,20 +220,37 @@ class TripCreationCubit extends Cubit<TripCreationState> {
             (draft.lat != null && draft.lng != null)
                 ? LatLng(draft.lat!, draft.lng!)
                 : null,
+        fotoPortadaUrl: draft.fotoPortadaUrl, // 📸 Restaurar foto elegida
         draftFound: false, // Ya restaurado, apagamos la bandera
         currentStep: 0, // Volvemos al inicio para que vea los datos
       ),
     );
 
-    // Buscar fotos de nuevo si hay destino
-    if (draft.destino != null) {
-      // _buscarFotos(draft.destino!); // Assuming this method exists or will be added
+    // Buscar fotos de nuevo si hay destino para repoblar la galería
+    if (draft.destino != null && draft.destino!.length > 3) {
+      debugPrint("🔄 Restaurando fotos para: ${draft.destino}");
+      _repository
+          .buscarFotosDestino(draft.destino!)
+          .then((fotos) {
+            if (fotos.isNotEmpty) {
+              emit(state.copyWith(fotosCandidatas: fotos));
+              // Si no había foto guardada, usar la primera nueva
+              if (state.fotoPortadaUrl == null) {
+                emit(state.copyWith(fotoPortadaUrl: fotos.first));
+              }
+            }
+          })
+          .catchError((e) {
+            debugPrint("❌ Error restaurando fotos: $e");
+          });
     }
+    _unsavedChangesService.setDirty(true); // 📝 Restaurado = Trabajo pendiente
   }
 
   void discardDraft() {
     _localDataSource.clearDraft();
     emit(state.copyWith(draftFound: false, draftData: null));
+    _unsavedChangesService.setDirty(false); // 📝 Descartado = Limpio
   }
 
   // Cargar guías reales del mock database
@@ -704,10 +729,12 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     await Future.delayed(const Duration(seconds: 2));
 
     emit(state.copyWith(isSaving: false));
+    _unsavedChangesService.setDirty(false); // 📝 Guardado exitoso = Limpio
   }
 
   void seleccionarFoto(String url) {
     emit(state.copyWith(fotoPortadaUrl: url));
+    _autoSave(); // 💾 Guardar selección
   }
 
   String _formatTimeOfDay(TimeOfDay? time) {
