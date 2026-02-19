@@ -10,7 +10,7 @@ import 'package:frontend/features/agencia/trips/presentation/blocs/trip_creation
 import 'package:frontend/core/navigation/routes_agencia.dart'; // Importar rutas
 import 'package:frontend/core/di/service_locator.dart' as di; // Importar DI
 import '../widgets/destino_field_widget.dart'; // <--- Validar ubicación
-import 'itinerary_builder_screen.dart'; // <--- Pantalla del constructor
+import '../../../shared/presentation/widgets/draft_guard_widget.dart'; // 🛡️ Draft Guard
 
 class TripCreationScreen extends StatelessWidget {
   const TripCreationScreen({super.key});
@@ -18,31 +18,77 @@ class TripCreationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => di.sl<TripCreationCubit>(), // Usar DI
-      child: BlocBuilder<TripCreationCubit, TripCreationState>(
-        builder: (context, state) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text("Nuevo Viaje Inteligente"),
-              // Override del botón de atrás para manejar navegación entre pasos
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  final cubit = context.read<TripCreationCubit>();
-                  if (state.currentStep > 0) {
-                    // Si estamos en paso 2 o 3, regresar al paso anterior
-                    cubit.prevStep();
-                  } else {
-                    // Si estamos en paso 1, salir a la lista de viajes
-                    context.go(RoutesAgencia.viajes);
-                  }
-                },
-              ),
-            ),
-            body: const _TripCreationForm(),
-          );
+      create:
+          (_) =>
+              di.sl<TripCreationCubit>()..checkForDraft(), // 💾 Check for draft
+      child: BlocListener<TripCreationCubit, TripCreationState>(
+        listenWhen:
+            (previous, current) => !previous.draftFound && current.draftFound,
+        listener: (context, state) {
+          _showDraftRecoveryDialog(context, state);
         },
+        child: BlocBuilder<TripCreationCubit, TripCreationState>(
+          builder: (context, state) {
+            final bool hayDatos = state.destino.isNotEmpty;
+
+            return DraftGuardWidget(
+              shouldWarn: hayDatos,
+              child: Scaffold(
+                appBar: AppBar(
+                  title: const Text("Nuevo Viaje Inteligente"),
+                  // Override del botón de atrás para manejar navegación entre pasos
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () {
+                      final cubit = context.read<TripCreationCubit>();
+                      if (state.currentStep > 0) {
+                        // Si estamos en paso 2 o 3, regresar al paso anterior
+                        cubit.prevStep();
+                      } else {
+                        // Si estamos en paso 1, intentar salir (el DraftGuard interceptará si es necesario)
+                        // Usamos maybePop para disparar el PopScope del DraftGuard
+                        Navigator.maybePop(context);
+                      }
+                    },
+                  ),
+                ),
+                body: const _TripCreationForm(),
+              ),
+            );
+          },
+        ),
       ),
+    );
+  }
+
+  void _showDraftRecoveryDialog(BuildContext context, TripCreationState state) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text("Borrador Encontrado"),
+            content: Text(
+              "Tienes un viaje pendiente a \"${state.draftData?.destino ?? 'un destino'}\".\n¿Quieres continuar donde lo dejaste?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  context.read<TripCreationCubit>().discardDraft();
+                  Navigator.of(ctx).pop();
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.grey),
+                child: const Text("Descartar"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  context.read<TripCreationCubit>().restoreDraft();
+                  Navigator.of(ctx).pop();
+                },
+                child: const Text("Restaurar"),
+              ),
+            ],
+          ),
     );
   }
 }
@@ -70,72 +116,79 @@ class _TripCreationForm extends StatelessWidget {
 
     return BlocBuilder<TripCreationCubit, TripCreationState>(
       builder: (context, state) {
+        // ✨ FASE 12: Simplificación - Pantalla única de datos antes del Itinerario
         return Stepper(
-          type: StepperType.horizontal,
+          // type: StepperType.horizontal, // Opcional: horizontal si hay espacio
           currentStep: state.currentStep,
-          controlsBuilder: (context, details) {
-            // PASO 1: Ocultar controles automáticos (ya están integrados en el Split View)
+          onStepContinue: () {
             if (state.currentStep == 0) {
-              return const SizedBox.shrink();
+              if (cubit.isStep1Valid) {
+                cubit.nextStep();
+              }
+            } else {
+              // En paso 1 (Itinerario), la acción principal es el botón grande
+              // Pero si le dan continue, podríamos ir al builder también
+              final ruta =
+                  '${RoutesAgencia.viajes}/${RoutesAgencia.itineraryBuilder}';
+              context.push(ruta, extra: cubit.viajeTemporal);
             }
-            // PASO 2 y 3: Controles estándar
+          },
+          onStepCancel: () {
+            if (state.currentStep > 0) {
+              cubit.prevStep();
+            } else {
+              context.go(RoutesAgencia.viajes);
+            }
+          },
+          controlsBuilder: (context, details) {
+            // Personalizamos los controles para ocultarlos en el paso 2
+            if (state.currentStep == 1) return const SizedBox.shrink();
+
             return Padding(
               padding: const EdgeInsets.only(top: 16.0),
               child: Row(
                 children: [
-                  ElevatedButton(
-                    onPressed: details.onStepContinue,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[800],
-                      foregroundColor: Colors.white,
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: details.onStepContinue,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[800],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text("Continuar al Itinerario"),
                     ),
-                    child: const Text("Continuar"),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   TextButton(
                     onPressed: details.onStepCancel,
-                    child: const Text("Atrás"),
+                    child: const Text("Cancelar"),
                   ),
                 ],
               ),
             );
           },
-          onStepContinue: () {
-            if (state.currentStep == 2) {
-              cubit.saveTrip().then(
-                // ignore: use_build_context_synchronously
-                (_) => context.go(RoutesAgencia.viajes),
-              ); // Guardar y salir
-            } else {
-              cubit.nextStep();
-            }
-          },
-          onStepCancel: cubit.prevStep,
           steps: [
-            // PASO 1: DATOS GENERALES
             Step(
-              title: const Text("Datos"),
+              title: const Text("Datos Generales"),
               content: _buildGeneralInfoStep(
                 context,
                 state,
-                onContinue: cubit.nextStep,
-                onCancel: cubit.prevStep,
-              ),
+              ), // Sin botones internos
               isActive: state.currentStep >= 0,
+              state:
+                  state.currentStep > 0
+                      ? StepState.complete
+                      : StepState.editing,
             ),
-
-            // PASO 2: ITINERARIO (El corazón del sistema)
             Step(
-              title: const Text("Itinerario"),
+              title: const Text("Planificación"),
               content: _buildItineraryStep(context, state),
               isActive: state.currentStep >= 1,
-            ),
-
-            // PASO 3: RESUMEN Y SEGURIDAD
-            Step(
-              title: const Text("Revisión"),
-              content: _buildReviewStep(state),
-              isActive: state.currentStep >= 2,
+              state: StepState.indexed,
             ),
           ],
         );
@@ -144,12 +197,7 @@ class _TripCreationForm extends StatelessWidget {
   }
 
   // --- PASO 1: DATOS GENERALES (VERSIÓN PRO SPLIT VIEW) ---
-  Widget _buildGeneralInfoStep(
-    BuildContext context,
-    TripCreationState state, {
-    VoidCallback? onContinue,
-    VoidCallback? onCancel,
-  }) {
+  Widget _buildGeneralInfoStep(BuildContext context, TripCreationState state) {
     final cubit = context.read<TripCreationCubit>();
 
     return Container(
@@ -241,46 +289,6 @@ class _TripCreationForm extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),
-                // --- BOTONES DE ACCIÓN (Integrados aquí para estar cerca del form) ---
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: onCancel,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text("Cancelar"),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: cubit.isStep1Valid ? onContinue : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[800],
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: const Text(
-                          "Continuar",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -910,44 +918,50 @@ class _TripCreationForm extends StatelessWidget {
   }
 
   // --- PASO 2: CONSTRUCTOR DE ITINERARIO ---
+  // --- PASO 2: CONSTRUCTOR DE ITINERARIO (Pantalla Intermedia) ---
   Widget _buildItineraryStep(BuildContext context, TripCreationState state) {
-    // Calcular duración del viaje en días
+    // Calcular duración del viaje en días para mostrar info
     final int duracionDias;
     if (state.isMultiDay &&
         state.fechaInicio != null &&
         state.fechaFin != null) {
       duracionDias = state.fechaFin!.difference(state.fechaInicio!).inDays + 1;
     } else {
-      duracionDias = 1; // Viaje de un solo día
+      duracionDias = 1;
     }
 
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.map_outlined, size: 80, color: Colors.blue[800]),
-            const SizedBox(height: 24),
-            Text(
-              "Constructor de Itinerario Visual",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
+    return Container(
+      padding: const EdgeInsets.all(32),
+      constraints: const BoxConstraints(maxWidth: 600), // Limitar ancho
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // Ajustar al contenido
+        children: [
+          Icon(Icons.map_outlined, size: 80, color: Colors.blue[800]),
+          const SizedBox(height: 24),
+          Text(
+            "Constructor de Itinerario Visual",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
             ),
-            const SizedBox(height: 12),
-            Text(
-              "Crea tu itinerario de $duracionDias ${duracionDias == 1 ? 'día' : 'días'} con nuestra herramienta visual",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.edit_road, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Configura las actividades, paradas y horarios para tu viaje de $duracionDias ${duracionDias == 1 ? 'día' : 'días'}.",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 32),
+
+          // Botón Principal de Acción
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.edit_road, size: 28),
               label: const Text(
-                "Abrir Constructor",
+                "Abrir Constructor de Itinerario",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
@@ -955,109 +969,36 @@ class _TripCreationForm extends StatelessWidget {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
-                  vertical: 20,
+                  vertical: 24,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 4,
               ),
               onPressed: () {
-                // Construir fechas completas combinando fecha y hora
-                DateTime? fechaI = state.fechaInicio;
-                if (fechaI != null && state.horaInicio != null) {
-                  fechaI = DateTime(
-                    fechaI.year,
-                    fechaI.month,
-                    fechaI.day,
-                    state.horaInicio!.hour,
-                    state.horaInicio!.minute,
-                  );
-                }
-
-                DateTime? fechaF =
-                    (state.isMultiDay ? state.fechaFin : state.fechaInicio);
-                if (fechaF != null && state.horaFin != null) {
-                  fechaF = DateTime(
-                    fechaF.year,
-                    fechaF.month,
-                    fechaF.day,
-                    state.horaFin!.hour,
-                    state.horaFin!.minute,
-                  );
-                }
-
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder:
-                        (_) => ItineraryBuilderScreen(
-                          duracionDias: duracionDias,
-                          fechaInicio: fechaI,
-                          fechaFin: fechaF,
-                        ),
-                  ),
-                );
-                // Al regresar, permanecerá en el Paso 2 (Itinerario)
+                final cubit = context.read<TripCreationCubit>();
+                final ruta =
+                    '${RoutesAgencia.viajes}/${RoutesAgencia.itineraryBuilder}';
+                debugPrint("🚀 Navegando a $ruta con Viaje Temporal");
+                context.push(ruta, extra: cubit.viajeTemporal);
               },
             ),
-            const SizedBox(height: 16),
-            Text(
-              "💡 Arrastra y suelta actividades en la línea de tiempo",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // --- PASO 3: RESUMEN Y MÉTRICAS ---
-  Widget _buildReviewStep(TripCreationState state) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.grey[50],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Resumen de Impacto y Seguridad",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 16),
-          _buildKpiRow(Icons.timer, "Horas Monitoreadas", "12 hrs"),
-          _buildKpiRow(
-            Icons.visibility_off,
-            "Horas de Privacidad",
-            "4 hrs",
-          ), // [cite: 6]
-          _buildKpiRow(
-            Icons.eco,
-            "Huella de Carbono Total",
-            "${state.totalHuellaCarbono} kg",
-          ), //
+
           const SizedBox(height: 24),
-          const Text(
-            "Al guardar, se generarán las geocercas automáticas.",
-            style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-          ),
-        ],
-      ),
-    );
-  }
+          const Divider(),
+          const SizedBox(height: 16),
 
-  Widget _buildKpiRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.blue[800], size: 20),
-          const SizedBox(width: 12),
-          Expanded(child: Text(label)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            "💡 Tip: Puedes arrastrar y soltar actividades en la línea de tiempo dentro del constructor.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+              fontStyle: FontStyle.italic,
+            ),
+          ),
         ],
       ),
     );
@@ -1893,8 +1834,12 @@ class _TripCreationForm extends StatelessWidget {
   // --- MODAL: SELECTOR DE MAPA CON BÚSQUEDA ---
   void _showMapPicker(BuildContext context) {
     final MapController mapController = MapController();
+    // ✨ Controlador del TextField de búsqueda del mapa
+    final mapSearchController = TextEditingController();
     List<dynamic> searchResults = [];
     bool isSearching = false;
+    // Rastrear si el usuario escribió algo en el campo de búsqueda del mapa
+    bool mapSearchHasText = false;
 
     // Capturar el cubit ANTES del StatefulBuilder
     final cubit = context.read<TripCreationCubit>();
@@ -1937,15 +1882,21 @@ class _TripCreationForm extends StatelessWidget {
                               );
                               if (response.statusCode == 200) {
                                 final data = json.decode(response.body);
-                                final nombre =
-                                    data['address']['city'] ??
-                                    data['address']['town'] ??
-                                    data['address']['village'] ??
-                                    data['display_name'].split(',')[0];
-                                cubit.setLocationAndSearchPhotos(
-                                  latlng,
-                                  nombreSugerido: nombre,
-                                );
+                                // ✨ Solo sugerir nombre si el usuario NO escribió nada en el campo de búsqueda del mapa
+                                if (!mapSearchHasText) {
+                                  final nombre =
+                                      data['address']['city'] ??
+                                      data['address']['town'] ??
+                                      data['address']['village'] ??
+                                      data['display_name'].split(',')[0];
+                                  cubit.setLocationAndSearchPhotos(
+                                    latlng,
+                                    nombreSugerido: nombre,
+                                  );
+                                } else {
+                                  // El usuario ya escribió algo → solo actualizar coordenadas
+                                  cubit.setLocationAndSearchPhotos(latlng);
+                                }
                               } else {
                                 cubit.setLocationAndSearchPhotos(latlng);
                               }
@@ -1981,6 +1932,7 @@ class _TripCreationForm extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: TextField(
+                                controller: mapSearchController,
                                 decoration: InputDecoration(
                                   hintText:
                                       "Buscar 'Teotihuacán', 'Hotel Xcaret'...",
@@ -2005,6 +1957,12 @@ class _TripCreationForm extends StatelessWidget {
                                   ),
                                 ),
                                 textInputAction: TextInputAction.search,
+                                // ✨ Rastrear si el usuario escribió algo
+                                onChanged: (value) {
+                                  setModalState(() {
+                                    mapSearchHasText = value.trim().isNotEmpty;
+                                  });
+                                },
                                 onSubmitted: (value) async {
                                   setModalState(() => isSearching = true);
 

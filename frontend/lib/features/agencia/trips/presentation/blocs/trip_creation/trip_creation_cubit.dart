@@ -5,7 +5,11 @@ import 'package:equatable/equatable.dart';
 import 'dart:async';
 // import '../../../core/services/pexels_service.dart'; // ELIMINADO: Clean Architecture
 import 'package:frontend/features/agencia/trips/domain/entities/actividad_itinerario.dart';
+import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart'; // ✨ Import necesario
 import 'package:frontend/features/agencia/trips/domain/repositories/trip_repository.dart';
+import 'package:frontend/features/agencia/trips/data/datasources/trip_local_data_source.dart'; // 💾 Persistencia
+import 'package:frontend/features/agencia/trips/data/models/trip_draft_model.dart'; // 💾 Modelo Borrador
+import 'package:uuid/uuid.dart';
 
 // --- ESTADO ---
 class TripCreationState extends Equatable {
@@ -33,6 +37,10 @@ class TripCreationState extends Equatable {
   final String? fotoPortadaUrl;
   final List<String> fotosCandidatas;
 
+  // 💾 Persistencia
+  final bool draftFound;
+  final TripDraftModel? draftData;
+
   const TripCreationState({
     this.currentStep = 0,
     this.destino = '',
@@ -52,6 +60,8 @@ class TripCreationState extends Equatable {
         const [], // Lista vacía por defecto, se carga desde el repository
     this.fotoPortadaUrl,
     this.fotosCandidatas = const [],
+    this.draftFound = false,
+    this.draftData,
   });
 
   TripCreationState copyWith({
@@ -72,6 +82,8 @@ class TripCreationState extends Equatable {
     List<Map<String, dynamic>>? availableGuides,
     String? fotoPortadaUrl,
     List<String>? fotosCandidatas,
+    bool? draftFound,
+    TripDraftModel? draftData,
   }) {
     return TripCreationState(
       currentStep: currentStep ?? this.currentStep,
@@ -91,6 +103,8 @@ class TripCreationState extends Equatable {
       availableGuides: availableGuides ?? this.availableGuides,
       fotoPortadaUrl: fotoPortadaUrl ?? this.fotoPortadaUrl,
       fotosCandidatas: fotosCandidatas ?? this.fotosCandidatas,
+      draftFound: draftFound ?? this.draftFound,
+      draftData: draftData ?? this.draftData,
     );
   }
 
@@ -130,6 +144,7 @@ class TripCreationState extends Equatable {
     selectedGuiaId,
     coGuiasIds,
     location,
+    nombreUbicacionMapa,
     isMultiDay,
     horaInicio,
     horaFin,
@@ -137,22 +152,86 @@ class TripCreationState extends Equatable {
     availableGuides,
     fotoPortadaUrl,
     fotosCandidatas,
+    draftFound,
+    draftData,
   ];
 }
 
 // --- CUBIT ---
 class TripCreationCubit extends Cubit<TripCreationState> {
-  final TripRepository repository;
+  final TripRepository _repository;
+  final TripLocalDataSource _localDataSource; // 💾 Inyección
 
-  TripCreationCubit({required this.repository})
-    : super(const TripCreationState()) {
+  TripCreationCubit({
+    required TripRepository repository,
+    required TripLocalDataSource localDataSource,
+  }) : _repository = repository,
+       _localDataSource = localDataSource,
+       super(const TripCreationState()) {
     _loadGuides(); // Cargar guías al inicializar
+  }
+
+  // --- MÉTODOS DE AUTOGUARDADO (Fase 13) ---
+  void _autoSave() {
+    final draft = TripDraftModel(
+      destino: state.destino,
+      guiaId: state.selectedGuiaId,
+      fechaInicio: state.fechaInicio?.toIso8601String(),
+      fechaFin: state.fechaFin?.toIso8601String(),
+      lat: state.location?.latitude,
+      lng: state.location?.longitude,
+      actividades: [], // Paso 1 no tiene actividades aún
+    );
+    _localDataSource.saveDraft(draft);
+    // print("💾 Auto-guardado Paso 1: ${state.destino}");
+  }
+
+  // --- MÉTODOS DE RECUPERACIÓN ---
+  Future<void> checkForDraft() async {
+    final draft = await _localDataSource.getDraft();
+    if (draft != null && (draft.destino?.isNotEmpty ?? false)) {
+      emit(state.copyWith(draftFound: true, draftData: draft));
+    }
+  }
+
+  void restoreDraft() {
+    final draft = state.draftData;
+    if (draft == null) return;
+
+    emit(
+      state.copyWith(
+        destino: draft.destino ?? '',
+        selectedGuiaId: draft.guiaId,
+        fechaInicio:
+            draft.fechaInicio != null
+                ? DateTime.parse(draft.fechaInicio!)
+                : null,
+        fechaFin:
+            draft.fechaFin != null ? DateTime.parse(draft.fechaFin!) : null,
+        location:
+            (draft.lat != null && draft.lng != null)
+                ? LatLng(draft.lat!, draft.lng!)
+                : null,
+        draftFound: false, // Ya restaurado, apagamos la bandera
+        currentStep: 0, // Volvemos al inicio para que vea los datos
+      ),
+    );
+
+    // Buscar fotos de nuevo si hay destino
+    if (draft.destino != null) {
+      // _buscarFotos(draft.destino!); // Assuming this method exists or will be added
+    }
+  }
+
+  void discardDraft() {
+    _localDataSource.clearDraft();
+    emit(state.copyWith(draftFound: false, draftData: null));
   }
 
   // Cargar guías reales del mock database
   Future<void> _loadGuides() async {
-    final guiasResult = await repository.getListaGuias();
-    final viajesResult = await repository.getListaViajes();
+    final guiasResult = await _repository.getListaGuias();
+    final viajesResult = await _repository.getListaViajes();
 
     guiasResult.fold(
       (failure) => {}, // Ignorar error por ahora
@@ -213,6 +292,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
     // Cancelar cualquier búsqueda pendiente
     if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _autoSave(); // 💾
   }
 
   // Deprecated: Usar onDestinoChanged para el texto
@@ -230,6 +310,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
       currentCoGuias.remove(id); // Lo sacamos de auxiliares si ahora es jefe
     }
     emit(state.copyWith(selectedGuiaId: id, coGuiasIds: currentCoGuias));
+    _autoSave(); // 💾
   }
 
   /// Agregar o Quitar un Co-Guía
@@ -244,11 +325,61 @@ class TripCreationCubit extends Cubit<TripCreationState> {
       currentList.add(guiaId); // Si no está, lo agregamos
     }
     emit(state.copyWith(coGuiasIds: currentList));
+    _autoSave(); // 💾
   }
 
   void setLocation(LatLng loc) => emit(state.copyWith(location: loc));
 
   // Método maestro mejorado: Ubicación + Autocompletado + Fotos
+
+  // ✨ COMPUTE TEMPORAL TRIP (Para pasar a Itinerary Builder)
+  Viaje get viajeTemporal {
+    // Combinar Fecha + Hora para crear DateTime precisos
+    final inicioDateTime = DateTime(
+      state.fechaInicio!.year,
+      state.fechaInicio!.month,
+      state.fechaInicio!.day,
+      state.horaInicio!.hour,
+      state.horaInicio!.minute,
+    );
+
+    final finDateBase = state.isMultiDay ? state.fechaFin! : state.fechaInicio!;
+    final finDateTime = DateTime(
+      finDateBase.year,
+      finDateBase.month,
+      finDateBase.day,
+      state.horaFin!.hour,
+      state.horaFin!.minute,
+    );
+
+    return Viaje(
+      id: const Uuid().v4(), // Generamos ID temporal nuevo cada vez
+      destino: state.destino,
+      estado: 'PROGRAMADO', // Estado inicial
+      fechaInicio: inicioDateTime,
+      fechaFin: finDateTime,
+      turistas: 0, // Aún no asignados en este flujo
+      latitud: state.location?.latitude ?? 0.0,
+      longitud: state.location?.longitude ?? 0.0,
+      guiaNombre: _getNombreGuia(
+        state.selectedGuiaId,
+      ), // Helper para sacar nombre
+      horaInicio: _formatTimeOfDay(
+        state.horaInicio,
+      ), // String legacy, pero útil
+      alertasActivas: 0,
+      itinerario: const [], // Vacío al iniciar
+    );
+  }
+
+  String _getNombreGuia(String? id) {
+    if (id == null) return 'Sin asignar';
+    final guia = state.availableGuides.firstWhere(
+      (g) => g['id'] == id,
+      orElse: () => {'name': 'Desconocido'},
+    );
+    return guia['name'] as String;
+  }
 
   void setLocationAndSearchPhotos(LatLng loc, {String? nombreSugerido}) {
     String nuevoNombre = state.destino;
@@ -300,7 +431,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     if (terminoBusqueda.length > 3) {
       debugPrint("🔍 Buscando fotos para: $terminoBusqueda");
 
-      repository
+      _repository
           .buscarFotosDestino(terminoBusqueda)
           .then((fotos) {
             if (fotos.isNotEmpty) {
@@ -316,6 +447,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
             debugPrint("❌ Error buscando fotos desde mapa: $e");
           });
     }
+    _autoSave(); // 💾
   }
 
   // VALIDACIÓN EN TIEMPO REAL (Getters)
@@ -456,6 +588,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   /// Establece la fecha de fin (sin lógica especial, la UI ya valida que sea > inicio)
   void setFechaFin(DateTime nuevaFecha) {
     emit(state.copyWith(fechaFin: nuevaFecha));
+    _autoSave(); // 💾
   }
 
   // Método legacy mantenido por compatibilidad
@@ -523,12 +656,13 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
   void nextStep() {
     // Validar antes de avanzar desde el paso 0 (Datos Generales)
-    if (state.currentStep == 0 && !validateGeneralInfo()) {
+    if (state.currentStep == 0 && !isStep1Valid) {
       // No avanzar si la validación falla
       return;
     }
 
-    if (state.currentStep < 2) {
+    if (state.currentStep < 1) {
+      // Solo hay paso 0 y 1 ahora
       emit(state.copyWith(currentStep: state.currentStep + 1));
     }
   }
@@ -541,7 +675,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
   // Ir a un paso específico
   void goToStep(int step) {
-    if (step >= 0 && step <= 2) {
+    if (step >= 0 && step <= 1) {
       emit(state.copyWith(currentStep: step));
     }
   }
@@ -574,5 +708,14 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
   void seleccionarFoto(String url) {
     emit(state.copyWith(fotoPortadaUrl: url));
+  }
+
+  String _formatTimeOfDay(TimeOfDay? time) {
+    if (time == null) return "--:--";
+    final h = time.hour;
+    final m = time.minute.toString().padLeft(2, '0');
+    final periodo = h >= 12 ? 'PM' : 'AM';
+    final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+    return "$h12:$m $periodo";
   }
 }

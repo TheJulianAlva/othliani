@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/service_locator.dart' as di;
 import 'routes_agencia.dart';
+import '../../features/agencia/trips/domain/entities/viaje.dart'; // ✨ Import necesario
 
 // Importa tus Widgets de Pantalla
 import '../../features/agencia/auth/presentation/screens/login_screen.dart';
@@ -107,8 +108,9 @@ class AppRouterAgencia {
               GoRoute(
                 path: 'itinerary-builder',
                 builder: (context, state) {
-                  final int dias = state.extra as int? ?? 3;
-                  return ItineraryBuilderScreen(duracionDias: dias);
+                  // AHORA: Esperamos un objeto Viaje completo
+                  final Viaje viaje = state.extra as Viaje;
+                  return ItineraryBuilderScreen(viajeBase: viaje);
                 },
               ),
 

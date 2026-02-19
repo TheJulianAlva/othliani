@@ -20,6 +20,13 @@ class ItineraryBuilderState extends Equatable {
   // Mensaje de error opcional
   final String? errorMessage;
 
+  // ✨ FASE 5: Fotos sugeridas por Pexels al escribir el título de la actividad
+  final List<String> imagenesSugeridas;
+
+  // ✨ FASE 12: Transactional Save Flags
+  final bool isSaving;
+  final bool isSaved;
+
   const ItineraryBuilderState({
     this.diaSeleccionadoIndex = 0,
     this.totalDias = 1,
@@ -30,6 +37,9 @@ class ItineraryBuilderState extends Equatable {
     this.horasInicioPorDia = const {},
     this.horasFinPorDia = const {},
     this.modoHorasExtraPorDia = const {},
+    this.imagenesSugeridas = const [],
+    this.isSaving = false,
+    this.isSaved = false,
   });
 
   // ✨ Helper: Fecha base del día seleccionado (00:00 AM) con FECHA REAL
@@ -237,9 +247,10 @@ class ItineraryBuilderState extends Equatable {
     final ultimaAyer = actividadesAyer.last;
     final fechaBaseHoy = fechaBaseDiaActual;
 
-    // La actividad es "nocturna que continúa hoy" si su horaFin es posterior al inicio del día actual
-    // (es decir, termina en la madrugada de hoy)
-    if (ultimaAyer.horaFin.isAfter(fechaBaseHoy)) {
+    // ✨ FIX: Incluir el caso donde termina EXACTAMENTE a las 00:00 (isAtSameMomentAs).
+    // Antes solo chequeaba isAfter, por lo que 23:00–00:00 no aparecía en el Día 2.
+    if (ultimaAyer.horaFin.isAfter(fechaBaseHoy) ||
+        ultimaAyer.horaFin.isAtSameMomentAs(fechaBaseHoy)) {
       return ultimaAyer;
     }
     return null;
@@ -271,6 +282,9 @@ class ItineraryBuilderState extends Equatable {
     Map<int, DateTime>? horasFinPorDia,
     Set<int>? modoHorasExtraPorDia,
     String? errorMessage,
+    List<String>? imagenesSugeridas,
+    bool? isSaving,
+    bool? isSaved,
   }) {
     return ItineraryBuilderState(
       diaSeleccionadoIndex: diaSeleccionadoIndex ?? this.diaSeleccionadoIndex,
@@ -282,6 +296,9 @@ class ItineraryBuilderState extends Equatable {
       horasFinPorDia: horasFinPorDia ?? this.horasFinPorDia,
       modoHorasExtraPorDia: modoHorasExtraPorDia ?? this.modoHorasExtraPorDia,
       errorMessage: errorMessage,
+      imagenesSugeridas: imagenesSugeridas ?? this.imagenesSugeridas,
+      isSaving: isSaving ?? this.isSaving,
+      isSaved: isSaved ?? this.isSaved,
     );
   }
 
@@ -297,5 +314,8 @@ class ItineraryBuilderState extends Equatable {
     // Convertir a lista ordenada para que Equatable compare por contenido
     modoHorasExtraPorDia.toList()..sort(),
     errorMessage,
+    imagenesSugeridas,
+    isSaving,
+    isSaved,
   ];
 }

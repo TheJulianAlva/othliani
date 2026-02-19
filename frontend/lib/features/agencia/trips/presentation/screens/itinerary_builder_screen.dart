@@ -3,6 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/itinerary_builder/itinerary_builder_cubit.dart';
 import '../../domain/entities/actividad_itinerario.dart'; // Para TipoActividad
 import '../widgets/itinerary_builder/activity_edit_dialog.dart'; // ✨ Fase 4
+import 'package:frontend/core/di/service_locator.dart' as di; // ✨ Fase 5: DI
+import '../../domain/repositories/trip_repository.dart'; // ✨ Fase 5
+import 'itinerary_builder_route_map.dart'; // ✨ Widget del mapa de ruta
+import '../../domain/entities/viaje.dart'; // ✨ Import necesario
+import 'package:frontend/features/agencia/trips/data/datasources/trip_local_data_source.dart'; // 💾 Import necesario
+import '../../../shared/presentation/widgets/draft_guard_widget.dart'; // 🛡️ Draft Guard
 
 // Configuración visual de las herramientas
 final List<Map<String, dynamic>> _catalogoHerramientas = [
@@ -45,82 +51,140 @@ final List<Map<String, dynamic>> _catalogoHerramientas = [
 ];
 
 class ItineraryBuilderScreen extends StatelessWidget {
-  final int duracionDias;
-  final DateTime? fechaInicio;
-  final DateTime? fechaFin;
+  final Viaje viajeBase; // ✨ AHORA: Recibimos todo el objeto
 
-  const ItineraryBuilderScreen({
-    super.key,
-    this.duracionDias = 3,
-    this.fechaInicio,
-    this.fechaFin,
-  });
+  const ItineraryBuilderScreen({super.key, required this.viajeBase});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create:
-          (_) =>
-              ItineraryBuilderCubit()..init(
-                duracionDias,
-                fechaInicio: fechaInicio,
-                fechaFin: fechaFin,
-              ),
-      child: Scaffold(
-        backgroundColor: Colors.grey[50],
-        appBar: AppBar(
-          title: const Text("Constructor de Itinerario"),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
-          elevation: 0.5,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
+          (_) => ItineraryBuilderCubit(
+            repository: di.sl<TripRepository>(), // ✨ FASE 5: Inyectar repo
+            localDataSource: di.sl<TripLocalDataSource>(), // 💾 Persistencia
+          )..init(
+            // Calculamos duración aquí o en el Cubit.
+            // Si es 1 día, duration es 1. Si son fechas diferentes, diff + 1.
+            // Calculamos duración en días calendario (ignorando horas)
+            DateTime(
+                      viajeBase.fechaFin.year,
+                      viajeBase.fechaFin.month,
+                      viajeBase.fechaFin.day,
+                    )
+                    .difference(
+                      DateTime(
+                        viajeBase.fechaInicio.year,
+                        viajeBase.fechaInicio.month,
+                        viajeBase.fechaInicio.day,
+                      ),
+                    )
+                    .inDays +
+                1,
+            fechaInicio: viajeBase.fechaInicio,
+            fechaFin: viajeBase.fechaFin,
           ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.save),
-                label: const Text("Guardar Viaje"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[800],
-                  foregroundColor: Colors.white,
+      child: BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
+        builder: (context, state) {
+          // Condición: Si hay actividades en el mapa, advertimos
+          final bool hayCambios = state.actividadesPorDia.isNotEmpty;
+          // O si ya se guardó exitosamente, NO advertimos al salir
+          final bool yaGuardo = state.isSaved;
+
+          return DraftGuardWidget(
+            shouldWarn: hayCambios && !yaGuardo,
+            child: Scaffold(
+              backgroundColor: Colors.grey[50],
+              appBar: AppBar(
+                title: const Text("Constructor de Itinerario"),
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black87,
+                elevation: 0.5,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed:
+                      () => Navigator.maybePop(context), // Trigger PopScope
                 ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: BlocBuilder<
+                      ItineraryBuilderCubit,
+                      ItineraryBuilderState
+                    >(
+                      builder: (context, state) {
+                        return ElevatedButton.icon(
+                          onPressed:
+                              state.isSaving
+                                  ? null
+                                  : () {
+                                    context
+                                        .read<ItineraryBuilderCubit>()
+                                        .saveFullTrip(viajeBase);
+                                  },
+                          icon:
+                              state.isSaving
+                                  ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Icon(Icons.save),
+                          label: Text(
+                            state.isSaving ? "Guardando..." : "Finalizar Viaje",
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[800],
+                            foregroundColor: Colors.white,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              body: BlocListener<ItineraryBuilderCubit, ItineraryBuilderState>(
+                listener: (context, state) {
+                  if (state.isSaved) {
+                    // ✨ ÉXITO: Navegar al Dashboard / Lista de Viajes
+                    Navigator.of(
+                      context,
+                    ).pop(); // Regresar a la lista (refresh auto?)
+                  }
+
+                  if (state.errorMessage != null) {
+                    showDialog(
+                      context: context,
+                      builder:
+                          (dialogContext) => AlertDialog(
+                            icon: const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.orange,
+                              size: 48,
+                            ),
+                            title: const Text('Horario Inválido'),
+                            content: Text(
+                              state.errorMessage!,
+                              textAlign: TextAlign.center,
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(dialogContext).pop(),
+                                child: const Text('Entendido'),
+                              ),
+                            ],
+                          ),
+                    );
+                  }
+                },
+                child: const _BodyContent(),
               ),
             ),
-          ],
-        ),
-        body: BlocListener<ItineraryBuilderCubit, ItineraryBuilderState>(
-          listener: (context, state) {
-            if (state.errorMessage != null) {
-              showDialog(
-                context: context,
-                builder:
-                    (dialogContext) => AlertDialog(
-                      icon: const Icon(
-                        Icons.warning_amber_rounded,
-                        color: Colors.orange,
-                        size: 48,
-                      ),
-                      title: const Text('Horario Inválido'),
-                      content: Text(
-                        state.errorMessage!,
-                        textAlign: TextAlign.center,
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(dialogContext).pop(),
-                          child: const Text('Entendido'),
-                        ),
-                      ],
-                    ),
-              );
-            }
-          },
-          child: const _BodyContent(),
-        ),
+          );
+        },
       ),
     );
   }
@@ -198,13 +262,7 @@ class _BodyContent extends StatelessWidget {
           child: Column(
             children: [
               // Mapa
-              Expanded(
-                flex: 1,
-                child: Container(
-                  color: Colors.blue[50],
-                  child: const Center(child: Text("Mapa Interactivo")),
-                ),
-              ),
+              Expanded(flex: 1, child: const DayRouteMap()),
               const Divider(height: 1),
               // Panel de estadísticas y horarios
               Expanded(
@@ -1097,14 +1155,17 @@ class _TimelineDropZone extends StatelessWidget {
                 context: context,
                 barrierDismissible: false,
                 builder:
-                    (ctx) => ActivityEditDialog(
-                      actividad: ultimaActividad,
-                      onSave: (updated) => cubit.updateActivity(updated),
-                      onDelete: (id) => cubit.deleteActivity(id),
-                      isNew: true,
-                      actividadesDelDia: cubit.state.actividadesDelDiaActual,
-                      minTime: minTime,
-                      maxTime: maxTime,
+                    (ctx) => BlocProvider.value(
+                      value: cubit,
+                      child: ActivityEditDialog(
+                        actividad: ultimaActividad,
+                        onSave: (updated) => cubit.updateActivity(updated),
+                        onDelete: (id) => cubit.deleteActivity(id),
+                        isNew: true,
+                        actividadesDelDia: cubit.state.actividadesDelDiaActual,
+                        minTime: minTime,
+                        maxTime: maxTime,
+                      ),
                     ),
               );
             });
@@ -1148,6 +1209,11 @@ class _TimelineDropZone extends StatelessWidget {
                                   children: [
                                     _ItineraryItemCard(
                                       activity: actividades[index],
+                                      usaHorasExtra:
+                                          state.modoHorasExtraActivo &&
+                                          actividades[index].horaFin.isAfter(
+                                            state.horaFinDia,
+                                          ),
                                     ),
                                     if (index < actividades.length - 1)
                                       _buildConnectorLine(),
@@ -1250,8 +1316,12 @@ class _TimelineDropZone extends StatelessWidget {
 // ============================================
 class _ItineraryItemCard extends StatelessWidget {
   final ActividadItinerario activity;
+  final bool usaHorasExtra;
 
-  const _ItineraryItemCard({required this.activity});
+  const _ItineraryItemCard({
+    required this.activity,
+    this.usaHorasExtra = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1331,6 +1401,39 @@ class _ItineraryItemCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                      // ✨ Badge de Horas Extra
+                      if (usaHorasExtra)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.indigo.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.indigo.shade200),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.nightlight_round,
+                                size: 10,
+                                color: Colors.indigo.shade700,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                "Horas Extra",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -1355,14 +1458,18 @@ class _ItineraryItemCard extends StatelessWidget {
                     showDialog(
                       context: context,
                       builder:
-                          (ctx) => ActivityEditDialog(
-                            actividad: activity,
-                            onSave: (updated) => cubit.updateActivity(updated),
-                            onDelete: (id) => cubit.deleteActivity(id),
-                            actividadesDelDia:
-                                cubit.state.actividadesDelDiaActual,
-                            minTime: minTime,
-                            maxTime: maxTime,
+                          (ctx) => BlocProvider.value(
+                            value: cubit,
+                            child: ActivityEditDialog(
+                              actividad: activity,
+                              onSave:
+                                  (updated) => cubit.updateActivity(updated),
+                              onDelete: (id) => cubit.deleteActivity(id),
+                              actividadesDelDia:
+                                  cubit.state.actividadesDelDiaActual,
+                              minTime: minTime,
+                              maxTime: maxTime,
+                            ),
                           ),
                     );
                   },
@@ -1772,8 +1879,9 @@ class _TimeRemainingIndicator extends StatelessWidget {
         }
 
         // Mostrar botón desde "Tiempo limitado" (≤ 4h) hasta "Sin tiempo"
-        // SOLO si el viaje tiene más de 1 día (no tiene sentido horas extra el último día)
-        final sinTiempo = tiempoRestante <= 240 && state.totalDias > 1;
+        // SOLO si el viaje tiene más de 1 día y NO es el último día
+        final esUltimoDia = state.diaSeleccionadoIndex >= state.totalDias - 1;
+        final sinTiempo = tiempoRestante <= 240 && !esUltimoDia;
         final modoExtra = state.modoHorasExtraActivo;
 
         // ✨ Calcular minutos extra consumidos (last activity beyond normal limit)

@@ -71,7 +71,9 @@ Future<void> initAgenciaDependencies() async {
   // Trips
   sl.registerFactory(() => ViajesBloc(repository: sl()));
   sl.registerFactory(() => DetalleViajeBloc(repository: sl()));
-  sl.registerFactory(() => TripCreationCubit(repository: sl()));
+  sl.registerFactory(
+    () => TripCreationCubit(repository: sl(), localDataSource: sl()),
+  );
 
   // Users
   sl.registerFactory(() => UsuariosBloc(repository: sl()));

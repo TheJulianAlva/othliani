@@ -1,13 +1,50 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart'; // Para TimeOfDay
 import 'package:frontend/features/agencia/trips/domain/entities/actividad_itinerario.dart';
+import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart'; // ✨ Import necesario
+import 'package:frontend/features/agencia/trips/domain/repositories/trip_repository.dart';
 
+import 'package:frontend/features/agencia/trips/data/datasources/trip_local_data_source.dart'; // 💾 Persistencia
+import 'package:frontend/features/agencia/trips/data/models/trip_draft_model.dart'; // 💾 Modelo
 part 'itinerary_builder_state.dart';
 
 class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
-  ItineraryBuilderCubit() : super(ItineraryBuilderState());
+  final TripRepository _repository;
+  final TripLocalDataSource _localDataSource; // 💾 Inyección
+  Timer? _debounce;
+
+  ItineraryBuilderCubit({
+    required TripRepository repository,
+    required TripLocalDataSource localDataSource,
+  }) : _repository = repository,
+       _localDataSource = localDataSource,
+       super(const ItineraryBuilderState());
+
+  // --- AUTOGUARDADO (Fase 13) ---
+  void _autoSave() {
+    // Aplanamos todas las actividades
+    List<ActividadItinerario> todas = [];
+    state.actividadesPorDia.forEach((_, lista) => todas.addAll(lista));
+
+    // Recuperamos draft existente para mantener datos del Paso 1
+    _localDataSource.getDraft().then((currentDraft) {
+      if (currentDraft != null) {
+        final updatedDraft = TripDraftModel(
+          destino: currentDraft.destino,
+          fechaInicio: currentDraft.fechaInicio,
+          fechaFin: currentDraft.fechaFin,
+          guiaId: currentDraft.guiaId,
+          lat: currentDraft.lat,
+          lng: currentDraft.lng,
+          actividades: todas, // 💾 Actualizamos solo actividades
+        );
+        _localDataSource.saveDraft(updatedDraft);
+      }
+    });
+  }
 
   // Inicializar con la duración del viaje y fechas reales
   void init(int duracionDias, {DateTime? fechaInicio, DateTime? fechaFin}) {
@@ -25,6 +62,32 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     if (index >= 0 && index < state.totalDias) {
       emit(state.copyWith(diaSeleccionadoIndex: index));
     }
+  }
+
+  // ✨ FASE 5: Búsqueda de fotos al escribir el título (debounce 800ms)
+  void onTituloChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    // Limpiar sugerencias si el texto es muy corto
+    if (query.trim().length <= 3) {
+      emit(state.copyWith(imagenesSugeridas: []));
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 800), () async {
+      final fotos = await _repository.buscarFotosDestino(query.trim());
+      emit(state.copyWith(imagenesSugeridas: fotos));
+    });
+  }
+
+  // ✨ Limpiar sugerencias al cerrar el modal de actividad
+  void clearSuggestions() {
+    _debounce?.cancel();
+    emit(state.copyWith(imagenesSugeridas: []));
+  }
+
+  @override
+  Future<void> close() {
+    _debounce?.cancel();
+    return super.close();
   }
 
   // ✨ Activar/desactivar modo horas extra para el día actual
@@ -75,10 +138,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
   }
 
   // ✨ Establecer hora de fin personalizada para un día.
-  // AUMENTAR: siempre permitido. Si horas extra activas y última actividad ya
-  //           cabe en el nuevo límite → desactiva horas extra automáticamente.
-  // DISMINUIR: bloqueado si cualquier actividad (regular o extra) termina
-  //            después de la nueva hora fin.
   void setHoraFinDia(int dia, DateTime nuevaHora) {
     // Validar que la hora fin sea mayor que la hora inicio del día
     final horaInicioActual = _getHoraInicioParaDia(dia);
@@ -148,8 +207,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     );
   }
 
-  // Helpers privados para obtener la hora efectiva de un día específico
-  // (sin depender del día seleccionado actualmente en el estado)
+  // Helpers privados
   DateTime _getHoraInicioParaDia(int dia) {
     if (state.horasInicioPorDia.containsKey(dia)) {
       return state.horasInicioPorDia[dia]!;
@@ -157,7 +215,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     if (dia == 0 && state.horaInicioViaje != null) {
       return state.horaInicioViaje!;
     }
-    // Si no hay info, fallback a 6 AM del día correspondiente
     final base = state.horaInicioViaje ?? DateTime.now();
     final fechaDia = base.add(Duration(days: dia));
     return DateTime(fechaDia.year, fechaDia.month, fechaDia.day, 6, 0);
@@ -170,7 +227,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     if (dia == state.totalDias - 1 && state.horaFinViaje != null) {
       return state.horaFinViaje!;
     }
-    // Fallback a 10 PM del día correspondiente
     final base = state.horaInicioViaje ?? DateTime.now();
     final fechaDia = base.add(Duration(days: dia));
     return DateTime(fechaDia.year, fechaDia.month, fechaDia.day, 22, 0);
@@ -183,7 +239,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       state.actividadesDelDiaActual,
     );
 
-    // 🚫 BLOQUEO: Si no hay tiempo y el modo horas extra no está activo
     if (!state.puedeAgregarActividades) {
       String msg =
           "No hay tiempo disponible. Activa las horas extra para agregar actividades nocturnas.";
@@ -200,41 +255,29 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       return;
     }
 
-    // Fecha base del día actual con FECHA REAL
     final fechaBaseDelDia = state.fechaBaseDiaActual;
 
-    // 1. CALCULAR HORA DE INICIO SUGERIDA (Smart Start)
     DateTime horaInicio;
 
     if (listaActual.isNotEmpty) {
-      // CASO A: Ya hay actividades hoy → buffer adaptativo después de la última
-      // El buffer normal es 30 min, pero si el tiempo restante es escaso,
-      // lo reducimos para que Smart Sizing pueda ajustar la duración.
       final ultimaFin = listaActual.last.horaFin;
       final limiteDelDia = state.horaFinDia;
       final minutosRestantesSinBuffer =
           limiteDelDia.difference(ultimaFin).inMinutes;
 
-      // Buffer adaptativo: 30 min normalmente, pero reducido si hay poco tiempo
-      // Mínimo 0 min (actividad inmediatamente después de la anterior)
       final int bufferMinutos;
       if (minutosRestantesSinBuffer <= 5) {
-        // Sin espacio ni para el buffer mínimo → bloquear (Smart Sizing lo manejará)
         bufferMinutos = 30;
       } else if (minutosRestantesSinBuffer <= 35) {
-        // Poco tiempo: buffer reducido a 0 para maximizar espacio disponible
         bufferMinutos = 0;
       } else if (minutosRestantesSinBuffer <= 60) {
-        // Tiempo moderado: buffer reducido a 10 min
         bufferMinutos = 10;
       } else {
-        // Tiempo suficiente: buffer normal de 30 min
         bufferMinutos = 30;
       }
 
       horaInicio = ultimaFin.add(Duration(minutes: bufferMinutos));
     } else {
-      // CASO B: Primera actividad del día → usar horaInicioDia
       final horaBase = state.horaInicioDia;
       horaInicio = DateTime(
         fechaBaseDelDia.year,
@@ -244,15 +287,10 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
         horaBase.minute,
       );
 
-      // 🚫 VALIDACIÓN: ¿El día anterior tiene actividad nocturna que aún está en curso?
-      // 🚫 VALIDACIÓN: ¿El día anterior tiene actividad nocturna que aún está en curso?
       if (dia > 0) {
         final listaDiaAnterior = state.actividadesPorDia[dia - 1] ?? [];
         if (listaDiaAnterior.isNotEmpty) {
           final ultimaActAnterior = listaDiaAnterior.last;
-
-          // Verificar solapamiento real usando fechas completas
-          // Si la actividad anterior termina DESPUÉS del inicio propuesto para hoy
           if (ultimaActAnterior.horaFin.isAfter(horaInicio)) {
             final h = ultimaActAnterior.horaFin.hour;
             final m = ultimaActAnterior.horaFin.minute.toString().padLeft(
@@ -278,19 +316,13 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       }
     }
 
-    // 2. Calcular hora de fin según tipo de actividad
     final int duracionMinutos = (tipo == TipoActividad.traslado) ? 60 : 90;
     DateTime horaFin = horaInicio.add(Duration(minutes: duracionMinutos));
 
-    // 3. Validación: Smart Sizing dentro del límite vigente
     final limiteBase = state.horaFinDia;
     final esUltimoDia = dia == state.totalDias - 1;
-
-    // Límite extendido SOLO si el usuario ya lo activó manualmente
     final limiteExtendido =
         (!esUltimoDia) ? limiteBase.add(const Duration(hours: 3)) : limiteBase;
-
-    // Nunca auto-activamos horas extra: el usuario decide manualmente
     final limiteEfectivo =
         state.modoHorasExtraActivo ? limiteExtendido : limiteBase;
 
@@ -314,7 +346,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       }
 
       if (minutosDisponibles >= 5) {
-        // Smart Sizing: recortar duración al tiempo disponible
         horaFin = limiteEfectivo;
       } else {
         emit(
@@ -330,7 +361,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       }
     }
 
-    // 4. Crear la nueva actividad
     final nuevaActividad = ActividadItinerario(
       id: const Uuid().v4(),
       titulo: _getTituloPorDefecto(tipo),
@@ -342,7 +372,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
     listaActual.add(nuevaActividad);
 
-    // 5. Actualizar el mapa del estado
     final nuevoMapa = Map<int, List<ActividadItinerario>>.from(
       state.actividadesPorDia,
     );
@@ -350,11 +379,10 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
     emit(state.copyWith(actividadesPorDia: nuevoMapa, errorMessage: null));
 
-    // ✨ Autodesactivar si aplica
     _verificarDesactivarHorasExtra(dia, listaActual);
+    _autoSave(); // 💾 Autoguardado
   }
 
-  // Método público para verificar si una actividad cabe en el horario
   // Método público para verificar si una actividad cabe en el horario
   bool wouldActivityFit(TipoActividad tipo) {
     if (!state.puedeAgregarActividades) return false;
@@ -365,7 +393,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
     DateTime horaInicio;
     if (listaActual.isNotEmpty) {
-      // ✨ Buffer adaptativo (igual que onActivityDropped)
       final ultimaFin = listaActual.last.horaFin;
       final limiteDelDia = state.horaFinDia;
       final minutosRestantesSinBuffer =
@@ -373,13 +400,13 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
       final int bufferMinutos;
       if (minutosRestantesSinBuffer <= 5) {
-        bufferMinutos = 30; // Sin espacio: Smart Sizing lo bloqueará
+        bufferMinutos = 30;
       } else if (minutosRestantesSinBuffer <= 35) {
-        bufferMinutos = 0; // Poco tiempo: sin buffer
+        bufferMinutos = 0;
       } else if (minutosRestantesSinBuffer <= 60) {
-        bufferMinutos = 10; // Tiempo moderado: buffer reducido
+        bufferMinutos = 10;
       } else {
-        bufferMinutos = 30; // Normal
+        bufferMinutos = 30;
       }
 
       horaInicio = ultimaFin.add(Duration(minutes: bufferMinutos));
@@ -415,7 +442,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       return true;
     }
 
-    // Smart Sizing: ¿quedan al menos 5 min?
     final minutosDisponibles = limiteAbsoluto.difference(horaInicio).inMinutes;
     return minutosDisponibles >= 5;
   }
@@ -449,7 +475,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     final index = lista.indexWhere((a) => a.id == actividadActualizada.id);
     if (index != -1) {
       lista[index] = actividadActualizada;
-      // Mantenemos el orden cronológico siempre
       lista.sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
 
       final nuevoMapa = Map<int, List<ActividadItinerario>>.from(
@@ -458,8 +483,8 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       nuevoMapa[dia] = lista;
       emit(state.copyWith(actividadesPorDia: nuevoMapa));
 
-      // ✨ Autodesactivar si aplica
       _verificarDesactivarHorasExtra(dia, lista);
+      _autoSave(); // 💾 Autoguardado
     }
   }
 
@@ -478,13 +503,11 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     nuevoMapa[dia] = lista;
     emit(state.copyWith(actividadesPorDia: nuevoMapa));
 
-    // ✨ Autodesactivar si aplica
     _verificarDesactivarHorasExtra(dia, lista);
+    _autoSave(); // 💾 Autoguardado
   }
 
   // 🗑️ SINCRONIZACIÓN NOCTURNA: Eliminar actividad de un día específico
-  // Usado cuando el usuario elimina una actividad nocturna desde la tarjeta de continuación
-  // del día siguiente (la actividad vive en el día anterior, no en el actual).
   void deleteActivityFromDay(String id, int dia) {
     final List<ActividadItinerario> lista = List.from(
       state.actividadesPorDia[dia] ?? [],
@@ -498,46 +521,72 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     nuevoMapa[dia] = lista;
     emit(state.copyWith(actividadesPorDia: nuevoMapa));
 
-    // ✨ Autodesactivar modo horas extra si ya no hay actividades nocturnas
     _verificarDesactivarHorasExtra(dia, lista);
+    _autoSave(); // 💾 Autoguardado
   }
 
-  // MÉTODO PRIVADO: Verifica si TODAS las actividades caben en el horario NORMAL.
-  // Si caben, desactiva el modo "Horas Extra" automáticamente.
   void _verificarDesactivarHorasExtra(
     int dia,
     List<ActividadItinerario> actividades,
   ) {
-    // Si no está activado, no hacer nada
     if (!state.modoHorasExtraPorDia.contains(dia)) return;
 
-    // Si no hay actividades, desactivar (opcional, pero limpio)
     if (actividades.isEmpty) {
       final nuevoSet = Set<int>.from(state.modoHorasExtraPorDia)..remove(dia);
       emit(state.copyWith(modoHorasExtraPorDia: nuevoSet));
       return;
     }
 
-    // Buscar la última hora fin de las actividades
-    // (Asumimos que están ordenadas o buscamos el máximo)
     DateTime maxFin = actividades.first.horaFin;
     for (var a in actividades) {
       if (a.horaFin.isAfter(maxFin)) maxFin = a.horaFin;
     }
 
-    // Hora fin NORMAL del día (sin extra)
-    // Usamos el helper privado o asumimos que state.horaFinDia es para el día seleccionado
-    // PERO state.horaFinDia depende de diaSeleccionadoIndex.
-    // Si estamos modificando un día que NO es el seleccionado (raro, pero posible),
-    // deberíamos tener cuidado. Pero las operaciones son sobre el día seleccionado.
     if (dia != state.diaSeleccionadoIndex) return;
 
     final finNormal = state.horaFinDia;
 
-    // Si la última actividad termina ANTES o IGUAL al fin normal, desactivar.
     if (!maxFin.isAfter(finNormal)) {
       final nuevoSet = Set<int>.from(state.modoHorasExtraPorDia)..remove(dia);
       emit(state.copyWith(modoHorasExtraPorDia: nuevoSet));
+    }
+  }
+
+  Future<void> saveFullTrip(Viaje viajeBase) async {
+    if (state.isSaving) return;
+
+    emit(state.copyWith(isSaving: true));
+
+    try {
+      // 1. Aplanar el mapa de actividades a una sola lista
+      List<ActividadItinerario> listaCompleta = [];
+      state.actividadesPorDia.forEach((dia, actividades) {
+        listaCompleta.addAll(actividades);
+      });
+
+      // 2. Fusionar: Viaje Base + Itinerario Completo
+      final viajeFinal = viajeBase.copyWith(itinerario: listaCompleta);
+
+      // 3. Mandar al repositorio
+      await _repository.crearViaje(viajeFinal);
+
+      // 4. Limpiar borrador si se guardó con éxito
+      await _localDataSource.clearDraft(); // 🗑️ Limpieza
+
+      if (!isClosed) {
+        emit(state.copyWith(isSaving: false, isSaved: true));
+      }
+    } catch (e) {
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            isSaving: false,
+            errorMessage: "Error al guardar el viaje: $e",
+            isSaved: false,
+          ),
+        );
+      }
+      debugPrint("Error guardando viaje: $e");
     }
   }
 }
