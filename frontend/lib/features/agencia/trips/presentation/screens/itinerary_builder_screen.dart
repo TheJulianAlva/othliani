@@ -1051,6 +1051,9 @@ class _TimelineDropZone extends StatelessWidget {
     return BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
       builder: (context, state) {
         final actividades = state.actividadesDelDiaActual;
+        // ✨ SINCRONIZACIÓN NOCTURNA: actividad del día anterior que continúa hoy
+        final actividadContinuacion = state.actividadNocturnaDelDiaAnterior;
+        final diaAnterior = state.diaSeleccionadoIndex - 1;
 
         return DragTarget<TipoActividad>(
           // Bloquear el drop si no hay tiempo y el modo horas extra no está activo
@@ -1110,6 +1113,10 @@ class _TimelineDropZone extends StatelessWidget {
             final isHovering = candidateData.isNotEmpty;
             final isRejected = rejectedData.isNotEmpty;
 
+            // Construir la lista combinada: continuación nocturna + actividades del día
+            final tieneContenido =
+                actividadContinuacion != null || actividades.isNotEmpty;
+
             return Stack(
               children: [
                 Container(
@@ -1120,17 +1127,34 @@ class _TimelineDropZone extends StatelessWidget {
                           ? Colors.blue.withValues(alpha: 0.05)
                           : Colors.grey[50],
                   child:
-                      actividades.isEmpty
+                      !tieneContenido
                           ? _buildEmptyState()
-                          : ListView.separated(
+                          : ListView(
                             padding: const EdgeInsets.all(16),
-                            itemCount: actividades.length,
-                            separatorBuilder: (_, __) => _buildConnectorLine(),
-                            itemBuilder: (context, index) {
-                              return _ItineraryItemCard(
-                                activity: actividades[index],
-                              );
-                            },
+                            children: [
+                              // ✨ Tarjeta de continuación nocturna (si existe)
+                              if (actividadContinuacion != null) ...[
+                                _ContinuationCard(
+                                  activity: actividadContinuacion,
+                                  diaOrigen: diaAnterior,
+                                ),
+                                // Conector hacia las actividades propias del día
+                                if (actividades.isNotEmpty)
+                                  _buildConnectorLine(),
+                              ],
+                              // Actividades propias del día actual
+                              ...List.generate(actividades.length, (index) {
+                                return Column(
+                                  children: [
+                                    _ItineraryItemCard(
+                                      activity: actividades[index],
+                                    ),
+                                    if (index < actividades.length - 1)
+                                      _buildConnectorLine(),
+                                  ],
+                                );
+                              }),
+                            ],
                           ),
                 ),
                 // Banner de rechazo: aparece al intentar soltar sin tiempo
@@ -1372,6 +1396,233 @@ class _ItineraryItemCard extends StatelessWidget {
 }
 
 // ============================================
+// ✨ TARJETA DE CONTINUACIÓN NOCTURNA
+// ============================================
+class _ContinuationCard extends StatelessWidget {
+  final ActividadItinerario activity;
+  final int diaOrigen; // Índice del día donde vive la actividad (0-based)
+
+  const _ContinuationCard({required this.activity, required this.diaOrigen});
+
+  String _formatHora(DateTime dt) {
+    final h = dt.hour;
+    final m = dt.minute.toString().padLeft(2, '0');
+    final periodo = h >= 12 ? 'PM' : 'AM';
+    final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+    return '$h12:$m $periodo';
+  }
+
+  IconData _getIconForType(TipoActividad tipo) {
+    switch (tipo) {
+      case TipoActividad.hospedaje:
+        return Icons.hotel;
+      case TipoActividad.comida:
+        return Icons.restaurant;
+      case TipoActividad.traslado:
+        return Icons.directions_bus;
+      case TipoActividad.cultura:
+        return Icons.museum;
+      case TipoActividad.aventura:
+        return Icons.hiking;
+      case TipoActividad.tiempoLibre:
+        return Icons.beach_access;
+      default:
+        return Icons.local_activity;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<ItineraryBuilderCubit>();
+    final startStr = _formatHora(activity.horaInicio);
+    final endStr = _formatHora(activity.horaFin);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.indigo.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.indigo.shade300,
+          width: 1.5,
+          // Simular borde punteado con un borde sólido suave
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Badge superior
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.indigo.shade100,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(9),
+                topRight: Radius.circular(9),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.nightlight_round,
+                  size: 13,
+                  color: Colors.indigo.shade700,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '↩ Continúa del Día ${diaOrigen + 1}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.indigo.shade700,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Contenido de la tarjeta
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Columna de horas
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      startStr,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Colors.indigo.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      endStr,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.indigo.shade400,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 10),
+                // Punto de timeline
+                Container(
+                  margin: const EdgeInsets.only(top: 2),
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.indigo.shade400,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Contenido de la actividad
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        _getIconForType(activity.tipo),
+                        color: Colors.indigo.shade400,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              activity.titulo,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.indigo.shade900,
+                              ),
+                            ),
+                            if (activity.descripcion.isNotEmpty)
+                              Text(
+                                activity.descripcion,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.indigo.shade400,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
+                      ),
+                      // Botón eliminar con confirmación
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline,
+                          size: 18,
+                          color: Colors.indigo.shade300,
+                        ),
+                        tooltip: 'Eliminar actividad nocturna',
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (ctx) => AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  icon: Icon(
+                                    Icons.nightlight_round,
+                                    color: Colors.indigo.shade400,
+                                    size: 36,
+                                  ),
+                                  title: const Text(
+                                    'Eliminar actividad nocturna',
+                                  ),
+                                  content: Text(
+                                    '"${activity.titulo}" fue creada en el Día ${diaOrigen + 1} '
+                                    'y continúa hasta las $endStr de este día.\n\n'
+                                    '¿Deseas eliminarla completamente?',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    FilledButton(
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: Colors.indigo,
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(ctx);
+                                        cubit.deleteActivityFromDay(
+                                          activity.id,
+                                          diaOrigen,
+                                        );
+                                      },
+                                      child: const Text('Eliminar'),
+                                    ),
+                                  ],
+                                ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================
 // INDICADOR DE TIEMPO RESTANTE
 // ============================================
 class _TimeRemainingIndicator extends StatelessWidget {
@@ -1525,6 +1776,20 @@ class _TimeRemainingIndicator extends StatelessWidget {
         final sinTiempo = tiempoRestante <= 240 && state.totalDias > 1;
         final modoExtra = state.modoHorasExtraActivo;
 
+        // ✨ Calcular minutos extra consumidos (last activity beyond normal limit)
+        int minutosExtra = 0;
+        if (modoExtra) {
+          final actividades = state.actividadesDelDiaActual;
+          if (actividades.isNotEmpty) {
+            final limiteNormal = state.horaFinDia;
+            final ultimaFin = actividades.last.horaFin;
+            if (ultimaFin.isAfter(limiteNormal)) {
+              minutosExtra = ultimaFin.difference(limiteNormal).inMinutes;
+            }
+          }
+        }
+        final horasExtra = minutosExtra ~/ 60;
+        final minsExtra = minutosExtra % 60;
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -1619,39 +1884,68 @@ class _TimeRemainingIndicator extends StatelessWidget {
                           width: 1.5,
                         ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            modoExtra
-                                ? Icons.nightlight_round
-                                : Icons.nightlight_outlined,
-                            size: 18,
-                            color:
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
                                 modoExtra
-                                    ? Colors.white
-                                    : Colors.indigo.shade600,
+                                    ? Icons.nightlight_round
+                                    : Icons.nightlight_outlined,
+                                size: 18,
+                                color:
+                                    modoExtra
+                                        ? Colors.white
+                                        : Colors.indigo.shade600,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                modoExtra
+                                    ? "Horas extra activas"
+                                    : "Activar horas extra",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      modoExtra
+                                          ? Colors.white
+                                          : Colors.indigo.shade700,
+                                ),
+                              ),
+                              if (modoExtra) ...[
+                                const SizedBox(width: 6),
+                                Icon(
+                                  Icons.check_circle,
+                                  size: 16,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                              ],
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            modoExtra
-                                ? "Horas extra activas"
-                                : "Activar horas extra",
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  modoExtra
-                                      ? Colors.white
-                                      : Colors.indigo.shade700,
-                            ),
-                          ),
-                          if (modoExtra) ...[
-                            const SizedBox(width: 6),
-                            Icon(
-                              Icons.check_circle,
-                              size: 16,
-                              color: Colors.white.withValues(alpha: 0.9),
+                          // ✨ Badge de horas extra consumidas (línea separada)
+                          if (modoExtra && minutosExtra > 0) ...[
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                horasExtra > 0
+                                    ? "+${horasExtra}h ${minsExtra}m en horas extra"
+                                    : "+${minsExtra}m en horas extra",
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ],
                         ],

@@ -331,10 +331,37 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     bool fechasValidas = true;
     if (state.isMultiDay) {
       // Si es multidía, DEBE tener fecha fin Y hora fin
-      fechasValidas = state.fechaFin != null && state.horaFin != null;
+      if (state.fechaFin == null || state.horaFin == null) {
+        fechasValidas = false;
+      } else {
+        // ✨ NUEVO: Validar mínimo 2 horas entre inicio y fin (con fechas reales)
+        final inicio = DateTime(
+          state.fechaInicio!.year,
+          state.fechaInicio!.month,
+          state.fechaInicio!.day,
+          state.horaInicio!.hour,
+          state.horaInicio!.minute,
+        );
+        final fin = DateTime(
+          state.fechaFin!.year,
+          state.fechaFin!.month,
+          state.fechaFin!.day,
+          state.horaFin!.hour,
+          state.horaFin!.minute,
+        );
+        fechasValidas = fin.difference(inicio).inMinutes >= 120;
+      }
     } else {
-      // Si es un día, DEBE tener hora fin
-      fechasValidas = state.horaFin != null;
+      // Si es un día, DEBE tener hora fin Y al menos 2 horas de diferencia
+      if (state.horaFin == null || state.horaInicio == null) {
+        fechasValidas = false;
+      } else {
+        final inicioMin =
+            state.horaInicio!.hour * 60 + state.horaInicio!.minute;
+        final finMin = state.horaFin!.hour * 60 + state.horaFin!.minute;
+        // ✨ NUEVO: mínimo 120 minutos de diferencia
+        fechasValidas = (finMin - inicioMin) >= 120;
+      }
     }
 
     return tieneNombre &&
@@ -460,9 +487,25 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
     // Validación Multidía
     if (state.isMultiDay) {
-      if (state.fechaFin == null) return false;
+      if (state.fechaFin == null || state.horaFin == null) return false;
       // Validar que fin sea > inicio (ya lo hace el UI, pero por seguridad)
       if (state.fechaFin!.isBefore(state.fechaInicio!)) return false;
+      // ✨ NUEVO: Mínimo 2 horas entre inicio y fin (con fechas reales)
+      final inicio = DateTime(
+        state.fechaInicio!.year,
+        state.fechaInicio!.month,
+        state.fechaInicio!.day,
+        state.horaInicio!.hour,
+        state.horaInicio!.minute,
+      );
+      final fin = DateTime(
+        state.fechaFin!.year,
+        state.fechaFin!.month,
+        state.fechaFin!.day,
+        state.horaFin!.hour,
+        state.horaFin!.minute,
+      );
+      if (fin.difference(inicio).inMinutes < 120) return false;
     } else {
       // Validación 1 Día
       if (state.horaFin == null) return false;
@@ -471,6 +514,8 @@ class TripCreationCubit extends Cubit<TripCreationState> {
           state.horaInicio!.hour + state.horaInicio!.minute / 60.0;
       final double end = state.horaFin!.hour + state.horaFin!.minute / 60.0;
       if (end <= start) return false;
+      // ✨ NUEVO: Mínimo 2 horas de diferencia
+      if ((end - start) < 2.0) return false;
     }
 
     return true;

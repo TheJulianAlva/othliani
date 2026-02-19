@@ -80,6 +80,17 @@ class ItineraryBuilderState extends Equatable {
     if (diaSeleccionadoIndex == 0 && horaInicioViaje != null) {
       return horaInicioViaje!;
     }
+
+    // ✨ FIX: Último día con hora de fin en madrugada (ej: viaje termina 1:00 AM)
+    // Si horaFinViaje es madrugada (hora < 6), el día "empieza" a medianoche (00:00)
+    // para que la ventana de tiempo sea coherente (00:00 → 1:00 AM).
+    if (diaSeleccionadoIndex == totalDias - 1 && horaFinViaje != null) {
+      if (horaFinViaje!.hour < 6) {
+        // El viaje termina en madrugada: el inicio del último día es medianoche
+        return DateTime(fechaBase.year, fechaBase.month, fechaBase.day, 0, 0);
+      }
+    }
+
     // Otros días: 6:00 AM por defecto
     return DateTime(fechaBase.year, fechaBase.month, fechaBase.day, 6, 0);
   }
@@ -90,14 +101,15 @@ class ItineraryBuilderState extends Equatable {
   DateTime get horaFinDia {
     DateTime candidata;
     final fechaBase = fechaBaseDiaActual;
+    // ✨ FIX: Rastrear si candidata viene de horaFinViaje (fuente de verdad absoluta)
+    bool esHoraFinViaje = false;
+    // ✨ FIX: Rastrear si candidata fue limitada al tope del día (23:59)
+    // para que el GUARD no la empuje al día siguiente.
+    bool esTopeDia = false;
 
     // Primero: ¿el usuario personalizó este día?
     if (horasFinPorDia.containsKey(diaSeleccionadoIndex)) {
       final personalizada = horasFinPorDia[diaSeleccionadoIndex]!;
-      // Mantener fecha base (cuidado con cruce de medianoche si personalizada < inicio)
-      // Por simplicidad, asumimos que personalizada ya viene con fecha o solo importa la hora
-      // Si personalizada viene del TimePicker, trae fecha de hoy.
-      // Mejor reconstruir:
       candidata = DateTime(
         fechaBase.year,
         fechaBase.month,
@@ -105,25 +117,30 @@ class ItineraryBuilderState extends Equatable {
         personalizada.hour,
         personalizada.minute,
       );
-      // Ajuste básico si es AM y debería ser día siguiente (opcional, depende de UX)
     }
-    // Último día (o único día): usar hora de fin del viaje si existe (y corresponde al día)
+    // Último día (o único día): usar hora de fin del viaje si existe
     else if (diaSeleccionadoIndex == totalDias - 1 && horaFinViaje != null) {
       candidata = horaFinViaje!;
+      esHoraFinViaje = true; // fuente de verdad absoluta, nunca sobreescribir
     }
     // Día 1 (si NO es el último día) sin personalización: usar horaInicioViaje + 2h
     // para evitar que el default de 10PM quede por debajo de una hora de inicio tardía.
     else if (diaSeleccionadoIndex == 0 && horaInicioViaje != null) {
       final sugerida = horaInicioViaje!.add(const Duration(hours: 2));
-      // Si pasa de las 23:59, usar 23:59 como tope del MISMO día base
-      if (sugerida.day > horaInicioViaje!.day) {
-        candidata = DateTime(
-          horaInicioViaje!.year,
-          horaInicioViaje!.month,
-          horaInicioViaje!.day,
-          23,
-          59,
-        );
+      // Si pasa de las 23:59, usar 23:59 como tope del MISMO día base.
+      // ✨ FIX: Comparar usando fecha completa, no solo .day (evita bug fin de mes).
+      // También marcamos esTopeDia=true para que el GUARD no la empuje al día siguiente.
+      final topeDia = DateTime(
+        horaInicioViaje!.year,
+        horaInicioViaje!.month,
+        horaInicioViaje!.day,
+        23,
+        59,
+      );
+      if (sugerida.isAfter(topeDia)) {
+        candidata = topeDia;
+        esTopeDia =
+            true; // ✨ FIX: ya es el máximo posible, no cruzar medianoche
       } else {
         candidata = sugerida;
       }
@@ -140,9 +157,14 @@ class ItineraryBuilderState extends Equatable {
     }
 
     // 🛡️ GUARD: horaFin NUNCA puede ser <= horaInicio (seguridad final)
-    final inicio = horaInicioDia;
-    if (!candidata.isAfter(inicio)) {
-      return inicio.add(const Duration(hours: 2));
+    // ✨ FIX: NO aplicar el guard si:
+    //   - candidata viene de horaFinViaje (fuente de verdad del formulario), O
+    //   - candidata ya fue limitada al tope del día (23:59): empujarla más cruzaría medianoche.
+    if (!esHoraFinViaje && !esTopeDia) {
+      final inicio = horaInicioDia;
+      if (!candidata.isAfter(inicio)) {
+        return inicio.add(const Duration(hours: 2));
+      }
     }
     return candidata;
   }
@@ -201,6 +223,26 @@ class ItineraryBuilderState extends Equatable {
       ultima.horaFin.day,
     );
     return finYMD.isAfter(fechaBase);
+  }
+
+  // ✨ Getter: actividad nocturna del día anterior que continúa en el día actual
+  // Devuelve la ActividadItinerario del día anterior si su horaFin cae dentro del día actual.
+  // Esto permite a la UI mostrar una "tarjeta de continuación" en el día siguiente.
+  ActividadItinerario? get actividadNocturnaDelDiaAnterior {
+    if (diaSeleccionadoIndex == 0) return null; // No hay día anterior
+
+    final actividadesAyer = actividadesPorDia[diaSeleccionadoIndex - 1] ?? [];
+    if (actividadesAyer.isEmpty) return null;
+
+    final ultimaAyer = actividadesAyer.last;
+    final fechaBaseHoy = fechaBaseDiaActual;
+
+    // La actividad es "nocturna que continúa hoy" si su horaFin es posterior al inicio del día actual
+    // (es decir, termina en la madrugada de hoy)
+    if (ultimaAyer.horaFin.isAfter(fechaBaseHoy)) {
+      return ultimaAyer;
+    }
+    return null;
   }
 
   // ¿El modo horas extra está activo para el día actual?

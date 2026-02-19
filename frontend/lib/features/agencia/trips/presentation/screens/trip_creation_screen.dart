@@ -716,16 +716,16 @@ class _TripCreationForm extends StatelessWidget {
     String label,
     TimeOfDay? val,
     Function(TimeOfDay) onPick, {
-    TimeOfDay? minTime, // Parámetro opcional para hora mínima
-    DateTime?
-    selectedDate, // ✨ NUEVO: Fecha seleccionada para validar si es hoy
-    bool disabled = false, // Parámetro para deshabilitar el campo
+    TimeOfDay? minTime,
+    DateTime? selectedDate,
+    bool disabled = false,
+    // ✨ NUEVO: Callback opcional para personalizar el modal de error de minTime
+    VoidCallback? onMinTimeError,
   }) {
     return InkWell(
       onTap:
           disabled
               ? () {
-                // Mostrar modal explicando por qué está deshabilitado
                 _showTimeRequiredModal(context);
               }
               : () async {
@@ -733,7 +733,6 @@ class _TripCreationForm extends StatelessWidget {
                   context: context,
                   initialTime: val ?? TimeOfDay.now(),
                   builder: (context, child) {
-                    // FUERZA FORMATO 12 HORAS (AM/PM) VISUALMENTE
                     return MediaQuery(
                       data: MediaQuery.of(
                         context,
@@ -744,7 +743,6 @@ class _TripCreationForm extends StatelessWidget {
                 );
 
                 if (t != null) {
-                  // ✨ VALIDACIÓN MEJORADA: Verificar si la fecha es hoy y la hora es pasada
                   final now = DateTime.now();
                   final isToday =
                       selectedDate != null &&
@@ -753,7 +751,6 @@ class _TripCreationForm extends StatelessWidget {
                       selectedDate.day == now.day;
 
                   if (isToday) {
-                    // Si es hoy, validar contra la hora actual
                     final currentTime = TimeOfDay.now();
                     final selectedMinutes = t.hour * 60 + t.minute;
                     final currentMinutes =
@@ -762,30 +759,34 @@ class _TripCreationForm extends StatelessWidget {
                     if (selectedMinutes <= currentMinutes) {
                       // ignore: use_build_context_synchronously
                       _showPastTimeErrorModal(context);
-                      return; // No guardamos el valor inválido
+                      return;
                     }
                   }
 
-                  // VALIDACIÓN DE LÓGICA HORARIA (Solo aplica si minTime existe)
+                  // Validación de minTime: usar callback personalizado si existe
                   if (minTime != null) {
                     final double selected = t.hour + t.minute / 60.0;
                     final double min = minTime.hour + minTime.minute / 60.0;
 
                     if (selected <= min) {
                       // ignore: use_build_context_synchronously
-                      _showTimeErrorModal(context);
-                      return; // No guardamos el valor inválido
+                      if (onMinTimeError != null) {
+                        onMinTimeError();
+                      } else {
+                        // ignore: use_build_context_synchronously
+                        _showTimeErrorModal(context);
+                      }
+                      return;
                     }
                   }
                   onPick(t);
                 }
               },
       child: InputDecorator(
-        decoration: _inputDecoration(label, Icons.access_time).copyWith(
-          // Cambiar estilo si está deshabilitado
-          enabled: !disabled,
-        ),
-        // Muestra AM/PM en el texto del input
+        decoration: _inputDecoration(
+          label,
+          Icons.access_time,
+        ).copyWith(enabled: !disabled),
         child: Text(
           val != null ? val.format(context) : "--:-- --",
           style: TextStyle(
@@ -1063,6 +1064,42 @@ class _TripCreationForm extends StatelessWidget {
   }
 
   // --- MODAL: ERROR DE VALIDACIÓN DE HORA ---
+  // ✨ NUEVO: Modal cuando el viaje no tiene mínimo 2 horas de duración
+  void _showMinDurationModal(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            icon: const Icon(
+              Icons.timelapse_rounded,
+              color: Colors.orange,
+              size: 48,
+            ),
+            title: const Text(
+              'Duración insuficiente',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: const Text(
+              'El viaje debe tener al menos 2 horas de duración para poder agregar actividades al itinerario.\n\nPor favor elige una hora de fin más tarde.',
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              Center(
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Entendido'),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
   void _showTimeErrorModal(BuildContext context) {
     showDialog(
       context: context,
@@ -2188,11 +2225,24 @@ class _TripCreationForm extends StatelessWidget {
                   context,
                   "Fin",
                   state.horaFin,
-                  (t) => cubit.setHoraFin(t),
-                  minTime: state.horaInicio, // Regla 2: Fin > Inicio
-                  disabled:
-                      state.horaInicio ==
-                      null, // Deshabilitar si no hay hora de inicio
+                  (t) {
+                    // ✨ Validación adicional: mínimo 2 horas de diferencia
+                    // (minTime ya filtró que t > horaInicio, aquí chequeamos el gap)
+                    if (state.horaInicio != null) {
+                      final inicioMin =
+                          state.horaInicio!.hour * 60 +
+                          state.horaInicio!.minute;
+                      final finMin = t.hour * 60 + t.minute;
+                      if ((finMin - inicioMin) < 120) {
+                        _showMinDurationModal(context);
+                        return;
+                      }
+                    }
+                    cubit.setHoraFin(t);
+                  },
+                  // minTime = horaInicio: detecta si fin es antes que inicio
+                  minTime: state.horaInicio,
+                  disabled: state.horaInicio == null,
                 ),
               ),
             ],
@@ -2289,7 +2339,34 @@ class _TripCreationForm extends StatelessWidget {
                       context,
                       "A las...",
                       state.horaFin,
-                      (t) => cubit.setHoraFin(t),
+                      (t) {
+                        // ✨ NUEVO: Validar mínimo 2 horas en multi-día
+                        // (la diferencia involucra fechas distintas)
+                        if (state.fechaInicio != null &&
+                            state.fechaFin != null &&
+                            state.horaInicio != null) {
+                          final inicio = DateTime(
+                            state.fechaInicio!.year,
+                            state.fechaInicio!.month,
+                            state.fechaInicio!.day,
+                            state.horaInicio!.hour,
+                            state.horaInicio!.minute,
+                          );
+                          final fin = DateTime(
+                            state.fechaFin!.year,
+                            state.fechaFin!.month,
+                            state.fechaFin!.day,
+                            t.hour,
+                            t.minute,
+                          );
+                          if (fin.difference(inicio).inMinutes < 120) {
+                            _showMinDurationModal(context);
+                            return; // No guardar hora inválida
+                          }
+                        }
+                        cubit.setHoraFin(t);
+                      },
+                      disabled: state.fechaFin == null,
                     ),
                   ),
                 ],
