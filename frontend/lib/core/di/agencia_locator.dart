@@ -1,5 +1,5 @@
 import 'package:frontend/core/di/service_locator.dart';
-import 'package:frontend/features/agencia/shared/data/datasources/mock_agencia_datasource.dart';
+
 import 'package:frontend/features/agencia/shared/data/datasources/agencia_datasource.dart';
 import 'package:frontend/features/agencia/auth/data/repositories/auth_repository_impl.dart';
 import 'package:frontend/features/agencia/auth/domain/repositories/auth_repository.dart';
@@ -13,6 +13,7 @@ import 'package:frontend/features/agencia/trips/domain/repositories/trip_reposit
 import 'package:frontend/features/agencia/trips/presentation/blocs/viajes/viajes_bloc.dart';
 import 'package:frontend/features/agencia/trips/presentation/blocs/detalle_viaje/detalle_viaje_bloc.dart';
 import 'package:frontend/features/agencia/trips/presentation/blocs/trip_creation/trip_creation_cubit.dart';
+import 'package:frontend/features/agencia/trips/presentation/blocs/itinerary_builder/itinerary_builder_cubit.dart';
 import 'package:frontend/features/agencia/users/data/repositories/user_repository_impl.dart';
 import 'package:frontend/features/agencia/users/domain/repositories/user_repository.dart';
 import 'package:frontend/features/agencia/users/presentation/blocs/usuarios/usuarios_bloc.dart';
@@ -25,7 +26,7 @@ Future<void> initAgenciaDependencies() async {
   // ====================================================
   // 1. DATA SOURCES (Fuentes de datos compartidas)
   // ====================================================
-  sl.registerLazySingleton(() => MockAgenciaDataSource());
+
   sl.registerLazySingleton<AgenciaDataSource>(
     () => AgenciaMockDataSourceImpl(sl()),
   );
@@ -71,7 +72,20 @@ Future<void> initAgenciaDependencies() async {
   // Trips
   sl.registerFactory(() => ViajesBloc(repository: sl()));
   sl.registerFactory(() => DetalleViajeBloc(repository: sl()));
-  sl.registerFactory(() => TripCreationCubit(repository: sl()));
+  sl.registerFactory(
+    () => TripCreationCubit(
+      repository: sl(),
+      localDataSource: sl(),
+      unsavedChangesService: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => ItineraryBuilderCubit(
+      repository: sl(),
+      localDataSource: sl(),
+      unsavedChangesService: sl(),
+    ),
+  );
 
   // Users
   sl.registerFactory(() => UsuariosBloc(repository: sl()));

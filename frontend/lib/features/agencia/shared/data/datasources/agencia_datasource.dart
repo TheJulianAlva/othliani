@@ -18,6 +18,7 @@ abstract class AgenciaDataSource {
   // New methods for User Management
   Future<List<Guia>> getGuias();
   Future<List<Turista>> getTuristas();
+  Future<void> addViaje(Viaje viaje); // ✨ FASE 12: Transactional Save
 }
 
 class AgenciaMockDataSourceImpl implements AgenciaDataSource {
@@ -85,5 +86,10 @@ class AgenciaMockDataSourceImpl implements AgenciaDataSource {
   @override
   Future<List<Turista>> getTuristas() {
     return db.getAllTuristas();
+  }
+
+  @override
+  Future<void> addViaje(Viaje viaje) {
+    return db.addViaje(viaje); // ✨ Delegar al mock real
   }
 }

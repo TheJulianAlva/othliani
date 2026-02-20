@@ -1872,4 +1872,15 @@ class MockAgenciaDataSource {
     await Future.delayed(const Duration(milliseconds: 600));
     return _turistas;
   }
+
+  // ✨ FASE 12: Transactional Save - Simulation
+  Future<void> addViaje(Viaje viaje) async {
+    await Future.delayed(const Duration(seconds: 1)); // Simular red
+    // Insertar al inicio para que aparezca primero en la lista
+    _viajes.insert(0, viaje);
+    // ignore: avoid_print
+    print(
+      "💾 VIAJE GUARDADO: ${viaje.destino} con ${viaje.itinerario.length} actividades.",
+    );
+  }
 }

@@ -85,7 +85,6 @@ class TripRepositoryImpl implements TripRepository {
 
   @override
   Future<void> crearViaje(Viaje viaje) async {
-    // await dataSource.createViaje(viaje); // Pending datasource implementation
-    await Future.delayed(const Duration(seconds: 1));
+    await dataSource.addViaje(viaje); // ✨ FASE 12: Delegar al datasource
   }
 }

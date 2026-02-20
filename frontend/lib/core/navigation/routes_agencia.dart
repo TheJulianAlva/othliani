@@ -10,6 +10,7 @@ class RoutesAgencia {
   static const String viajes = '/viajes';
   static const String detalleViaje = 'detalle'; // Sub-ruta: /viajes/:id
   static const String nuevoViaje = 'nuevo';
+  static const String itineraryBuilder = 'itinerary-builder'; // ✨ Nueva ruta
 
   static const String usuarios = '/usuarios'; // Con tabs ?tab=guias
 

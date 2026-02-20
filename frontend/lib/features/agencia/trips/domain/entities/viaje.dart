@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'actividad_itinerario.dart';
 
 class Viaje extends Equatable {
   final String id;
@@ -15,6 +16,9 @@ class Viaje extends Equatable {
   final String horaInicio; // Ej: "08:30 AM"
   final int alertasActivas;
 
+  // ✨ NUEVO CAMPO: Lista completa de actividades
+  final List<ActividadItinerario> itinerario;
+
   const Viaje({
     required this.id,
     required this.destino,
@@ -27,6 +31,7 @@ class Viaje extends Equatable {
     this.guiaNombre = 'Sin asignar',
     this.horaInicio = '--:--',
     this.alertasActivas = 0,
+    this.itinerario = const [],
   });
 
   // Helper para saber la duración (Ej: "4 horas" o "3 días")
@@ -37,6 +42,36 @@ class Viaje extends Equatable {
     } else {
       return "${diff.inDays} días";
     }
+  }
+
+  Viaje copyWith({
+    String? id,
+    String? destino,
+    String? estado,
+    DateTime? fechaInicio,
+    DateTime? fechaFin,
+    int? turistas,
+    double? latitud,
+    double? longitud,
+    String? guiaNombre,
+    String? horaInicio,
+    int? alertasActivas,
+    List<ActividadItinerario>? itinerario,
+  }) {
+    return Viaje(
+      id: id ?? this.id,
+      destino: destino ?? this.destino,
+      estado: estado ?? this.estado,
+      fechaInicio: fechaInicio ?? this.fechaInicio,
+      fechaFin: fechaFin ?? this.fechaFin,
+      turistas: turistas ?? this.turistas,
+      latitud: latitud ?? this.latitud,
+      longitud: longitud ?? this.longitud,
+      guiaNombre: guiaNombre ?? this.guiaNombre,
+      horaInicio: horaInicio ?? this.horaInicio,
+      alertasActivas: alertasActivas ?? this.alertasActivas,
+      itinerario: itinerario ?? this.itinerario,
+    );
   }
 
   // Equatable nos permite comparar si dos viajes son iguales por sus datos
@@ -53,5 +88,6 @@ class Viaje extends Equatable {
     guiaNombre,
     horaInicio,
     alertasActivas,
+    itinerario,
   ];
 }
