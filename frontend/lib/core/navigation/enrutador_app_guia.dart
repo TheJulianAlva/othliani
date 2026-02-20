@@ -1,31 +1,62 @@
 import 'package:go_router/go_router.dart';
-import 'package:frontend/presentation_guia/screens/pantalla_login_guia.dart';
-import 'package:frontend/presentation_guia/screens/pantalla_registro_guia.dart';
-import 'package:frontend/presentation_guia/screens/pantalla_inicio_guia.dart';
-import 'package:frontend/presentation_guia/screens/pantalla_mapa_guia.dart';
-import 'package:frontend/presentation_guia/screens/pantalla_chat_guia.dart';
-import 'package:frontend/presentation_guia/screens/pantalla_alertas_guia.dart';
-import 'package:frontend/presentation_guia/screens/pantalla_perfil_guia.dart';
-import 'package:frontend/presentation_guia/screens/pantalla_itinerario_guia.dart';
-import 'package:frontend/presentation_guia/screens/pantalla_lista_participantes.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/guia_onboarding_screen.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/guia_login_screen.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/guia_recover_password_screen.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/guia_email_confirmation_screen.dart';
+import 'package:frontend/features/guia/shared/screens/guia_register_screen.dart';
+import 'package:frontend/features/guia/shared/screens/guia_home_screen.dart';
+import 'package:frontend/features/guia/shared/screens/guia_map_screen.dart';
+import 'package:frontend/features/guia/shared/screens/guia_chat_screen.dart';
+import 'package:frontend/features/guia/shared/screens/guia_alerts_screen.dart';
+import 'package:frontend/features/guia/shared/screens/guia_profile_screen.dart';
+import 'package:frontend/features/guia/shared/screens/guia_itinerary_screen.dart';
+import 'package:frontend/features/guia/shared/screens/guia_participants_screen.dart';
 import 'routes_guia.dart';
-import 'transitions.dart'; // Reusing transitions from tourist app if available, otherwise I might need to create it or import from core
-
-// Assuming transitions.dart is in the same folder or I need to check where it is.
-// It was imported as 'transitions.dart' in tourist router, so it should be in lib/core/navigation/transitions.dart
+import 'transitions.dart';
 
 class EnrutadorAppGuia {
   static GoRouter createRouter(String initialLocation) {
     return GoRouter(
       initialLocation: initialLocation,
       routes: [
+        // ── Autenticación (Clean Architecture) ──────────────────────────
+        GoRoute(
+          path: RoutesGuia.onboarding,
+          name: 'guia_onboarding',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const GuiaOnboardingScreen(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
         GoRoute(
           path: RoutesGuia.login,
           name: 'guia_login',
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const LoginScreenGuia(),
+                child: const GuiaLoginScreen(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.forgotPassword,
+          name: 'guia_forgot_password',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const GuiaRecoverPasswordScreen(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.emailConfirmation,
+          name: 'guia_email_confirmation',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const GuiaEmailConfirmationScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
@@ -35,17 +66,19 @@ class EnrutadorAppGuia {
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const RegisterScreenGuia(),
+                child: const GuiaRegisterScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
+
+        // ── Pantallas principales ────────────────────────────────────────
         GoRoute(
           path: RoutesGuia.home,
           name: 'guia_home',
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const HomeScreenGuia(),
+                child: const GuiaHomeScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
@@ -55,7 +88,7 @@ class EnrutadorAppGuia {
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const MapScreenGuia(),
+                child: const GuiaMapScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
@@ -65,7 +98,7 @@ class EnrutadorAppGuia {
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const ChatScreenGuia(),
+                child: const GuiaChatScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
@@ -75,7 +108,7 @@ class EnrutadorAppGuia {
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const AlertsScreenGuia(),
+                child: const GuiaAlertsScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
@@ -85,7 +118,7 @@ class EnrutadorAppGuia {
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const ProfileScreenGuia(),
+                child: const GuiaProfileScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
@@ -95,7 +128,7 @@ class EnrutadorAppGuia {
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const ItineraryScreenGuia(),
+                child: const GuiaItineraryScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
@@ -105,7 +138,7 @@ class EnrutadorAppGuia {
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const ParticipantsScreenGuia(),
+                child: const GuiaParticipantsScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),

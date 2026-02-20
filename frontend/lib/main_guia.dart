@@ -5,6 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/di/service_locator.dart';
+import 'core/di/guia_locator.dart';
 import 'core/navigation/enrutador_app_guia.dart';
 import 'core/navigation/routes_guia.dart';
 import 'core/theme/app_theme.dart';
@@ -16,13 +18,23 @@ import 'core/providers/accessibility_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Inicializar inyección de dependencias
+  await initSharedDependencies();
+  await initGuiaDependencies();
+
   final prefs = await SharedPreferences.getInstance();
+  final onboardingCompletado = prefs.getBool('GUIA_ONBOARDING_DONE') ?? false;
   final isLoggedIn = prefs.getBool('isLoggedInGuia') ?? false;
 
   String initialRoute;
-  if (!isLoggedIn) {
+  if (!onboardingCompletado) {
+    // Primera vez o onboarding incompleto → mostrar onboarding
+    initialRoute = RoutesGuia.onboarding;
+  } else if (!isLoggedIn) {
+    // Onboarding completado pero sin sesión → login
     initialRoute = RoutesGuia.login;
   } else {
+    // Sesión activa → pantalla principal
     initialRoute = RoutesGuia.home;
   }
 

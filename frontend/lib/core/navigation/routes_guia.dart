@@ -1,7 +1,9 @@
 class RoutesGuia {
+  static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+  static const String emailConfirmation = '/email-confirmation';
   static const String home = '/home';
   static const String map = '/map';
   static const String chat = '/chat';
