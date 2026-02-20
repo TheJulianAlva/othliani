@@ -5,15 +5,24 @@ class GuiaUserModel extends GuiaUser {
     required super.id,
     required super.email,
     required super.name,
+    super.phone,
+    super.emergencyContact,
     super.permissionLevel,
+    super.authStatus,
   });
 
   factory GuiaUserModel.fromJson(Map<String, dynamic> json) {
     return GuiaUserModel(
-      id: json['id'],
-      email: json['email'],
-      name: json['name'],
-      permissionLevel: json['permissionLevel'] ?? 1,
+      id: json['id'] as String,
+      email: json['email'] as String,
+      name: json['name'] as String,
+      phone: json['phone'] as String?,
+      emergencyContact: json['emergencyContact'] as String?,
+      permissionLevel: json['permissionLevel'] as int? ?? 1,
+      authStatus: AuthStatus.values.firstWhere(
+        (e) => e.name == (json['authStatus'] as String? ?? 'unauthenticated'),
+        orElse: () => AuthStatus.unauthenticated,
+      ),
     );
   }
 
@@ -22,7 +31,10 @@ class GuiaUserModel extends GuiaUser {
       'id': id,
       'email': email,
       'name': name,
+      'phone': phone,
+      'emergencyContact': emergencyContact,
       'permissionLevel': permissionLevel,
+      'authStatus': authStatus.name,
     };
   }
 }

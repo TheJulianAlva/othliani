@@ -3,9 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
-import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/guia/auth/presentation/cubit/guia_login_cubit.dart';
-import 'package:frontend/features/guia/auth/presentation/cubit/guia_login_state.dart';
 
 class GuiaLoginScreen extends StatelessWidget {
   const GuiaLoginScreen({super.key});
@@ -31,12 +29,13 @@ class _GuiaLoginViewState extends State<_GuiaLoginView> {
     text: 'juanmorales@outlook.com',
   );
   final _passwordController = TextEditingController(text: '************');
-  bool _ocultarPassword = true;
+  final _ocultarPassword = ValueNotifier<bool>(true);
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _ocultarPassword.dispose();
     super.dispose();
   }
 
@@ -83,7 +82,6 @@ class _GuiaLoginViewState extends State<_GuiaLoginView> {
           automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          foregroundColor: AppColors.textPrimary,
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -92,12 +90,10 @@ class _GuiaLoginViewState extends State<_GuiaLoginView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 40),
-                const Text(
+                Text(
                   'Iniciar sesión',
-                  style: TextStyle(
-                    fontSize: 24,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                   textAlign: TextAlign.left,
                 ),
@@ -109,24 +105,26 @@ class _GuiaLoginViewState extends State<_GuiaLoginView> {
                   teclado: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 16),
-                _buildCampoTexto(
-                  'Contraseña:',
-                  _passwordController,
-                  hint: '************',
-                  ocultarTexto: _ocultarPassword,
-                  sufijo: IconButton(
-                    icon: Icon(
-                      _ocultarPassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: AppColors.textSecondary,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _ocultarPassword = !_ocultarPassword;
-                      });
-                    },
-                  ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _ocultarPassword,
+                  builder:
+                      (_, ocultar, __) => _buildCampoTexto(
+                        'Contraseña:',
+                        _passwordController,
+                        hint: '************',
+                        ocultarTexto: ocultar,
+                        sufijo: IconButton(
+                          icon: Icon(
+                            ocultar ? Icons.visibility_off : Icons.visibility,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                          onPressed:
+                              () =>
+                                  _ocultarPassword.value =
+                                      !_ocultarPassword.value,
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 30),
                 // Botón principal: Ingresar
@@ -149,14 +147,14 @@ class _GuiaLoginViewState extends State<_GuiaLoginView> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(
-                    onPressed: () => context.go(RoutesGuia.forgotPassword),
+                    onPressed: () => context.push(RoutesGuia.forgotPassword),
                     child: const Text('Olvide mi contraseña'),
                   ),
                 ),
                 const SizedBox(height: 8),
                 // Botón: Registrarse
                 OutlinedButton(
-                  onPressed: () => context.go(RoutesGuia.register),
+                  onPressed: () => context.push(RoutesGuia.register),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
                   ),
@@ -192,7 +190,9 @@ class _GuiaLoginViewState extends State<_GuiaLoginView> {
       children: [
         Text(
           etiqueta,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 4),
         TextField(

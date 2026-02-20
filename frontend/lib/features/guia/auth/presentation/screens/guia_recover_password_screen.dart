@@ -3,9 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
-import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/guia/auth/presentation/cubit/guia_forgot_password_cubit.dart';
-import 'package:frontend/features/guia/auth/presentation/cubit/guia_forgot_password_state.dart';
 
 class GuiaRecoverPasswordScreen extends StatelessWidget {
   const GuiaRecoverPasswordScreen({super.key});
@@ -59,7 +57,7 @@ class _GuiaRecoverPasswordViewState extends State<_GuiaRecoverPasswordView> {
     return BlocListener<GuiaForgotPasswordCubit, GuiaForgotPasswordState>(
       listener: (context, state) {
         if (state is GuiaForgotPasswordSuccess) {
-          context.go(RoutesGuia.emailConfirmation);
+          context.push(RoutesGuia.emailConfirmation);
         } else if (state is GuiaForgotPasswordFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
@@ -70,11 +68,10 @@ class _GuiaRecoverPasswordViewState extends State<_GuiaRecoverPasswordView> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.go(RoutesGuia.login),
+            onPressed: () => context.pop(),
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          foregroundColor: AppColors.textPrimary,
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -83,12 +80,10 @@ class _GuiaRecoverPasswordViewState extends State<_GuiaRecoverPasswordView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 40),
-                const Text(
+                Text(
                   'Ingresa tu correo\nelectrónico',
-                  style: TextStyle(
-                    fontSize: 24,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
                   textAlign: TextAlign.left,
                 ),
@@ -98,10 +93,7 @@ class _GuiaRecoverPasswordViewState extends State<_GuiaRecoverPasswordView> {
                   children: [
                     const Text(
                       'Correo electrónico:',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
+                      style: TextStyle(fontSize: 12),
                     ),
                     const SizedBox(height: 4),
                     TextField(

@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:frontend/core/navigation/routes_guia.dart';
-import 'package:frontend/core/theme/app_colors.dart';
 
 class GuiaEmailConfirmationScreen extends StatefulWidget {
   const GuiaEmailConfirmationScreen({super.key});
@@ -84,11 +82,10 @@ class _GuiaEmailConfirmationScreenState
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(RoutesGuia.login),
+          onPressed: () => context.pop(),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(
         child: Padding(
@@ -97,12 +94,10 @@ class _GuiaEmailConfirmationScreenState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40),
-              const Text(
+              Text(
                 'Se ha enviado un\ncorreo de\nrestablecimiento.',
-                style: TextStyle(
-                  fontSize: 24,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
                 ),
                 textAlign: TextAlign.left,
               ),
@@ -110,7 +105,7 @@ class _GuiaEmailConfirmationScreenState
               // Tiempo de espera
               Text(
                 'Tiempo de espera:',
-                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
@@ -118,18 +113,16 @@ class _GuiaEmailConfirmationScreenState
                 _segundosRestantes > 0
                     ? '$_segundosRestantes segundos:'
                     : '0 segundos:',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               // Mensaje de no recibido
               Text(
                 '¿No se ha enviado el mensaje?',
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -152,7 +145,7 @@ class _GuiaEmailConfirmationScreenState
               const SizedBox(height: 24),
               // Botón volver al login
               TextButton(
-                onPressed: () => context.go(RoutesGuia.login),
+                onPressed: () => context.pop(),
                 child: const Text('Volver al inicio de sesión'),
               ),
             ],

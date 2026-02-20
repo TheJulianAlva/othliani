@@ -3,7 +3,12 @@ import 'package:frontend/features/guia/auth/presentation/screens/guia_onboarding
 import 'package:frontend/features/guia/auth/presentation/screens/guia_login_screen.dart';
 import 'package:frontend/features/guia/auth/presentation/screens/guia_recover_password_screen.dart';
 import 'package:frontend/features/guia/auth/presentation/screens/guia_email_confirmation_screen.dart';
-import 'package:frontend/features/guia/shared/screens/guia_register_screen.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/guia_email_verification_screen.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/guia_subscription_picker_screen.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/guia_mock_payment_screen.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/guia_payment_success_screen.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/guia_register_screen.dart';
+
 import 'package:frontend/features/guia/shared/screens/guia_home_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_map_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_chat_screen.dart';
@@ -67,6 +72,51 @@ class EnrutadorAppGuia {
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
                 child: const GuiaRegisterScreen(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.emailVerification,
+          name: 'guia_email_verification',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const GuiaEmailVerificationScreen(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.subscriptionPicker,
+          name: 'guia_subscription_picker',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const GuiaSubscriptionPickerScreen(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.mockPayment,
+          name: 'guia_mock_payment',
+          pageBuilder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            return CustomTransitionPage(
+              key: state.pageKey,
+              child: GuiaMockPaymentScreen(
+                plan: extra['plan'] as String? ?? 'Pro',
+                precio: (extra['precio'] as num?)?.toDouble() ?? 19.0,
+              ),
+              transitionsBuilder: fadeSlideTransition,
+            );
+          },
+        ),
+        GoRoute(
+          path: RoutesGuia.paymentSuccess,
+          name: 'guia_payment_success',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const GuiaPaymentSuccessScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
