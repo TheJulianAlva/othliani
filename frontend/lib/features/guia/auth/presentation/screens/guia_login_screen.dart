@@ -57,12 +57,7 @@ class _GuiaLoginViewState extends State<_GuiaLoginView> {
   }
 
   void _onTengoAgencia(BuildContext context) {
-    // Stub: flujo de autenticación por token de agencia
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Inicio de sesión con agencia próximamente disponible'),
-      ),
-    );
+    context.push(RoutesGuia.agencyFolio);
   }
 
   @override

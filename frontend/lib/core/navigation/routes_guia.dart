@@ -9,6 +9,9 @@ class RoutesGuia {
   static const String subscriptionPicker = '/subscription-picker';
   static const String mockPayment = '/mock-payment';
   static const String paymentSuccess = '/payment-success';
+  // B2B Agency flow
+  static const String agencyFolio = '/agency-folio';
+  static const String agencyPhone = '/agency-phone';
   // App screens
   static const String home = '/home';
   static const String map = '/map';
@@ -17,4 +20,5 @@ class RoutesGuia {
   static const String profile = '/profile';
   static const String itinerary = '/itinerary';
   static const String participants = '/participants';
+  static const String converter = '/tools/converter';
 }

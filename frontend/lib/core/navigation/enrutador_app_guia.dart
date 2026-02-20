@@ -8,14 +8,20 @@ import 'package:frontend/features/guia/auth/presentation/screens/guia_subscripti
 import 'package:frontend/features/guia/auth/presentation/screens/guia_mock_payment_screen.dart';
 import 'package:frontend/features/guia/auth/presentation/screens/guia_payment_success_screen.dart';
 import 'package:frontend/features/guia/auth/presentation/screens/guia_register_screen.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/pantalla_folio_agencia.dart';
+import 'package:frontend/features/guia/auth/presentation/screens/pantalla_telefono_guia.dart';
+import 'package:frontend/core/di/service_locator.dart';
+import 'package:frontend/features/guia/auth/presentation/cubit/guia_agency_login_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:frontend/features/guia/shared/screens/guia_home_screen.dart';
+import 'package:frontend/features/guia/home/presentation/screens/home_wrapper_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_map_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_chat_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_alerts_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_profile_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_itinerary_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_participants_screen.dart';
+import 'package:frontend/features/turista/tools/presentation/screens/currency_converter_screen.dart';
 import 'routes_guia.dart';
 import 'transitions.dart';
 
@@ -121,6 +127,36 @@ class EnrutadorAppGuia {
               ),
         ),
 
+        // ── Flujo B2B: Agencia ───────────────────────────────────────────
+        GoRoute(
+          path: RoutesGuia.agencyFolio,
+          name: 'guia_agency_folio',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: BlocProvider(
+                  create: (_) => sl<GuiaAgencyLoginCubit>(),
+                  child: const PantallaFolioAgencia(),
+                ),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.agencyPhone,
+          name: 'guia_agency_phone',
+          pageBuilder: (context, state) {
+            final folio = state.extra as String? ?? '';
+            return CustomTransitionPage(
+              key: state.pageKey,
+              child: BlocProvider(
+                create: (_) => sl<GuiaAgencyLoginCubit>(),
+                child: PantallaPhoneGuia(folio: folio),
+              ),
+              transitionsBuilder: fadeSlideTransition,
+            );
+          },
+        ),
+
         // ── Pantallas principales ────────────────────────────────────────
         GoRoute(
           path: RoutesGuia.home,
@@ -128,7 +164,7 @@ class EnrutadorAppGuia {
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const GuiaHomeScreen(),
+                child: const HomeWrapperScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
@@ -189,6 +225,16 @@ class EnrutadorAppGuia {
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
                 child: const GuiaParticipantsScreen(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.converter,
+          name: 'guia_converter',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const CurrencyConverterScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),

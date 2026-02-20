@@ -117,4 +117,33 @@ class GuiaAuthRepositoryImpl implements GuiaAuthRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  // ── B2B Agency flow ─────────────────────────────────────────────────────
+
+  @override
+  Future<Either<Failure, void>> verifyAgencyFolio(String folio) async {
+    try {
+      await remoteDataSource.verifyFolio(folio);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, GuiaUser>> loginWithAgencyAccess(
+    String folio,
+    String phone,
+  ) async {
+    try {
+      final userModel = await remoteDataSource.loginWithAgencyAccess(
+        folio,
+        phone,
+      );
+      await localDataSource.cacheGuiaUser(userModel);
+      return Right(userModel);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

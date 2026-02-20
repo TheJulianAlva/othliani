@@ -18,4 +18,11 @@ abstract class GuiaAuthRepository {
   Future<Either<Failure, void>> activateSubscription(
     ActivateSubscriptionGuiaParams params,
   );
+
+  // B2B Agency flow
+  Future<Either<Failure, void>> verifyAgencyFolio(String folio);
+  Future<Either<Failure, GuiaUser>> loginWithAgencyAccess(
+    String folio,
+    String phone,
+  );
 }

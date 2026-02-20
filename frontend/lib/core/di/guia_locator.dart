@@ -18,6 +18,11 @@ import 'package:frontend/features/guia/auth/presentation/cubit/guia_onboarding_c
 import 'package:frontend/features/guia/auth/presentation/cubit/guia_register_cubit.dart';
 import 'package:frontend/features/guia/auth/presentation/cubit/guia_email_verification_cubit.dart';
 import 'package:frontend/features/guia/auth/presentation/cubit/guia_mock_payment_cubit.dart';
+import 'package:frontend/features/guia/auth/presentation/cubit/guia_agency_login_cubit.dart';
+import 'package:frontend/features/guia/auth/domain/usecases/verify_folio_guia_usecase.dart';
+import 'package:frontend/features/guia/auth/domain/usecases/verify_agency_phone_guia_usecase.dart';
+import 'package:frontend/features/guia/home/presentation/blocs/agencia_home_bloc/agencia_home_cubit.dart';
+import 'package:frontend/features/guia/home/presentation/blocs/personal_home_bloc/personal_home_cubit.dart';
 
 Future<void> initGuiaDependencies() async {
   // ====================================================
@@ -56,6 +61,8 @@ Future<void> initGuiaDependencies() async {
   sl.registerLazySingleton(() => LogoutGuiaUseCase(sl()));
   sl.registerLazySingleton(() => CompleteOnboardingGuiaUseCase(sl()));
   sl.registerLazySingleton(() => CheckOnboardingGuiaUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyFolioGuiaUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyAgencyPhoneGuiaUseCase(sl()));
   sl.registerLazySingleton(() => RegisterGuiaUseCase(sl()));
   sl.registerLazySingleton(() => VerifyEmailGuiaUseCase(sl()));
   sl.registerLazySingleton(() => ActivateSubscriptionGuiaUseCase(sl()));
@@ -78,4 +85,14 @@ Future<void> initGuiaDependencies() async {
   sl.registerFactory(
     () => GuiaMockPaymentCubit(activateSubscriptionUseCase: sl()),
   );
+  sl.registerFactory(
+    () => GuiaAgencyLoginCubit(
+      verifyFolioUseCase: sl(),
+      verifyAgencyPhoneUseCase: sl(),
+    ),
+  );
+
+  // Home cubits
+  sl.registerFactory(() => AgenciaHomeCubit());
+  sl.registerFactory(() => PersonalHomeCubit());
 }
