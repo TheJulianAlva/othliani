@@ -173,8 +173,12 @@ class _AgenciaMainLayoutState extends State<AgenciaMainLayout> {
               const SizedBox(height: 8),
               _GeocercaBanner(geocercaRadio: state.geocercaRadio),
               const SizedBox(height: 12),
-              const MapPreviewCard(
-                locationLabel: 'Monitoreo de grupo en tiempo real',
+              GestureDetector(
+                onTap: () => context.push(RoutesGuia.map),
+                child: const MapPreviewCard(
+                  locationLabel:
+                      'Monitoreo de grupo en tiempo real · Toca para abrir',
+                ),
               ),
               const SizedBox(height: 18),
 
@@ -193,9 +197,13 @@ class _AgenciaMainLayoutState extends State<AgenciaMainLayout> {
               // ── Accesos rápidos ────────────────────────────────────────
               _AccesosRapidos(
                 items: [
+                  (Icons.map_rounded, 'Mapa', RoutesGuia.map),
+                  (Icons.route_rounded, 'Gestión', RoutesGuia.itineraryChanges),
                   (Icons.chat_bubble_rounded, 'Chat', RoutesGuia.chat),
-                  (Icons.notifications_rounded, 'Alertas', RoutesGuia.alerts),
                   (Icons.list_alt_rounded, 'Itinerario', RoutesGuia.itinerary),
+                  (Icons.notifications_rounded, 'Alertas', RoutesGuia.alerts),
+                  (Icons.people_rounded, 'Grupo', RoutesGuia.participants),
+                  (Icons.currency_exchange, 'Conversor', RoutesGuia.converter),
                   (Icons.person_rounded, 'Perfil', RoutesGuia.profile),
                 ],
                 accentColor: _azulSecundario,
@@ -418,7 +426,7 @@ class _GeocercaBanner extends StatelessWidget {
             ),
           ),
           TextButton.icon(
-            onPressed: () {},
+            onPressed: () => context.push(RoutesGuia.itineraryChanges),
             icon: const Icon(Icons.edit_rounded, size: 14),
             label: const Text('Solicitar\nmodif.', textAlign: TextAlign.center),
             style: TextButton.styleFrom(

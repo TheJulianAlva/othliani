@@ -127,8 +127,11 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout> {
               // ── Mapa (prioridad visual) ───────────────────────────────
               _SeccionTitulo(titulo: 'Mi ruta'),
               const SizedBox(height: 8),
-              const MapPreviewCard(
-                locationLabel: 'Seguimiento personal en tiempo real',
+              GestureDetector(
+                onTap: () => context.push(RoutesGuia.map),
+                child: const MapPreviewCard(
+                  locationLabel: 'Seguimiento personal · Toca para abrir mapa',
+                ),
               ),
               const SizedBox(height: 10),
 
@@ -146,7 +149,7 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout> {
               _SeccionTituloConAccion(
                 titulo: 'Mi itinerario',
                 accion: '+ Añadir',
-                onAccion: () {},
+                onAccion: () => context.push(RoutesGuia.itineraryChanges),
               ),
               const SizedBox(height: 8),
               _ListaActividades(actividades: state.actividades),
@@ -171,9 +174,13 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout> {
               // ── Accesos rápidos ────────────────────────────────────────
               _AccesosRapidos(
                 items: [
+                  (Icons.map_rounded, 'Mapa', RoutesGuia.map),
+                  (Icons.route_rounded, 'Gestión', RoutesGuia.itineraryChanges),
                   (Icons.list_alt_rounded, 'Itinerario', RoutesGuia.itinerary),
-                  (Icons.people_rounded, 'Grupo', RoutesGuia.participants),
                   (Icons.chat_bubble_rounded, 'Chat', RoutesGuia.chat),
+                  (Icons.currency_exchange, 'Conversor', RoutesGuia.converter),
+                  (Icons.people_rounded, 'Grupo', RoutesGuia.participants),
+                  (Icons.notifications_rounded, 'Alertas', RoutesGuia.alerts),
                   (Icons.person_rounded, 'Perfil', RoutesGuia.profile),
                 ],
                 accentColor: _naranjaSecundario,

@@ -21,4 +21,8 @@ class RoutesGuia {
   static const String itinerary = '/itinerary';
   static const String participants = '/participants';
   static const String converter = '/tools/converter';
+  static const String itineraryChanges = '/itinerary/changes';
+  static const String createPersonalTrip = '/trips/personal/create';
+  static const String sos = '/sos';
+  static const String bitacora = '/bitacora';
 }

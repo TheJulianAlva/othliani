@@ -22,6 +22,10 @@ import 'package:frontend/features/guia/shared/screens/guia_profile_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_itinerary_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_participants_screen.dart';
 import 'package:frontend/features/turista/tools/presentation/screens/currency_converter_screen.dart';
+import 'package:frontend/features/guia/home/presentation/screens/pantalla_gestion_cambios.dart';
+import 'package:frontend/features/guia/trips/presentation/screens/crear_viaje_personal_screen.dart';
+import 'package:frontend/features/guia/home/presentation/screens/sos_alarm_screen.dart';
+import 'package:frontend/features/guia/trips/presentation/screens/expedition_log_screen.dart';
 import 'routes_guia.dart';
 import 'transitions.dart';
 
@@ -235,6 +239,46 @@ class EnrutadorAppGuia {
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
                 child: const CurrencyConverterScreen(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.itineraryChanges,
+          name: 'guia_itinerary_changes',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const PantallaGestionCambios(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.createPersonalTrip,
+          name: 'guia_create_personal_trip',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const CrearViajePersonalScreen(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.sos,
+          name: 'guia_sos',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: SOSAlarmScreen(alerta: state.extra as AlertaSOS?),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.bitacora,
+          name: 'guia_bitacora',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const ExpeditionLogScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),

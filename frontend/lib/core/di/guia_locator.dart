@@ -24,6 +24,14 @@ import 'package:frontend/features/guia/auth/domain/usecases/verify_agency_phone_
 import 'package:frontend/features/guia/home/presentation/blocs/agencia_home_bloc/agencia_home_cubit.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/personal_home_bloc/personal_home_cubit.dart';
 
+// Herramienta de conversor de moneda (compartida con turista)
+import 'package:frontend/features/turista/tools/currency/data/datasources/currency_remote_data_source.dart';
+import 'package:frontend/features/turista/tools/currency/data/repositories/currency_repository_impl.dart';
+import 'package:frontend/features/turista/tools/currency/domain/repositories/currency_repository.dart';
+import 'package:frontend/features/turista/tools/currency/domain/usecases/get_exchange_rates_usecase.dart';
+import 'package:frontend/features/turista/tools/currency/domain/usecases/convert_currency_usecase.dart';
+import 'package:frontend/features/turista/tools/currency/presentation/cubit/currency_cubit.dart';
+
 Future<void> initGuiaDependencies() async {
   // ====================================================
   // 1. FUENTES DE DATOS (Data Layer)
@@ -95,4 +103,33 @@ Future<void> initGuiaDependencies() async {
   // Home cubits
   sl.registerFactory(() => AgenciaHomeCubit());
   sl.registerFactory(() => PersonalHomeCubit());
+
+  // ====================================================
+  // 5. CONVERSOR DE MONEDA (pantalla compartida con turista)
+  //    Registramos solo si no fue ya registrado por turista_locator
+  // ====================================================
+  if (!sl.isRegistered<CurrencyRemoteDataSource>()) {
+    sl.registerLazySingleton<CurrencyRemoteDataSource>(
+      () => CurrencyMockDataSource(),
+    );
+  }
+  if (!sl.isRegistered<CurrencyRepository>()) {
+    sl.registerLazySingleton<CurrencyRepository>(
+      () => CurrencyRepositoryImpl(remoteDataSource: sl()),
+    );
+  }
+  if (!sl.isRegistered<GetExchangeRatesUseCase>()) {
+    sl.registerLazySingleton(() => GetExchangeRatesUseCase(sl()));
+  }
+  if (!sl.isRegistered<ConvertCurrencyUseCase>()) {
+    sl.registerLazySingleton(() => ConvertCurrencyUseCase(sl()));
+  }
+  if (!sl.isRegistered<CurrencyCubit>()) {
+    sl.registerFactory(
+      () => CurrencyCubit(
+        getExchangeRatesUseCase: sl(),
+        convertCurrencyUseCase: sl(),
+      ),
+    );
+  }
 }
