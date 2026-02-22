@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/agencia_home_bloc/agencia_home_cubit.dart';
+import 'package:frontend/features/guia/home/presentation/blocs/eco_mode/eco_mode_cubit.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/sos_button.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/weather_widget.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/map_preview_card.dart';
@@ -140,6 +141,31 @@ class _AgenciaMainLayoutState extends State<AgenciaMainLayout> {
                         count: state.enAlerta,
                         label: 'Alertas',
                         color: Colors.red.shade300,
+                      ),
+                      const SizedBox(width: 8),
+                      // ── Botón Modo Eco ───────────────────────────────
+                      Tooltip(
+                        message: 'Activar Modo Eco',
+                        child: GestureDetector(
+                          onTap:
+                              () =>
+                                  context.read<EcoModeCubit>().enableEcoMode(),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(20),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.white.withAlpha(50),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.battery_saver_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),

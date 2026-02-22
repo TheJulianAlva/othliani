@@ -25,7 +25,9 @@ import 'package:frontend/features/turista/tools/presentation/screens/currency_co
 import 'package:frontend/features/guia/home/presentation/screens/pantalla_gestion_cambios.dart';
 import 'package:frontend/features/guia/trips/presentation/screens/crear_viaje_personal_screen.dart';
 import 'package:frontend/features/guia/home/presentation/screens/sos_alarm_screen.dart';
-import 'package:frontend/features/guia/trips/presentation/screens/expedition_log_screen.dart';
+import 'package:frontend/features/guia/trips/presentation/screens/bitacora_seguridad_screen.dart';
+import 'package:frontend/features/guia/trips/presentation/screens/reporte_fin_viaje_screen.dart';
+import 'package:frontend/features/guia/home/presentation/screens/pantalla_alertas_guia.dart';
 import 'routes_guia.dart';
 import 'transitions.dart';
 
@@ -278,9 +280,54 @@ class EnrutadorAppGuia {
           pageBuilder:
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
-                child: const ExpeditionLogScreen(),
+                child: const BitacoraSeguridadScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
+        ),
+        GoRoute(
+          path: RoutesGuia.reporteFinViaje,
+          name: 'guia_reporte_fin_viaje',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: ReporteFinViajeScreen(
+                  nombreExpedicion:
+                      (state.extra as Map<String, dynamic>?)?['nombre']
+                          as String? ??
+                      'Expedición',
+                  inicio:
+                      (state.extra as Map<String, dynamic>?)?['inicio']
+                          as DateTime?,
+                  turistasPrioridad1:
+                      ((state.extra as Map<String, dynamic>?)?['prioridad1']
+                              as List<dynamic>?)
+                          ?.cast<String>() ??
+                      [],
+                  distanciaKm:
+                      ((state.extra as Map<String, dynamic>?)?['distanciaKm']
+                              as num?)
+                          ?.toDouble() ??
+                      0,
+                ),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        // ── Alerta Turista ───────────────────────────────────────
+        GoRoute(
+          path: RoutesGuia.alertaTurista,
+          name: 'guia_alerta_turista',
+          pageBuilder: (context, state) {
+            final params = state.extra as AlertaTuristaParams;
+            return CustomTransitionPage(
+              key: state.pageKey,
+              child: PantallaAlertasGuia(
+                turista: params.turista,
+                motivoAlerta: params.motivoAlerta,
+                distanciaMetros: params.distanciaMetros,
+              ),
+              transitionsBuilder: fadeSlideTransition,
+            );
+          },
         ),
       ],
     );

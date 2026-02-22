@@ -25,4 +25,6 @@ class RoutesGuia {
   static const String createPersonalTrip = '/trips/personal/create';
   static const String sos = '/sos';
   static const String bitacora = '/bitacora';
+  static const String reporteFinViaje = '/reporte-fin-viaje';
+  static const String alertaTurista = '/alertas-turista';
 }

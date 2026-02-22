@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart';
 import 'package:frontend/features/guia/home/presentation/screens/sos_alarm_screen.dart';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -44,7 +45,12 @@ class MapaMonitoreoWidget extends StatefulWidget {
   final LatLng centroGeocerca;
 
   /// Radio de la geocerca en metros.
+  /// Si se proporciona [tipoGrupo], su radio tiene precedencia.
   final double radioMetros;
+
+  /// Tipo de grupo del viaje — ajusta el radio automáticamente.
+  /// Opcional: si es null se usa [radioMetros] directamente.
+  final TipoGrupo? tipoGrupo;
 
   /// Callback al tocar un marcador (recibe el ID del turista).
   final void Function(String id)? onTuristaTapped;
@@ -53,6 +59,7 @@ class MapaMonitoreoWidget extends StatefulWidget {
     super.key,
     this.centroGeocerca = const LatLng(19.6922, -98.8435), // Teotihuacán (mock)
     this.radioMetros = 300.0,
+    this.tipoGrupo,
     this.onTuristaTapped,
   });
 
@@ -62,6 +69,10 @@ class MapaMonitoreoWidget extends StatefulWidget {
 
 class _MapaMonitoreoWidgetState extends State<MapaMonitoreoWidget> {
   GoogleMapController? _mapController;
+
+  /// Radio efectivo: si el widget recibe [tipoGrupo], su radio tiene prioridad.
+  double get _radioEfectivo =>
+      widget.tipoGrupo?.radioMetros ?? widget.radioMetros;
 
   /// Turistas simulados en el prototipo.
   final List<TuristaEnMapa> _turistas = [
@@ -128,9 +139,9 @@ class _MapaMonitoreoWidgetState extends State<MapaMonitoreoWidget> {
   void _evaluarEstados() {
     for (final t in _turistas) {
       final distancia = _distanciaMetros(widget.centroGeocerca, t.posicion);
-      if (distancia <= widget.radioMetros * 0.75) {
+      if (distancia <= _radioEfectivo * 0.75) {
         t.estado = EstadoGeocerca.seguro; // verde — dentro del 75%
-      } else if (distancia <= widget.radioMetros) {
+      } else if (distancia <= _radioEfectivo) {
         t.estado = EstadoGeocerca.alejado; // naranja — zona límite
       } else {
         t.estado = EstadoGeocerca.alerta; // rojo — fuera de geocerca
@@ -223,7 +234,7 @@ class _MapaMonitoreoWidgetState extends State<MapaMonitoreoWidget> {
     Circle(
       circleId: const CircleId('geocerca_activa'),
       center: widget.centroGeocerca,
-      radius: widget.radioMetros,
+      radius: _radioEfectivo,
       fillColor: AppColors.primary.withAlpha(38), // ~15% opacidad
       strokeColor: AppColors.primary,
       strokeWidth: 2,
@@ -232,7 +243,7 @@ class _MapaMonitoreoWidgetState extends State<MapaMonitoreoWidget> {
     Circle(
       circleId: const CircleId('geocerca_limite'),
       center: widget.centroGeocerca,
-      radius: widget.radioMetros * 0.75,
+      radius: _radioEfectivo * 0.75,
       fillColor: Colors.green.withAlpha(18),
       strokeColor: Colors.green.withAlpha(90),
       strokeWidth: 1,
@@ -266,6 +277,14 @@ class _MapaMonitoreoWidgetState extends State<MapaMonitoreoWidget> {
           left: 12,
           child: _BadgeAlertas(turistas: _turistas),
         ),
+
+        // ── Badge de TipoGrupo (sensibilidad dinámica) ───────────────────────
+        if (widget.tipoGrupo != null)
+          Positioned(
+            top: 12,
+            right: 12,
+            child: _BadgeTipoGrupo(tipoGrupo: widget.tipoGrupo!),
+          ),
       ],
     );
   }
@@ -374,6 +393,54 @@ class _BadgeAlertas extends StatelessWidget {
           Text(
             '✅$seguros  🟠$alejados',
             style: const TextStyle(color: Colors.white, fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Badge de TipoGrupo (sensibilidad dinámica) ────────────────────────────────
+
+class _BadgeTipoGrupo extends StatelessWidget {
+  final TipoGrupo tipoGrupo;
+  const _BadgeTipoGrupo({required this.tipoGrupo});
+
+  Color get _color => switch (tipoGrupo) {
+    TipoGrupo.escolar => Colors.red.shade700,
+    TipoGrupo.familiar => const Color(0xFF1A237E),
+    TipoGrupo.aventuraAdultos => Colors.green.shade700,
+  };
+
+  IconData get _icono => switch (tipoGrupo) {
+    TipoGrupo.escolar => Icons.child_care_rounded,
+    TipoGrupo.familiar => Icons.family_restroom_rounded,
+    TipoGrupo.aventuraAdultos => Icons.hiking_rounded,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: _color,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withAlpha(40), blurRadius: 6),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(_icono, color: Colors.white, size: 13),
+          const SizedBox(width: 5),
+          Text(
+            tipoGrupo.etiqueta,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),

@@ -7,6 +7,9 @@ import 'package:frontend/features/guia/auth/domain/usecases/logout_guia_usecase.
 import 'package:frontend/core/usecase/usecase.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
+import 'package:frontend/features/guia/profile/domain/entities/eco_stats.dart';
+import 'package:frontend/features/guia/profile/data/eco_stats_service.dart';
+import 'package:frontend/features/guia/profile/presentation/widgets/eco_badge_widget.dart';
 
 // ────────────────────────────────────────────────────────────────────────────
 // PANTALLA DE PERFIL Y CONFIGURACIÓN DEL GUÍA
@@ -27,6 +30,10 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
   GuiaUserModel? _user;
   bool _cargando = true;
 
+  // ── Eco Gamificación (solo B2C) ────────────────────────────────────────────
+  EcoStats? _ecoStats;
+  bool _cargandoEco = false;
+
   // Configuración local (mock para el MVP)
   bool _notificacionesActivas = true;
   bool _modoOscuro = false;
@@ -40,6 +47,18 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
     _cargarUsuario();
   }
 
+  Future<void> _cargarEcoStats() async {
+    if (_cargandoEco) return;
+    setState(() => _cargandoEco = true);
+    final stats = await EcoStatsService().obtenerStats();
+    if (mounted) {
+      setState(() {
+        _ecoStats = stats;
+        _cargandoEco = false;
+      });
+    }
+  }
+
   Future<void> _cargarUsuario() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonStr = prefs.getString('CACHED_GUIA_USER');
@@ -50,6 +69,9 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
           _user = model;
           _cargando = false;
         });
+        // Cargar EcoStats solo si es guía independiente (B2C)
+        final esAgencia = (model.permissionLevel) == 2;
+        if (!esAgencia) _cargarEcoStats();
       }
     } else {
       if (mounted) {
@@ -140,6 +162,94 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Función disponible en producción')),
     );
+  }
+
+  // ── 🌿 Sección Eco (B2C exclusivo) ────────────────────────────────────────
+  List<Widget> _buildSeccionEco() {
+    return [
+      _SeccionTitulo('Mis Logros OhtliAni'),
+      const SizedBox(height: 8),
+      if (_cargandoEco)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3D5AF1)),
+              strokeWidth: 2.5,
+            ),
+          ),
+        )
+      else if (_ecoStats != null)
+        EcoBadgeWidget(stats: _ecoStats!)
+      else
+        const SizedBox.shrink(),
+      const Padding(
+        padding: EdgeInsets.only(bottom: 20),
+        child: Text(
+          'Comparte tu insignia con clientes para demostrar tu compromiso'
+          ' con la seguridad y el medio ambiente. ¡Eres tu mejor marketing!',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 12,
+            fontStyle: FontStyle.italic,
+            height: 1.5,
+          ),
+        ),
+      ),
+    ];
+  }
+
+  // ── Banner informativo para guías de Agencia (B2B) ────────────────────────
+  List<Widget> _buildBannerAgencia() {
+    return [
+      Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8ECFF),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFF3D5AF1).withAlpha(40)),
+        ),
+        child: const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.corporate_fare_rounded,
+              color: Color(0xFF3D5AF1),
+              size: 22,
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Métricas de impacto empresarial',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      color: Color(0xFF1A237E),
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Tu agencia consolida estos datos en su panel web para '
+                    'obtener certificaciones como "Agencia Carbono Neutral". '
+                    'Consulta el dashboard de tu agencia para más detalles.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
   }
 
   @override
@@ -258,6 +368,9 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
             ),
             const SizedBox(height: 24),
 
+            // ── 🌿 SELLO VERDE: exclusivo Guía Independiente (B2C) ────────
+            if (!esAgencia) ..._buildSeccionEco() else ..._buildBannerAgencia(),
+
             // ── Sección: Cuenta ────────────────────────────────────────
             _SeccionTitulo('Cuenta'),
             const SizedBox(height: 8),
@@ -359,7 +472,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                       style: TextStyle(fontSize: 13),
                     ),
                     value: _modoOscuro,
-                    activeColor: _azulSecundario,
+                    activeThumbColor: _azulSecundario,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     onChanged: (v) => setState(() => _modoOscuro = v),
                   ),
@@ -377,7 +490,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                       style: TextStyle(fontSize: 13),
                     ),
                     value: _notificacionesActivas,
-                    activeColor: _azulSecundario,
+                    activeThumbColor: _azulSecundario,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     onChanged:
                         (v) => setState(() => _notificacionesActivas = v),

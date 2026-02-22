@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/personal_home_bloc/personal_home_cubit.dart';
+import 'package:frontend/features/guia/home/presentation/blocs/eco_mode/eco_mode_cubit.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/sos_button.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/weather_widget.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/map_preview_card.dart';
@@ -108,6 +109,27 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout> {
                   _ModoExploradorSwitch(
                     activo: state.modoExplorador,
                     compact: true,
+                  ),
+                  const SizedBox(width: 6),
+                  // ── Botón Modo Eco (compacto) ───────────────
+                  Tooltip(
+                    message: 'Activar Modo Eco',
+                    child: GestureDetector(
+                      onTap: () => context.read<EcoModeCubit>().enableEcoMode(),
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(20),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white.withAlpha(50)),
+                        ),
+                        child: const Icon(
+                          Icons.battery_saver_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -336,7 +358,7 @@ class _ModoExploradorCard extends StatelessWidget {
             value: activo,
             onChanged:
                 (_) => context.read<PersonalHomeCubit>().toggleModoExplorador(),
-            activeColor: _naranjaSecundario,
+            activeThumbColor: _naranjaSecundario,
           ),
         ],
       ),
@@ -364,7 +386,7 @@ class _ModoExploradorSwitch extends StatelessWidget {
           value: activo,
           onChanged:
               (_) => context.read<PersonalHomeCubit>().toggleModoExplorador(),
-          activeColor: Colors.orange.shade200,
+          activeThumbColor: Colors.orange.shade200,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ],

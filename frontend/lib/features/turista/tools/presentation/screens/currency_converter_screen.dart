@@ -14,9 +14,13 @@ class CurrencyConverterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<CurrencyCubit>()..init(),
-      child: const _CurrencyConverterView(),
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.currencyConverter), centerTitle: false),
+      body: BlocProvider(
+        create: (_) => sl<CurrencyCubit>()..init(),
+        child: const _CurrencyConverterView(),
+      ),
     );
   }
 }

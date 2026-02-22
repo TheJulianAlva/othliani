@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend/features/guia/home/domain/usecases/sucesion_mando_usecase.dart';
 import 'package:frontend/features/guia/trips/data/datasources/caja_negra_local_datasource.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -38,10 +39,20 @@ class SOSAlarmScreen extends StatefulWidget {
   /// null = activación manual del guía (prioridad estándar, 3 s).
   final AlertaSOS? alerta;
 
+  /// Resultado del protocolo de Sucesión de Mando ejecutado por [SosCubit].
+  /// Si está presente, se muestra en la pantalla de confirmación en lugar
+  /// del texto genérico.
+  final ResultadoSucesion? resultadoSucesion;
+
   /// Callback ejecutado cuando el SOS se confirma (tras el timer).
   final VoidCallback? onAlertaEnviada;
 
-  const SOSAlarmScreen({super.key, this.alerta, this.onAlertaEnviada});
+  const SOSAlarmScreen({
+    super.key,
+    this.alerta,
+    this.resultadoSucesion,
+    this.onAlertaEnviada,
+  });
 
   @override
   State<SOSAlarmScreen> createState() => _SOSAlarmScreenState();
@@ -237,12 +248,14 @@ class _SOSAlarmScreenState extends State<SOSAlarmScreen>
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  _esCritico
-                      ? 'Alerta de PRIORIDAD CRÍTICA enviada.\n'
-                          'Contactos de confianza y central notificados.\n\n'
-                          'Mantén la calma. Protocolo de emergencia activado.'
-                      : 'Tu ubicación GPS y contactos de confianza han sido notificados.\n\n'
-                          'Mantén la calma. Auxilio en camino.',
+                  // Preferimos el mensaje dinámico del protocolo de sucesión
+                  widget.resultadoSucesion?.mensajeUI ??
+                      (_esCritico
+                          ? 'Alerta de PRIORIDAD CRÍTICA enviada.\n'
+                              'Contactos de confianza y central notificados.\n\n'
+                              'Mantén la calma. Protocolo de emergencia activado.'
+                          : 'Tu ubicación GPS y contactos de confianza han sido notificados.\n\n'
+                              'Mantén la calma. Auxilio en camino.'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white70,

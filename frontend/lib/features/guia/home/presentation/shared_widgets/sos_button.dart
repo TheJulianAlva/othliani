@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/guia/home/presentation/blocs/sos/sos_cubit.dart';
 
 /// Botón de emergencia SOS — compartido entre el layout B2B y B2C.
-/// Muestra una animación de pulso rojo para máxima visibilidad.
+///
+/// Si hay un [SosCubit] en el árbol, activa el pre-aviso de 30 segundos.
+/// De lo contrario muestra el diálogo de confirmación clásico.
 class SosButton extends StatefulWidget {
   final VoidCallback? onPressed;
 
@@ -35,6 +39,21 @@ class _SosButtonState extends State<SosButton>
     super.dispose();
   }
 
+  void _handlePress(BuildContext context) {
+    if (widget.onPressed != null) {
+      widget.onPressed!();
+      return;
+    }
+
+    // Delegamos al SosCubit si está disponible en el árbol.
+    try {
+      context.read<SosCubit>().triggerWarning();
+    } catch (_) {
+      // Fallback: el cubit no está disponible → diálogo clásico.
+      _mostrarConfirmacion(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -43,7 +62,7 @@ class _SosButtonState extends State<SosButton>
         return Transform.scale(scale: _scaleAnimation.value, child: child);
       },
       child: ElevatedButton.icon(
-        onPressed: widget.onPressed ?? () => _mostrarConfirmacion(context),
+        onPressed: () => _handlePress(context),
         icon: const Icon(Icons.emergency, size: 20),
         label: const Text(
           'SOS',
