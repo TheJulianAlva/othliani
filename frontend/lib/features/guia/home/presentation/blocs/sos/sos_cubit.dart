@@ -2,6 +2,11 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart';
 import 'package:frontend/features/guia/home/domain/usecases/sucesion_mando_usecase.dart';
+import 'package:frontend/core/services/location_service.dart';
+import 'package:frontend/core/di/service_locator.dart';
+import 'package:uuid/uuid.dart';
+import 'package:frontend/features/guia/trips/domain/entities/incident_log.dart';
+import 'package:frontend/features/guia/trips/data/datasources/caja_negra_local_datasource.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SosCubit — manejador del Pre-aviso SOS de 30 segundos
@@ -52,15 +57,59 @@ class SosCubit extends Cubit<SosState> {
   /// UseCase que decide a quién y cómo avisar según el modelo del viaje.
   final SucesionMandoUseCase _sucesionMandoUseCase;
 
-  SosCubit({this.viajeActivo, SucesionMandoUseCase? sucesionMandoUseCase})
-    : _sucesionMandoUseCase = sucesionMandoUseCase ?? SucesionMandoUseCase(),
-      super(const SosIdle());
+  /// Servicio que envuelve la geolocalización (con un timeout de 5s)
+  final LocationService _locationService;
+
+  /// Audit Trail inalterable (Caja Negra legal)
+  final CajaNegraLocalDataSource cajaNegra;
+
+  SosCubit({
+    this.viajeActivo,
+    SucesionMandoUseCase? sucesionMandoUseCase,
+    LocationService? locationService,
+    CajaNegraLocalDataSource? cajaNegraRef,
+  }) : _sucesionMandoUseCase =
+           sucesionMandoUseCase ?? SucesionMandoUseCase(repository: sl()),
+       _locationService = locationService ?? LocationService(),
+       cajaNegra = cajaNegraRef ?? sl<CajaNegraLocalDataSource>(),
+       super(const SosIdle());
+
+  // ── Método interno de Log Legal ────────────────────────────────────────────
+
+  Future<void> _registrarLog(TipoIncidente tipo, String descripcion) async {
+    // Intentar obtener posición real rápida. Si falla, fallback.
+    double lat = 19.4326;
+    double lng = -99.1332;
+    try {
+      final position = await _locationService.getCurrentPosition();
+      if (position != null) {
+        lat = position.latitude;
+        lng = position.longitude;
+      }
+    } catch (_) {}
+
+    final log = IncidentLog(
+      id: const Uuid().v4(),
+      timestamp: DateTime.now().toUtc(), // Siempre UTC para auditoría legal
+      tipo: tipo,
+      descripcion: descripcion,
+      latitud: lat,
+      longitud: lng,
+    );
+    await cajaNegra.registrarEvento(log);
+  }
 
   // ── API pública ────────────────────────────────────────────────────────────
 
   /// Inicia el pre-aviso. Si ya hay una alerta activa, ignora la llamada.
   void triggerWarning() {
     if (state is SosWarning || state is SosActive) return;
+
+    // 📝 LOG: El guía posiblemente está en problemas
+    _registrarLog(
+      TipoIncidente.sosGuiaActivado,
+      "Pre-Aviso de SOS disparado (botón presionado o posible inmovilidad)",
+    );
 
     emit(const SosWarning(_preAvisoSegundos));
     _startTimer();
@@ -70,6 +119,12 @@ class SosCubit extends Cubit<SosState> {
   void cancelSos() {
     _timer?.cancel();
     emit(const SosIdle());
+
+    // 📝 LOG: Falsa alarma o situación controlada
+    _registrarLog(
+      TipoIncidente.sosGuiaCancelado,
+      "El guía canceló el SOS manualmente. Situación bajo control.",
+    );
   }
 
   /// Lanza el SOS manualmente sin esperar el timer (acción deliberada del guia).
@@ -103,9 +158,19 @@ class SosCubit extends Cubit<SosState> {
   Future<void> _ejecutarProtocoloYEmitir() async {
     if (isClosed) return;
 
-    // Ubicación simulada hasta integrar geolocator
-    const double lat = 19.4326;
-    const double lng = -99.1332;
+    // Ubicación simulada como fallback de ultra-emergencia si falla el hardware
+    double lat = 19.4326;
+    double lng = -99.1332;
+
+    try {
+      final position = await _locationService.getCurrentPosition();
+      if (position != null) {
+        lat = position.latitude;
+        lng = position.longitude;
+      }
+    } catch (_) {
+      // Usar coordenadas estáticas como último recurso (no bloquear emergencia)
+    }
 
     if (viajeActivo != null) {
       final resultado = await _sucesionMandoUseCase.ejecutarProtocolo(
@@ -113,8 +178,21 @@ class SosCubit extends Cubit<SosState> {
         lat,
         lng,
       );
+
+      // 📝 LOG: Emergencia real con protocolo operando
+      await _registrarLog(
+        TipoIncidente.sosGuiaActivado,
+        "🚨 SOS REAL ENVIADO Y SUCESIÓN DISPARADA. Protocolo operando.",
+      );
+
       if (!isClosed) emit(SosActive(resultado: resultado));
     } else {
+      // 📝 LOG: Emergencia real (simulada) sin viaje activo
+      await _registrarLog(
+        TipoIncidente.sosGuiaActivado,
+        "🚨 SOS REAL ENVIADO (Sin Viaje Activo) - Posible error de contexto o activación general.",
+      );
+
       if (!isClosed) emit(const SosActive());
     }
   }

@@ -43,12 +43,17 @@ dependencies:
   connectivity_plus: ^6.1.0
   flutter_dotenv: ^6.0.0
   uuid: ^4.5.2
+  pdf: ^3.11.3
+  printing: ^5.14.2
+  path_provider: ^2.1.5
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
 
 flutter:
   uses-material-design: true

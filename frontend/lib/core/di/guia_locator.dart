@@ -4,6 +4,7 @@ import 'package:frontend/features/guia/auth/data/datasources/guia_auth_remote_da
 import 'package:frontend/features/guia/auth/data/datasources/guia_subscription_remote_data_source.dart';
 import 'package:frontend/features/guia/auth/data/repositories/guia_auth_repository_impl.dart';
 import 'package:frontend/features/guia/auth/domain/repositories/guia_auth_repository.dart';
+import 'package:frontend/features/guia/trips/data/datasources/caja_negra_local_datasource.dart';
 import 'package:frontend/features/guia/auth/domain/usecases/login_guia_usecase.dart';
 import 'package:frontend/features/guia/auth/domain/usecases/forgot_password_guia_usecase.dart';
 import 'package:frontend/features/guia/auth/domain/usecases/check_auth_status_guia_usecase.dart';
@@ -23,6 +24,17 @@ import 'package:frontend/features/guia/auth/domain/usecases/verify_folio_guia_us
 import 'package:frontend/features/guia/auth/domain/usecases/verify_agency_phone_guia_usecase.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/agencia_home_bloc/agencia_home_cubit.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/personal_home_bloc/personal_home_cubit.dart';
+import 'package:frontend/features/guia/home/data/datasources/guia_home_mock_datasource.dart';
+import 'package:frontend/features/guia/home/data/repositories/guia_home_repository_impl.dart';
+import 'package:frontend/features/guia/home/domain/repositories/guia_home_repository.dart';
+import 'package:frontend/features/guia/home/domain/usecases/get_agencia_home_data_usecase.dart';
+import 'package:frontend/features/guia/home/domain/usecases/get_personal_home_data_usecase.dart';
+import 'package:frontend/features/guia/home/data/datasources/sucesion_mando_datasource.dart';
+import 'package:frontend/features/guia/home/data/services/sucesion_mando_local_service.dart';
+import 'package:frontend/features/guia/home/domain/repositories/sucesion_mando_repository.dart';
+import 'package:frontend/features/guia/home/data/repositories/sucesion_mando_repository_impl.dart';
+import 'package:frontend/features/guia/trips/domain/repositories/caja_negra_repository.dart';
+import 'package:frontend/features/guia/trips/data/repositories/caja_negra_repository_impl.dart';
 
 // Herramienta de conversor de moneda (compartida con turista)
 import 'package:frontend/features/turista/tools/currency/data/datasources/currency_remote_data_source.dart';
@@ -46,6 +58,15 @@ Future<void> initGuiaDependencies() async {
   sl.registerLazySingleton<GuiaSubscriptionRemoteDataSource>(
     () => GuiaSubscriptionRemoteDataSourceImpl(),
   );
+  sl.registerLazySingleton<CajaNegraLocalDataSource>(
+    () => CajaNegraLocalDataSource(sl()),
+  );
+  sl.registerLazySingleton<GuiaHomeRemoteDataSource>(
+    () => GuiaHomeMockDataSource(),
+  );
+  sl.registerLazySingleton<SucesionMandoDataSource>(
+    () => SucesionMandoLocalService(),
+  );
 
   // ====================================================
   // 2. REPOSITORIOS
@@ -57,6 +78,15 @@ Future<void> initGuiaDependencies() async {
       localDataSource: sl(),
       subscriptionDataSource: sl(),
     ),
+  );
+  sl.registerLazySingleton<GuiaHomeRepository>(
+    () => GuiaHomeRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<SucesionMandoRepository>(
+    () => SucesionMandoRepositoryImpl(dataSource: sl()),
+  );
+  sl.registerLazySingleton<CajaNegraRepository>(
+    () => CajaNegraRepositoryImpl(localDataSource: sl()),
   );
 
   // ====================================================
@@ -74,6 +104,8 @@ Future<void> initGuiaDependencies() async {
   sl.registerLazySingleton(() => RegisterGuiaUseCase(sl()));
   sl.registerLazySingleton(() => VerifyEmailGuiaUseCase(sl()));
   sl.registerLazySingleton(() => ActivateSubscriptionGuiaUseCase(sl()));
+  sl.registerLazySingleton(() => GetAgenciaHomeDataUseCase(sl()));
+  sl.registerLazySingleton(() => GetPersonalHomeDataUseCase(sl()));
 
   // ====================================================
   // 4. CUBITS (Presentation Layer)
@@ -101,8 +133,8 @@ Future<void> initGuiaDependencies() async {
   );
 
   // Home cubits
-  sl.registerFactory(() => AgenciaHomeCubit());
-  sl.registerFactory(() => PersonalHomeCubit());
+  sl.registerFactory(() => AgenciaHomeCubit(getAgenciaHomeDataUseCase: sl()));
+  sl.registerFactory(() => PersonalHomeCubit(getPersonalHomeDataUseCase: sl()));
 
   // ====================================================
   // 5. CONVERSOR DE MONEDA (pantalla compartida con turista)

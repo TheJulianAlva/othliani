@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/features/guia/home/domain/usecases/sucesion_mando_usecase.dart';
-import 'package:frontend/features/guia/trips/data/datasources/caja_negra_local_datasource.dart';
+import 'package:frontend/features/guia/trips/domain/services/caja_negra_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PrioridadAlerta — modelo de datos para el SOS contextual
@@ -128,16 +128,23 @@ class _SOSAlarmScreenState extends State<SOSAlarmScreen>
     widget.onAlertaEnviada?.call();
 
     // 📌 Registro en Caja Negra (fire-and-forget — no bloquea la UI)
+    // 📌 Registro: el SOS fue disparado o timeout
     final alerta = widget.alerta;
-    CajaNegraLocalDataSource().registrarEvento(
-      tipo:
-          alerta?.autoDetectada == true
-              ? TipoEventoSeguridad.alertaAlejamiento
-              : TipoEventoSeguridad.sosManual,
-      descripcion: alerta?.mensaje ?? 'SOS manual activado por el guía',
-      prioridad:
-          alerta?.prioridad == PrioridadAlerta.critica ? 'CRITICA' : 'ESTANDAR',
-    );
+    if (alerta?.autoDetectada == true) {
+      CajaNegraService().registrarIncidente(
+        nombreTurista: alerta?.nombreTurista ?? 'Desconocido',
+        prioridad:
+            alerta?.prioridad == PrioridadAlerta.critica
+                ? 'CRITICA'
+                : 'ESTANDAR',
+        accionRealizada: alerta?.mensaje ?? 'Alejamiento detectado',
+      );
+    } else {
+      CajaNegraService().registrarSosAutomatico(
+        nombreTurista: 'Guía',
+        prioridad: 'CRITICA',
+      );
+    }
   }
 
   void _cancelar() {
@@ -145,12 +152,10 @@ class _SOSAlarmScreenState extends State<SOSAlarmScreen>
     HapticFeedback.lightImpact();
 
     // 📌 Registro: acción del guía (canceló con deslizador)
-    CajaNegraLocalDataSource().registrarEvento(
-      tipo: TipoEventoSeguridad.accionGuia,
-      descripcion:
-          'Guía canceló alerta — ${widget.alerta?.mensaje ?? 'SOS'} '
-          '(deslizador de cancelación)',
-      prioridad: 'INFO',
+    CajaNegraService().registrarCancelacionGuia(
+      descripcionAlerta: widget.alerta?.mensaje ?? 'SOS',
+      coordenadas:
+          '', // No tenemos coordenadas aquí, se podría pasar null o una cadena vacía
     );
 
     if (mounted) Navigator.of(context).pop();

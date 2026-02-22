@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/guia/trips/data/datasources/caja_negra_local_datasource.dart';
 import 'package:frontend/features/guia/trips/domain/services/caja_negra_service.dart';
+import 'package:frontend/features/guia/trips/domain/entities/incident_log.dart';
 import 'package:intl/intl.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -19,8 +19,8 @@ class BitacoraSeguridadScreen extends StatefulWidget {
 }
 
 class _BitacoraSeguridadScreenState extends State<BitacoraSeguridadScreen> {
-  late Future<List<EventoSeguridad>> _eventosFuture;
-  TipoEventoSeguridad? _filtroActivo;
+  late Future<List<IncidentLog>> _eventosFuture;
+  TipoIncidente? _filtroActivo;
 
   @override
   void initState() {
@@ -70,7 +70,7 @@ class _BitacoraSeguridadScreenState extends State<BitacoraSeguridadScreen> {
         title: const Text('Bitácora de Seguridad'),
         actions: [
           // Filtro por tipo
-          PopupMenuButton<TipoEventoSeguridad?>(
+          PopupMenuButton<TipoIncidente?>(
             icon: Icon(
               Icons.filter_list_rounded,
               color: _filtroActivo != null ? colorScheme.primary : null,
@@ -80,7 +80,7 @@ class _BitacoraSeguridadScreenState extends State<BitacoraSeguridadScreen> {
             itemBuilder:
                 (_) => [
                   const PopupMenuItem(value: null, child: Text('Todos')),
-                  ...TipoEventoSeguridad.values.map(
+                  ...TipoIncidente.values.map(
                     (t) => PopupMenuItem(value: t, child: Text(t.etiqueta)),
                   ),
                 ],
@@ -93,7 +93,7 @@ class _BitacoraSeguridadScreenState extends State<BitacoraSeguridadScreen> {
           ),
         ],
       ),
-      body: FutureBuilder<List<EventoSeguridad>>(
+      body: FutureBuilder<List<IncidentLog>>(
         future: _eventosFuture,
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
@@ -150,7 +150,7 @@ class _BitacoraSeguridadScreenState extends State<BitacoraSeguridadScreen> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _TarjetaEvento extends StatelessWidget {
-  final EventoSeguridad evento;
+  final IncidentLog evento;
   const _TarjetaEvento({required this.evento});
 
   Color _colorPrioridad(BuildContext ctx) => switch (evento.prioridad) {
@@ -160,12 +160,16 @@ class _TarjetaEvento extends StatelessWidget {
   };
 
   IconData get _icono => switch (evento.tipo) {
-    TipoEventoSeguridad.inicioProteccion => Icons.play_circle_rounded,
-    TipoEventoSeguridad.finProteccion => Icons.stop_circle_rounded,
-    TipoEventoSeguridad.alertaAlejamiento => Icons.location_off_rounded,
-    TipoEventoSeguridad.sosManual => Icons.emergency_rounded,
-    TipoEventoSeguridad.accionGuia => Icons.check_circle_rounded,
-    TipoEventoSeguridad.sincronizacion => Icons.sync_rounded,
+    TipoIncidente.sistemaIniciado => Icons.play_circle_rounded,
+    TipoIncidente.sistemaFinalizado => Icons.stop_circle_rounded,
+    TipoIncidente.alertaTuristaAlejado => Icons.location_off_rounded,
+    TipoIncidente.alertaMedica => Icons.medical_services_rounded,
+    TipoIncidente.sosManual => Icons.emergency_rounded,
+    TipoIncidente.sosGuiaActivado => Icons.emergency_share_rounded,
+    TipoIncidente.sosGuiaCancelado => Icons.cancel_rounded,
+    TipoIncidente.incidenteResuelto => Icons.verified_user_rounded,
+    TipoIncidente.accionGuia => Icons.check_circle_rounded,
+    TipoIncidente.sincronizacion => Icons.sync_rounded,
   };
 
   @override

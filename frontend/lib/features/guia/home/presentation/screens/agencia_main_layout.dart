@@ -7,6 +7,7 @@ import 'package:frontend/features/guia/home/presentation/blocs/eco_mode/eco_mode
 import 'package:frontend/features/guia/home/presentation/shared_widgets/sos_button.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/weather_widget.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/map_preview_card.dart';
+import 'package:frontend/features/guia/home/domain/entities/agencia_home_data.dart';
 
 // ────────────────────────────────────────────────────────────────────────────
 // AGENCIA MAIN LAYOUT — Dashboard B2B
@@ -333,7 +334,7 @@ class _ChipEstado extends StatelessWidget {
 }
 
 class _ListaParticipantes extends StatelessWidget {
-  final List<ParticipanteMock> participantes;
+  final List<Participante> participantes;
   const _ListaParticipantes({required this.participantes});
 
   @override

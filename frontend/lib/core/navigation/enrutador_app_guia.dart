@@ -27,6 +27,7 @@ import 'package:frontend/features/guia/trips/presentation/screens/crear_viaje_pe
 import 'package:frontend/features/guia/home/presentation/screens/sos_alarm_screen.dart';
 import 'package:frontend/features/guia/trips/presentation/screens/bitacora_seguridad_screen.dart';
 import 'package:frontend/features/guia/trips/presentation/screens/reporte_fin_viaje_screen.dart';
+import 'package:frontend/features/guia/trips/presentation/screens/expedition_log_screen.dart';
 import 'package:frontend/features/guia/home/presentation/screens/pantalla_alertas_guia.dart';
 import 'routes_guia.dart';
 import 'transitions.dart';
@@ -309,6 +310,16 @@ class EnrutadorAppGuia {
                           ?.toDouble() ??
                       0,
                 ),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesGuia.expeditionLog,
+          name: 'guia_expedition_log',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: ExpeditionLogScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),

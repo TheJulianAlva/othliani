@@ -1,39 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-// ── Modelos mock ──────────────────────────────────────────────────────────────
-
-class ContactoEmergencia extends Equatable {
-  final String nombre;
-  final String relacion;
-  final String telefono;
-
-  const ContactoEmergencia({
-    required this.nombre,
-    required this.relacion,
-    required this.telefono,
-  });
-
-  @override
-  List<Object?> get props => [nombre, telefono];
-}
-
-class ActividadItinerario extends Equatable {
-  final String nombre;
-  final String horaInicio;
-  final String horaFin;
-  final bool completada;
-
-  const ActividadItinerario({
-    required this.nombre,
-    required this.horaInicio,
-    required this.horaFin,
-    required this.completada,
-  });
-
-  @override
-  List<Object?> get props => [nombre, horaInicio, completada];
-}
+import '../../../domain/entities/personal_home_data.dart';
+import '../../../domain/usecases/get_personal_home_data_usecase.dart';
 
 // ── Estados ───────────────────────────────────────────────────────────────────
 
@@ -111,67 +79,34 @@ class PersonalHomeLoaded extends PersonalHomeState {
 // ── Cubit ─────────────────────────────────────────────────────────────────────
 
 class PersonalHomeCubit extends Cubit<PersonalHomeState> {
-  PersonalHomeCubit() : super(PersonalHomeLoading());
+  final GetPersonalHomeDataUseCase getPersonalHomeDataUseCase;
+
+  PersonalHomeCubit({required this.getPersonalHomeDataUseCase})
+    : super(PersonalHomeLoading());
 
   Future<void> cargarDatos(String nombre) async {
-    await Future.delayed(const Duration(milliseconds: 700));
-    emit(
-      PersonalHomeLoaded(
-        nombreGuia: nombre,
-        nombreViaje: 'Ruta Mazunte – Costa Oaxaqueña',
-        destino: 'Puerto Escondido, Oaxaca',
-        horaInicio: '08:00 AM',
-        participantes: 12,
-        kmRecorridos: 14.3,
-        minActivos: 187,
-        altitudActualM: 42,
-        huellaCarbono: 3.7,
-        geocercaMetros: 200,
-        contactos: const [
-          ContactoEmergencia(
-            nombre: 'Elena Morales',
-            relacion: 'Esposa',
-            telefono: '722 100 2030',
-          ),
-          ContactoEmergencia(
-            nombre: 'Javier Cruz',
-            relacion: 'Hermano',
-            telefono: '55 8800 1122',
-          ),
-          ContactoEmergencia(
-            nombre: 'SEDENA Región',
-            relacion: 'Autoridad',
-            telefono: '800 900 0000',
-          ),
-        ],
-        actividades: const [
-          ActividadItinerario(
-            nombre: 'Salida del hotel',
-            horaInicio: '08:00',
-            horaFin: '08:30',
-            completada: true,
-          ),
-          ActividadItinerario(
-            nombre: 'Snorkel en Punta Zicatela',
-            horaInicio: '09:00',
-            horaFin: '11:00',
-            completada: true,
-          ),
-          ActividadItinerario(
-            nombre: 'Almuerzo en Restaurante Playa',
-            horaInicio: '12:00',
-            horaFin: '13:30',
-            completada: false,
-          ),
-          ActividadItinerario(
-            nombre: 'Visita Barra de Navidad',
-            horaInicio: '14:00',
-            horaFin: '16:00',
-            completada: false,
-          ),
-        ],
-      ),
-    );
+    try {
+      emit(PersonalHomeLoading());
+      final data = await getPersonalHomeDataUseCase(nombre);
+      emit(
+        PersonalHomeLoaded(
+          nombreGuia: data.nombreGuia,
+          nombreViaje: data.nombreViaje,
+          destino: data.destino,
+          horaInicio: data.horaInicio,
+          participantes: data.participantes,
+          kmRecorridos: data.kmRecorridos,
+          minActivos: data.minActivos,
+          altitudActualM: data.altitudActualM,
+          huellaCarbono: data.huellaCarbono,
+          geocercaMetros: data.geocercaMetros,
+          contactos: data.contactos,
+          actividades: data.actividades,
+        ),
+      );
+    } catch (e) {
+      // Manejo error
+    }
   }
 
   void toggleModoExplorador() {

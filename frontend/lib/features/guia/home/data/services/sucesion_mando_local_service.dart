@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../datasources/sucesion_mando_datasource.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SucesionMandoLocalService — Simulador de comunicaciones externas
@@ -17,7 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 //   3. Simula un delay de red realista (0.5–1.5 s)
 // ─────────────────────────────────────────────────────────────────────────────
 
-class SucesionMandoLocalService {
+class SucesionMandoLocalService implements SucesionMandoDataSource {
   static const _keyTransferencias = 'sucesion_transferencias';
   static const _keyDashboard = 'sucesion_dashboard_alerts';
   static const _keySms = 'sucesion_sms_enviados';
@@ -27,6 +28,7 @@ class SucesionMandoLocalService {
 
   /// Simula un /push/ al Co-Guía para que su app despierte en modo "Guía Principal".
   /// En producción → FCM `data` message con action:"ASUMIR_MANDO" al token del Co-Guía.
+  @override
   Future<void> transferirMandoAgencia({
     required String sucesorId,
     required String sucesorNombre,
@@ -63,6 +65,7 @@ class SucesionMandoLocalService {
 
   /// Simula un POST HTTP al endpoint de alertas del dashboard de la agencia.
   /// En producción → dio.post('/api/agencia/alertas/sos', data: payload)
+  @override
   Future<void> notificarDashboardAgencia({
     required String viajeId,
     required double lat,
@@ -97,6 +100,7 @@ class SucesionMandoLocalService {
 
   /// Simula el envío de un SMS al contacto de confianza con el link de ubicación.
   /// En producción → Twilio API: POST /2010-04-01/Accounts/{SID}/Messages
+  @override
   Future<void> enviarSmsEmergencia({
     required String telefono,
     required String nombreContacto,
@@ -136,6 +140,7 @@ class SucesionMandoLocalService {
 
   /// Simula la apertura del marcador con el número de emergencias.
   /// En producción → url_launcher: launchUrl(Uri.parse('tel:911'))
+  @override
   Future<void> marcarProtocolo911({
     required double lat,
     required double lng,

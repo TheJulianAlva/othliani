@@ -26,5 +26,6 @@ class RoutesGuia {
   static const String sos = '/sos';
   static const String bitacora = '/bitacora';
   static const String reporteFinViaje = '/reporte-fin-viaje';
+  static const String expeditionLog = '/expedition-log';
   static const String alertaTurista = '/alertas-turista';
 }

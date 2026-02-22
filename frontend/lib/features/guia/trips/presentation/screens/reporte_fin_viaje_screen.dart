@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/features/guia/trips/data/datasources/caja_negra_local_datasource.dart';
 import 'package:frontend/features/guia/trips/domain/services/caja_negra_service.dart';
+
+import 'package:frontend/features/guia/trips/domain/entities/incident_log.dart';
 import 'package:intl/intl.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,7 +46,7 @@ class ReporteFinViajeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: FutureBuilder<List<EventoSeguridad>>(
+      body: FutureBuilder<List<IncidentLog>>(
         future: CajaNegraService().leerBitacora(),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
@@ -82,7 +83,7 @@ class _Contenido extends StatelessWidget {
   final DateTime inicio;
   final List<String> turistasPrioridad1;
   final double distanciaKm;
-  final List<EventoSeguridad> eventos;
+  final List<IncidentLog> eventos;
 
   const _Contenido({
     required this.nombreExpedicion,
@@ -94,13 +95,11 @@ class _Contenido extends StatelessWidget {
 
   // ── Métricas derivadas de la Caja Negra ────────────────────────────────────
   int get _totalSOS =>
-      eventos.where((e) => e.tipo == TipoEventoSeguridad.sosManual).length;
+      eventos.where((e) => e.tipo == TipoIncidente.sosManual).length;
   int get _alertasAlejamiento =>
-      eventos
-          .where((e) => e.tipo == TipoEventoSeguridad.alertaAlejamiento)
-          .length;
+      eventos.where((e) => e.tipo == TipoIncidente.alertaTuristaAlejado).length;
   int get _cancelacionesGuia =>
-      eventos.where((e) => e.tipo == TipoEventoSeguridad.accionGuia).length;
+      eventos.where((e) => e.tipo == TipoIncidente.accionGuia).length;
   int get _alertasAtendidas => _cancelacionesGuia;
 
   String get _duracion {
@@ -451,7 +450,7 @@ class _TarjetaCarbon extends StatelessWidget {
 }
 
 class _FilaLog extends StatelessWidget {
-  final EventoSeguridad evento;
+  final IncidentLog evento;
   const _FilaLog({required this.evento});
 
   Color _color(String p) => switch (p) {

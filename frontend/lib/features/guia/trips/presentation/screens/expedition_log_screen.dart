@@ -1,426 +1,312 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import '../../../../../features/guia/trips/data/datasources/caja_negra_local_datasource.dart';
+import '../../domain/entities/incident_log.dart';
+import '../../data/datasources/caja_negra_local_datasource.dart';
+import 'package:frontend/core/di/service_locator.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ExpeditionLogScreen — Bitácora de Seguridad Personal ("Caja Negra" B2C)
-//
-// Historial cronológico inalterable de todos los eventos de seguridad de la
-// sesión. Permite al guía revisar, filtrar y exportar el log al finalizar.
-// ─────────────────────────────────────────────────────────────────────────────
+class ExpeditionLogScreen extends StatelessWidget {
+  final CajaNegraLocalDataSource cajaNegra;
+  final bool esGuiaIndependiente;
 
-class ExpeditionLogScreen extends StatefulWidget {
-  const ExpeditionLogScreen({super.key});
-
-  @override
-  State<ExpeditionLogScreen> createState() => _ExpeditionLogScreenState();
-}
-
-class _ExpeditionLogScreenState extends State<ExpeditionLogScreen> {
-  final _dsource = CajaNegraLocalDataSource();
-
-  List<EventoSeguridad> _todos = [];
-  bool _soloCriticos = false;
-  bool _cargando = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _cargar();
-  }
-
-  Future<void> _cargar() async {
-    final eventos = await _dsource.leerEventos();
-    if (mounted) {
-      setState(() {
-        _todos = eventos;
-        _cargando = false;
-      });
-    }
-  }
-
-  List<EventoSeguridad> get _filtrados =>
-      _soloCriticos
-          ? _todos.where((e) => e.prioridad == 'CRITICA').toList()
-          : _todos;
-
-  // ── Exportar resumen por texto ─────────────────────────────────────────────
-  Future<void> _exportar() async {
-    if (_todos.isEmpty) return;
-    final buf = StringBuffer();
-    buf.writeln('📋 BITÁCORA DE SEGURIDAD — OhtliAni');
-    buf.writeln(
-      'Generada: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-    );
-    buf.writeln('─' * 40);
-    for (final e in _todos.reversed) {
-      buf.writeln(
-        '[${DateFormat('HH:mm:ss').format(e.timestamp)}] '
-        '${e.tipo.etiqueta} (${e.prioridad})\n'
-        '  ${e.descripcion}'
-        '${e.coordenadas.isNotEmpty ? '\n  📍 ${e.coordenadas}' : ''}',
-      );
-      buf.writeln();
-    }
-    await Clipboard.setData(ClipboardData(text: buf.toString()));
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Bitácora copiada al portapapeles'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
+  ExpeditionLogScreen({
+    super.key,
+    CajaNegraLocalDataSource? cajaNegraRef,
+    this.esGuiaIndependiente = true,
+  }) : cajaNegra = cajaNegraRef ?? sl<CajaNegraLocalDataSource>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text(
-          'Bitácora de Seguridad',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
-        backgroundColor: const Color(0xFF1A237E),
+        title: const Text("Bitácora de Expedición"),
+        backgroundColor: Colors.grey[900],
         foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          // Toggle filtro críticos
-          Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: FilterChip(
-              label: const Text(
-                'Solo críticos',
-                style: TextStyle(fontSize: 11, color: Colors.white),
-              ),
-              selected: _soloCriticos,
-              onSelected: (v) => setState(() => _soloCriticos = v),
-              selectedColor: Colors.red.shade700,
-              backgroundColor: Colors.white.withAlpha(20),
-              checkmarkColor: Colors.white,
-              side: BorderSide.none,
-            ),
-          ),
-          // Exportar
-          IconButton(
-            icon: const Icon(Icons.share_rounded),
-            tooltip: 'Exportar bitácora',
-            onPressed: _exportar,
-          ),
-        ],
       ),
-      body:
-          _cargando
-              ? const Center(child: CircularProgressIndicator())
-              : _filtrados.isEmpty
-              ? _VistaVacia(soloCriticos: _soloCriticos)
-              : RefreshIndicator(
-                onRefresh: _cargar,
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 12,
-                  ),
-                  itemCount: _filtrados.length,
-                  itemBuilder:
-                      (_, i) => _ItemTimeline(
-                        evento: _filtrados[i],
-                        esUltimo: i == _filtrados.length - 1,
-                      ),
-                ),
-              ),
-      // Resumen en pie
-      bottomNavigationBar: _todos.isEmpty ? null : _ResumenPie(eventos: _todos),
-    );
-  }
-}
+      body: FutureBuilder<List<IncidentLog>>(
+        future: cajaNegra.obtenerEvidencia(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-// ── Item de la línea de tiempo ────────────────────────────────────────────────
+          final logs = snapshot.data ?? [];
+          final bool fueViajeLimpio = logs.isEmpty;
 
-class _ItemTimeline extends StatelessWidget {
-  final EventoSeguridad evento;
-  final bool esUltimo;
-  const _ItemTimeline({required this.evento, required this.esUltimo});
-
-  Color get _color => switch (evento.prioridad) {
-    'CRITICA' => Colors.red.shade700,
-    'ESTANDAR' => Colors.orange.shade700,
-    _ => Colors.blue.shade700,
-  };
-
-  IconData get _icono => switch (evento.tipo) {
-    TipoEventoSeguridad.inicioProteccion => Icons.shield_rounded,
-    TipoEventoSeguridad.finProteccion => Icons.shield_outlined,
-    TipoEventoSeguridad.alertaAlejamiento => Icons.person_off_rounded,
-    TipoEventoSeguridad.sosManual => Icons.warning_amber_rounded,
-    TipoEventoSeguridad.accionGuia => Icons.swipe_right_alt_rounded,
-    TipoEventoSeguridad.sincronizacion => Icons.cloud_done_rounded,
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final hora = DateFormat('HH:mm:ss').format(evento.timestamp);
-    final fecha = DateFormat('dd/MM').format(evento.timestamp);
-
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Eje de la línea de tiempo ──────────────────────────────────
-          SizedBox(
-            width: 48,
-            child: Column(
-              children: [
-                Text(
-                  hora,
-                  style: TextStyle(fontSize: 9, color: Colors.grey.shade500),
-                ),
-                Text(
-                  fecha,
-                  style: TextStyle(fontSize: 8, color: Colors.grey.shade400),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: _color.withAlpha(20),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: _color, width: 1.5),
-                  ),
-                  child: Icon(_icono, size: 14, color: _color),
-                ),
-                if (!esUltimo)
-                  Expanded(
-                    child: VerticalDivider(
-                      color: Colors.grey.shade300,
-                      width: 1,
-                      thickness: 1,
+          return Column(
+            children: [
+              // 1. MENSAJE SUPERIOR CONTEXTUAL
+              Container(
+                padding: const EdgeInsets.all(16),
+                color: esGuiaIndependiente ? Colors.amber[50] : Colors.blue[50],
+                child: Row(
+                  children: [
+                    Icon(
+                      esGuiaIndependiente
+                          ? Icons.shield_outlined
+                          : Icons.corporate_fare,
+                      color:
+                          esGuiaIndependiente ? Colors.amber[800] : Colors.blue,
                     ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // ── Tarjeta del evento ────────────────────────────────────────
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(12),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-                border:
-                    evento.prioridad == 'CRITICA'
-                        ? Border.all(color: Colors.red.shade200)
-                        : null,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          evento.tipo.etiqueta,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                            color: _color,
-                          ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        esGuiaIndependiente
+                            ? "Este es tu respaldo legal. OhtliAni protege tu licencia de guía certificando tus acciones."
+                            : "Estos registros están encriptados y serán enviados a la gerencia de tu agencia.",
+                        style: TextStyle(
+                          color:
+                              esGuiaIndependiente
+                                  ? Colors.amber[900]
+                                  : Colors.blue[900],
+                          fontSize: 13,
                         ),
                       ),
-                      // Badge de prioridad
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _color.withAlpha(20),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          evento.prioridad,
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: _color,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    evento.descripcion,
-                    style: const TextStyle(fontSize: 12, height: 1.4),
-                  ),
-                  if (evento.coordenadas.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on_rounded,
-                          size: 11,
-                          color: Colors.grey.shade500,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          evento.coordenadas,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
                     ),
                   ],
-                  if (!evento.sincronizado) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.cloud_off_rounded,
-                          size: 11,
-                          color: Colors.orange.shade400,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          'Pendiente de sincronización',
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: Colors.orange.shade400,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
+                ),
               ),
-            ),
-          ),
-        ],
+
+              // 2. LA LISTA DE EVENTOS (o mensaje de éxito)
+              Expanded(
+                child:
+                    fueViajeLimpio
+                        ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.eco,
+                                size: 80,
+                                color: Colors.green[400],
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                "Expedición Impecable",
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (esGuiaIndependiente)
+                                const Text(
+                                  "+1 Viaje Seguro para tu Sello Verde 🏅",
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        )
+                        : ListView.builder(
+                          itemCount: logs.length,
+                          itemBuilder: (context, index) {
+                            final log = logs[index];
+                            final horaLocal = log.timestamp.toLocal();
+                            final horaFormateada = DateFormat(
+                              'HH:mm:ss',
+                            ).format(horaLocal);
+
+                            return ListTile(
+                              leading: _getIconForLog(log.tipo),
+                              title: Text(
+                                log.descripcion,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(
+                                "Hora: $horaFormateada | Lat: ${log.latitud.toStringAsFixed(4)}",
+                              ),
+                              trailing: Icon(
+                                log.isSynced
+                                    ? Icons.cloud_done
+                                    : Icons.cloud_off,
+                                color:
+                                    log.isSynced ? Colors.green : Colors.grey,
+                              ),
+                            );
+                          },
+                        ),
+              ),
+
+              // 3. BOTONES DE ACCIÓN SEGÚN EL TIPO DE GUÍA
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child:
+                    esGuiaIndependiente
+                        ? _buildBotonesIndependiente(context, logs)
+                        : _buildBotonAgencia(context, logs),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
-}
 
-// ── Pie de resumen ────────────────────────────────────────────────────────────
-
-class _ResumenPie extends StatelessWidget {
-  final List<EventoSeguridad> eventos;
-  const _ResumenPie({required this.eventos});
-
-  @override
-  Widget build(BuildContext context) {
-    final criticos = eventos.where((e) => e.prioridad == 'CRITICA').length;
-    final noSync = eventos.where((e) => !e.sincronizado).length;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
-      ),
-      child: Row(
-        children: [
-          _StatChip(
-            icono: Icons.event_note_rounded,
-            valor: '${eventos.length}',
-            etiqueta: 'eventos',
-            color: Colors.blue,
-          ),
-          const SizedBox(width: 12),
-          _StatChip(
-            icono: Icons.warning_rounded,
-            valor: '$criticos',
-            etiqueta: 'críticos',
-            color: Colors.red,
-          ),
-          const Spacer(),
-          if (noSync > 0)
-            _StatChip(
-              icono: Icons.cloud_off_rounded,
-              valor: '$noSync',
-              etiqueta: 'sin sync',
-              color: Colors.orange,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final IconData icono;
-  final String valor;
-  final String etiqueta;
-  final Color color;
-  const _StatChip({
-    required this.icono,
-    required this.valor,
-    required this.etiqueta,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icono, size: 14, color: color),
-      const SizedBox(width: 4),
-      Text(
-        '$valor $etiqueta',
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    ],
-  );
-}
-
-// ── Vista vacía ───────────────────────────────────────────────────────────────
-
-class _VistaVacia extends StatelessWidget {
-  final bool soloCriticos;
-  const _VistaVacia({required this.soloCriticos});
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+  // ✨ BOTONES EXCLUSIVOS PARA GUÍA PERSONAL ✨
+  Widget _buildBotonesIndependiente(
+    BuildContext context,
+    List<IncidentLog> logs,
+  ) {
+    return Column(
       children: [
-        Icon(Icons.history_rounded, size: 64, color: Colors.grey.shade300),
-        const SizedBox(height: 16),
-        Text(
-          soloCriticos
-              ? 'Sin alertas críticas registradas'
-              : 'La bitácora está vacía',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey.shade400,
+        OutlinedButton.icon(
+          onPressed: () async {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Generando PDF de protección legal..."),
+              ),
+            );
+            await _generarPdf(context, logs);
+          },
+          icon: const Icon(Icons.picture_as_pdf),
+          label: const Text("Exportar como PDF Legal"),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Los eventos de seguridad aparecerán aquí\nconforme ocurran durante la expedición.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+        const SizedBox(height: 12),
+        ElevatedButton.icon(
+          onPressed: () async {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Respaldando viaje en Nube OhtliAni..."),
+              ),
+            );
+            await Future.delayed(const Duration(seconds: 2));
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Viaje respaldado con éxito. Cerrando..."),
+                ),
+              );
+              Navigator.of(context).pop();
+            }
+          },
+          icon: const Icon(Icons.cloud_sync),
+          label: const Text("Respaldar Viaje y Cerrar"),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+            backgroundColor: Colors.amber[700],
+            foregroundColor: Colors.white,
+          ),
         ),
       ],
-    ),
-  );
+    );
+  }
+
+  // BOTÓN PARA GUÍA DE AGENCIA
+  Widget _buildBotonAgencia(BuildContext context, List<IncidentLog> logs) {
+    return ElevatedButton.icon(
+      onPressed: () async {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sincronizando logs con la central...')),
+        );
+        await Future.delayed(const Duration(seconds: 2));
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Reporte enviado correctamente a la gerencia.'),
+            ),
+          );
+          Navigator.of(context).pop();
+        }
+      },
+      icon: const Icon(Icons.cloud_upload),
+      label: const Text("Subir Reporte a la Central"),
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 50),
+        backgroundColor: Colors.blue[800],
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
+
+  Future<void> _generarPdf(BuildContext context, List<IncidentLog> logs) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                "Bitácora de Expedición Legal - OhtliAni",
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Text("Evidencia inmutable de incidentes durante el viaje."),
+              pw.SizedBox(height: 20),
+              if (logs.isEmpty)
+                pw.Text(
+                  "Expedición Impecable - 0 incidentes registrados.",
+                  style: const pw.TextStyle(color: PdfColors.green),
+                )
+              else
+                pw.Column(
+                  children:
+                      logs.map((log) {
+                        final hora = DateFormat(
+                          'yyyy-MM-dd HH:mm:ss',
+                        ).format(log.timestamp.toLocal());
+                        return pw.Container(
+                          margin: const pw.EdgeInsets.only(bottom: 10),
+                          padding: const pw.EdgeInsets.all(10),
+                          decoration: pw.BoxDecoration(
+                            border: pw.Border.all(color: PdfColors.grey),
+                          ),
+                          child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text(
+                                log.descripcion,
+                                style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                              ),
+                              pw.Text("Hora: $hora"),
+                              pw.Text(
+                                "Tipo: ${log.tipo.name} | Coords: ${log.latitud}, ${log.longitud}",
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.sharePdf(
+      bytes: await pdf.save(),
+      filename: 'caja_negra_ohtliani.pdf',
+    );
+  }
+
+  Widget _getIconForLog(TipoIncidente tipo) {
+    switch (tipo) {
+      case TipoIncidente.sosGuiaActivado:
+        return const Icon(Icons.warning, color: Colors.red);
+      case TipoIncidente.sosGuiaCancelado:
+        return const Icon(Icons.check_circle, color: Colors.orange);
+      case TipoIncidente.alertaTuristaAlejado:
+        return const Icon(Icons.directions_run, color: Colors.orange);
+      case TipoIncidente.incidenteResuelto:
+        return const Icon(Icons.verified_user, color: Colors.green);
+      default:
+        return const Icon(Icons.info, color: Colors.blue);
+    }
+  }
 }

@@ -7,6 +7,7 @@ import 'package:frontend/features/guia/home/presentation/blocs/eco_mode/eco_mode
 import 'package:frontend/features/guia/home/presentation/shared_widgets/sos_button.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/weather_widget.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/map_preview_card.dart';
+import 'package:frontend/features/guia/home/domain/entities/personal_home_data.dart';
 
 // ────────────────────────────────────────────────────────────────────────────
 // PERSONAL MAIN LAYOUT — Dashboard B2C

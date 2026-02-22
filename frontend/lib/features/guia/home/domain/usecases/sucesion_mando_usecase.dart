@@ -1,5 +1,5 @@
 import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart';
-import 'package:frontend/features/guia/home/data/services/sucesion_mando_local_service.dart';
+import 'package:frontend/features/guia/home/domain/repositories/sucesion_mando_repository.dart';
 import 'package:frontend/features/guia/trips/domain/services/caja_negra_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -33,13 +33,13 @@ class ResultadoSucesion {
 
 class SucesionMandoUseCase {
   final CajaNegraService _cajaNegraService;
-  final SucesionMandoLocalService _localService;
+  final SucesionMandoRepository _repository;
 
   SucesionMandoUseCase({
     CajaNegraService? cajaNegraService,
-    SucesionMandoLocalService? localService,
+    required SucesionMandoRepository repository,
   }) : _cajaNegraService = cajaNegraService ?? CajaNegraService(),
-       _localService = localService ?? SucesionMandoLocalService();
+       _repository = repository;
 
   // ── API pública ─────────────────────────────────────────────────────────────
 
@@ -70,7 +70,7 @@ class SucesionMandoUseCase {
 
       // ✅ IMPLEMENTADO: Push FCM simulado al Co-Guía (via SharedPreferences + Clipboard)
       // En producción → FCM data message con action:"ASUMIR_MANDO"
-      await _localService.transferirMandoAgencia(
+      await _repository.transferirMandoAgencia(
         sucesorId: sucesorId,
         sucesorNombre: 'Co-Guía ($sucesorId)',
         viajeId: viaje.id,
@@ -95,7 +95,7 @@ class SucesionMandoUseCase {
     } else {
       // ✅ IMPLEMENTADO: POST HTTP simulado al dashboard (via SharedPreferences + Clipboard)
       // En producción → dio.post('/api/agencia/alertas/sos', data: payload)
-      await _localService.notificarDashboardAgencia(
+      await _repository.notificarDashboardAgencia(
         viajeId: viaje.id,
         lat: lat,
         lng: lng,
@@ -130,7 +130,7 @@ class SucesionMandoUseCase {
 
       // ✅ IMPLEMENTADO: SMS simulado via SharedPreferences + Clipboard
       // En producción → Twilio API / AWS SNS
-      await _localService.enviarSmsEmergencia(
+      await _repository.enviarSmsEmergencia(
         telefono: contacto.telefono,
         nombreContacto: contacto.nombre,
         lat: lat,
@@ -158,7 +158,7 @@ class SucesionMandoUseCase {
     } else {
       // ✅ IMPLEMENTADO: Protocolo 911 simulado via Clipboard
       // En producción → url_launcher: launchUrl(Uri.parse('tel:911'))
-      await _localService.marcarProtocolo911(lat: lat, lng: lng);
+      await _repository.marcarProtocolo911(lat: lat, lng: lng);
 
       _cajaNegraService.registrarIncidente(
         nombreTurista: 'GUÍA PRINCIPAL',
