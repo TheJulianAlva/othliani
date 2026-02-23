@@ -16,12 +16,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:frontend/features/guia/home/presentation/screens/home_wrapper_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_map_screen.dart';
-import 'package:frontend/features/guia/shared/screens/guia_chat_screen.dart';
-import 'package:frontend/features/guia/shared/screens/guia_alerts_screen.dart';
-import 'package:frontend/features/guia/shared/screens/guia_profile_screen.dart';
+import 'package:frontend/features/guia/chat/presentation/screens/guia_chat_screen.dart';
+import 'package:frontend/features/guia/profile/presentation/screens/guia_profile_screen.dart';
 import 'package:frontend/features/guia/shared/screens/guia_itinerary_screen.dart';
-import 'package:frontend/features/guia/shared/screens/guia_participants_screen.dart';
-import 'package:frontend/features/turista/tools/presentation/screens/currency_converter_screen.dart';
+import 'package:frontend/core/tools/presentation/screens/currency_converter_screen.dart';
 import 'package:frontend/features/guia/home/presentation/screens/pantalla_gestion_cambios.dart';
 import 'package:frontend/features/guia/trips/presentation/screens/crear_viaje_personal_screen.dart';
 import 'package:frontend/features/guia/home/presentation/screens/sos_alarm_screen.dart';
@@ -196,16 +194,6 @@ class EnrutadorAppGuia {
               ),
         ),
         GoRoute(
-          path: RoutesGuia.alerts,
-          name: 'guia_alerts',
-          pageBuilder:
-              (context, state) => CustomTransitionPage(
-                key: state.pageKey,
-                child: const GuiaAlertsScreen(),
-                transitionsBuilder: fadeSlideTransition,
-              ),
-        ),
-        GoRoute(
           path: RoutesGuia.profile,
           name: 'guia_profile',
           pageBuilder:
@@ -222,16 +210,6 @@ class EnrutadorAppGuia {
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
                 child: const GuiaItineraryScreen(),
-                transitionsBuilder: fadeSlideTransition,
-              ),
-        ),
-        GoRoute(
-          path: RoutesGuia.participants,
-          name: 'guia_participants',
-          pageBuilder:
-              (context, state) => CustomTransitionPage(
-                key: state.pageKey,
-                child: const GuiaParticipantsScreen(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),
@@ -288,40 +266,36 @@ class EnrutadorAppGuia {
         GoRoute(
           path: RoutesGuia.reporteFinViaje,
           name: 'guia_reporte_fin_viaje',
-          pageBuilder:
-              (context, state) => CustomTransitionPage(
-                key: state.pageKey,
-                child: ReporteFinViajeScreen(
-                  nombreExpedicion:
-                      (state.extra as Map<String, dynamic>?)?['nombre']
-                          as String? ??
-                      'Expedición',
-                  inicio:
-                      (state.extra as Map<String, dynamic>?)?['inicio']
-                          as DateTime?,
-                  turistasPrioridad1:
-                      ((state.extra as Map<String, dynamic>?)?['prioridad1']
-                              as List<dynamic>?)
-                          ?.cast<String>() ??
-                      [],
-                  distanciaKm:
-                      ((state.extra as Map<String, dynamic>?)?['distanciaKm']
-                              as num?)
-                          ?.toDouble() ??
-                      0,
-                ),
-                transitionsBuilder: fadeSlideTransition,
+          pageBuilder: (context, state) {
+            final extraMap = state.extra as Map<String, dynamic>? ?? {};
+            return CustomTransitionPage(
+              key: state.pageKey,
+              child: ReporteFinViajeScreen(
+                nombreExpedicion: extraMap['nombre'] as String? ?? 'Expedición',
+                inicio: extraMap['inicio'] as DateTime?,
+                turistasPrioridad1:
+                    (extraMap['prioridad1'] as List<dynamic>?)
+                        ?.cast<String>() ??
+                    [],
+                distanciaKm: (extraMap['distanciaKm'] as num?)?.toDouble() ?? 0,
+                esGuiaIndependiente:
+                    extraMap['esGuiaIndependiente'] as bool? ?? true,
               ),
+              transitionsBuilder: fadeSlideTransition,
+            );
+          },
         ),
         GoRoute(
           path: RoutesGuia.expeditionLog,
           name: 'guia_expedition_log',
-          pageBuilder:
-              (context, state) => CustomTransitionPage(
-                key: state.pageKey,
-                child: ExpeditionLogScreen(),
-                transitionsBuilder: fadeSlideTransition,
-              ),
+          pageBuilder: (context, state) {
+            final esIndependiente = state.extra as bool? ?? true;
+            return CustomTransitionPage(
+              key: state.pageKey,
+              child: ExpeditionLogScreen(esGuiaIndependiente: esIndependiente),
+              transitionsBuilder: fadeSlideTransition,
+            );
+          },
         ),
         // ── Alerta Turista ───────────────────────────────────────
         GoRoute(

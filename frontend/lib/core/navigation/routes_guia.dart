@@ -16,10 +16,8 @@ class RoutesGuia {
   static const String home = '/home';
   static const String map = '/map';
   static const String chat = '/chat';
-  static const String alerts = '/alerts';
   static const String profile = '/profile';
   static const String itinerary = '/itinerary';
-  static const String participants = '/participants';
   static const String converter = '/tools/converter';
   static const String itineraryChanges = '/itinerary/changes';
   static const String createPersonalTrip = '/trips/personal/create';

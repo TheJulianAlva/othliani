@@ -37,12 +37,12 @@ import 'package:frontend/features/guia/trips/domain/repositories/caja_negra_repo
 import 'package:frontend/features/guia/trips/data/repositories/caja_negra_repository_impl.dart';
 
 // Herramienta de conversor de moneda (compartida con turista)
-import 'package:frontend/features/turista/tools/currency/data/datasources/currency_remote_data_source.dart';
-import 'package:frontend/features/turista/tools/currency/data/repositories/currency_repository_impl.dart';
-import 'package:frontend/features/turista/tools/currency/domain/repositories/currency_repository.dart';
-import 'package:frontend/features/turista/tools/currency/domain/usecases/get_exchange_rates_usecase.dart';
-import 'package:frontend/features/turista/tools/currency/domain/usecases/convert_currency_usecase.dart';
-import 'package:frontend/features/turista/tools/currency/presentation/cubit/currency_cubit.dart';
+import 'package:frontend/core/tools/currency/data/datasources/currency_remote_data_source.dart';
+import 'package:frontend/core/tools/currency/data/repositories/currency_repository_impl.dart';
+import 'package:frontend/core/tools/currency/domain/repositories/currency_repository.dart';
+import 'package:frontend/core/tools/currency/domain/usecases/get_exchange_rates_usecase.dart';
+import 'package:frontend/core/tools/currency/domain/usecases/convert_currency_usecase.dart';
+import 'package:frontend/core/tools/currency/presentation/cubit/currency_cubit.dart';
 
 Future<void> initGuiaDependencies() async {
   // ====================================================

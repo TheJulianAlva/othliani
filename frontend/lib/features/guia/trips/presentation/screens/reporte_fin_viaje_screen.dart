@@ -25,12 +25,16 @@ class ReporteFinViajeScreen extends StatelessWidget {
   /// Distancia recorrida en km (calculada por el módulo de mapa).
   final double distanciaKm;
 
+  /// Determina si se ejecuta en flujo B2C (true) o B2B (false).
+  final bool esGuiaIndependiente;
+
   const ReporteFinViajeScreen({
     super.key,
     this.nombreExpedicion = 'Expedición',
     this.inicio,
     this.turistasPrioridad1 = const [],
     this.distanciaKm = 0,
+    this.esGuiaIndependiente = true,
   });
 
   @override
@@ -40,8 +44,15 @@ class ReporteFinViajeScreen extends StatelessWidget {
         title: const Text('Resumen de Expedición'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share_rounded),
-            tooltip: 'Compartir reporte',
+            icon: Icon(
+              esGuiaIndependiente
+                  ? Icons.picture_as_pdf_rounded
+                  : Icons.cloud_upload_rounded,
+            ),
+            tooltip:
+                esGuiaIndependiente
+                    ? 'Generar Reporte PDF'
+                    : 'Sincronizar con Agencia',
             onPressed: () => _compartirReporte(context),
           ),
         ],
@@ -67,8 +78,12 @@ class ReporteFinViajeScreen extends StatelessWidget {
 
   void _compartirReporte(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Exportación a PDF próximamente disponible'),
+      SnackBar(
+        content: Text(
+          esGuiaIndependiente
+              ? 'Exportación a PDF próximamente disponible'
+              : 'Sincronizando reporte con la agencia...',
+        ),
       ),
     );
   }

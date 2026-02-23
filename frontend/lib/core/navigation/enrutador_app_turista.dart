@@ -16,7 +16,7 @@ import 'package:frontend/features/turista/home/presentation/screens/map_screen.d
 import 'package:frontend/features/turista/chat/presentation/screens/chat_screen.dart';
 import 'package:frontend/features/turista/settings/presentation/screens/config_screen.dart';
 import 'package:frontend/features/turista/profile/presentation/screens/profile_screen.dart';
-import 'package:frontend/features/turista/tools/presentation/screens/currency_converter_screen.dart';
+import 'package:frontend/core/tools/presentation/screens/currency_converter_screen.dart';
 import 'package:frontend/features/turista/settings/presentation/screens/accessibility_screen.dart';
 import 'package:go_router/go_router.dart';
 

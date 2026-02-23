@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:frontend/core/error/failures.dart';
-import 'package:frontend/features/turista/tools/currency/data/datasources/currency_remote_data_source.dart';
-import 'package:frontend/features/turista/tools/currency/domain/repositories/currency_repository.dart';
+import 'package:frontend/core/tools/currency/data/datasources/currency_remote_data_source.dart';
+import 'package:frontend/core/tools/currency/domain/repositories/currency_repository.dart';
 
 class CurrencyRepositoryImpl implements CurrencyRepository {
   final CurrencyRemoteDataSource remoteDataSource;

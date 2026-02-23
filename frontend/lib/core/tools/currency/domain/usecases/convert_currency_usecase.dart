@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:frontend/core/error/failures.dart';
 import 'package:frontend/core/usecase/usecase.dart';
-import 'package:frontend/features/turista/tools/currency/domain/repositories/currency_repository.dart';
+import 'package:frontend/core/tools/currency/domain/repositories/currency_repository.dart';
 
 class ConvertCurrencyParams {
   final double amount;

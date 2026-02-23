@@ -55,6 +55,10 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout> {
   }
 
   Widget _buildContent(BuildContext context, PersonalHomeLoaded state) {
+    if (!state.viajeActivo) {
+      return _buildEmptyState(context, state);
+    }
+
     return CustomScrollView(
       slivers: [
         // ── SliverAppBar aventurero ──────────────────────────────────────
@@ -199,11 +203,15 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout> {
                 items: [
                   (Icons.map_rounded, 'Mapa', RoutesGuia.map),
                   (Icons.route_rounded, 'Gestión', RoutesGuia.itineraryChanges),
+                  (Icons.security_rounded, 'Bitácora', RoutesGuia.bitacora),
+                  (
+                    Icons.shield_rounded,
+                    'Caja Negra',
+                    RoutesGuia.expeditionLog,
+                  ),
                   (Icons.list_alt_rounded, 'Itinerario', RoutesGuia.itinerary),
                   (Icons.chat_bubble_rounded, 'Chat', RoutesGuia.chat),
                   (Icons.currency_exchange, 'Conversor', RoutesGuia.converter),
-                  (Icons.people_rounded, 'Grupo', RoutesGuia.participants),
-                  (Icons.notifications_rounded, 'Alertas', RoutesGuia.alerts),
                   (Icons.person_rounded, 'Perfil', RoutesGuia.profile),
                 ],
                 accentColor: _naranjaSecundario,
@@ -213,7 +221,145 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout> {
               // ── SOS ────────────────────────────────────────────────────
               const SosButton(),
               const SizedBox(height: 16),
+
+              // ── Finalizar Expedición ──────────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed:
+                      () => context.push(
+                        RoutesGuia.reporteFinViaje,
+                        extra: {
+                          'nombre': state.nombreViaje,
+                          'inicio': DateTime.now().subtract(
+                            const Duration(hours: 4),
+                          ),
+                          'distanciaKm': state.kmRecorridos,
+                          'esGuiaIndependiente': true,
+                        },
+                      ),
+                  icon: const Icon(Icons.flag_rounded),
+                  label: const Text(
+                    'Finalizar Expedición',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red.shade700,
+                    side: BorderSide(color: Colors.red.shade300),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
             ]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, PersonalHomeLoaded state) {
+    return Column(
+      children: [
+        // App bar
+        Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [_naranjaPrimario, _naranjaSecundario],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.white.withAlpha(30),
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hola, ${state.nombreGuia}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const Text(
+                      'Guía independiente',
+                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.explore_off_rounded,
+                    size: 80,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'No tienes expediciones activas',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Crea una nueva ruta y comienza a monitorear a tus turistas con el ecosistema de seguridad.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed:
+                          () => context.push(RoutesGuia.createPersonalTrip),
+                      icon: const Icon(Icons.add_location_alt_rounded),
+                      label: const Text(
+                        'Crear Nueva Expedición',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _naranjaPrimario,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
@@ -696,7 +842,13 @@ class _AccesosRapidos extends StatelessWidget {
       children:
           items.map((a) {
             return GestureDetector(
-              onTap: () => context.push(a.$3),
+              onTap: () {
+                if (a.$3 == RoutesGuia.expeditionLog) {
+                  context.push(a.$3, extra: true); // B2C: Personal (true)
+                } else {
+                  context.push(a.$3);
+                }
+              },
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

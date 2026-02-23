@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/turista/tools/currency/domain/usecases/convert_currency_usecase.dart';
-import 'package:frontend/features/turista/tools/currency/domain/usecases/get_exchange_rates_usecase.dart';
-import 'package:frontend/features/turista/tools/currency/presentation/cubit/currency_state.dart';
+import 'package:frontend/core/tools/currency/domain/usecases/convert_currency_usecase.dart';
+import 'package:frontend/core/tools/currency/domain/usecases/get_exchange_rates_usecase.dart';
+import 'package:frontend/core/tools/currency/presentation/cubit/currency_state.dart';
 
 class CurrencyCubit extends Cubit<CurrencyState> {
   final GetExchangeRatesUseCase getExchangeRatesUseCase;

@@ -6,8 +6,8 @@ import 'dart:io';
 import 'package:frontend/core/theme/app_constants.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:frontend/core/di/service_locator.dart';
-import 'package:frontend/features/turista/tools/currency/presentation/cubit/currency_cubit.dart';
-import 'package:frontend/features/turista/tools/currency/presentation/cubit/currency_state.dart';
+import 'package:frontend/core/tools/currency/presentation/cubit/currency_cubit.dart';
+import 'package:frontend/core/tools/currency/presentation/cubit/currency_state.dart';
 
 class CurrencyConverterScreen extends StatelessWidget {
   const CurrencyConverterScreen({super.key});

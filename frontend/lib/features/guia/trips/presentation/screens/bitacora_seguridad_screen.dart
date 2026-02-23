@@ -28,8 +28,11 @@ class _BitacoraSeguridadScreenState extends State<BitacoraSeguridadScreen> {
     _cargar();
   }
 
-  void _cargar() =>
-      setState(() => _eventosFuture = CajaNegraService().leerBitacora());
+  void _cargar() {
+    setState(() {
+      _eventosFuture = CajaNegraService().leerBitacora();
+    });
+  }
 
   Future<void> _confirmarLimpiar() async {
     final confirmar = await showDialog<bool>(

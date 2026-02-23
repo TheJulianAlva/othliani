@@ -9,7 +9,7 @@ import 'package:frontend/features/turista/home/presentation/screens/trip_home_sc
 import 'package:frontend/features/turista/chat/presentation/screens/chat_screen.dart';
 import 'package:frontend/features/turista/settings/presentation/screens/config_screen.dart';
 import 'map_screen.dart';
-import 'package:frontend/features/turista/tools/presentation/screens/currency_converter_screen.dart';
+import 'package:frontend/core/tools/presentation/screens/currency_converter_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});

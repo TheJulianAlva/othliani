@@ -8,6 +8,8 @@ import 'package:frontend/features/guia/home/presentation/shared_widgets/sos_butt
 import 'package:frontend/features/guia/home/presentation/shared_widgets/weather_widget.dart';
 import 'package:frontend/features/guia/home/presentation/shared_widgets/map_preview_card.dart';
 import 'package:frontend/features/guia/home/domain/entities/agencia_home_data.dart';
+import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
+import 'package:frontend/features/guia/home/presentation/screens/pantalla_alertas_guia.dart';
 
 // ────────────────────────────────────────────────────────────────────────────
 // AGENCIA MAIN LAYOUT — Dashboard B2B
@@ -227,9 +229,13 @@ class _AgenciaMainLayoutState extends State<AgenciaMainLayout> {
                   (Icons.map_rounded, 'Mapa', RoutesGuia.map),
                   (Icons.route_rounded, 'Gestión', RoutesGuia.itineraryChanges),
                   (Icons.chat_bubble_rounded, 'Chat', RoutesGuia.chat),
+                  (Icons.security_rounded, 'Bitácora', RoutesGuia.bitacora),
+                  (
+                    Icons.shield_rounded,
+                    'Caja Negra',
+                    RoutesGuia.expeditionLog,
+                  ),
                   (Icons.list_alt_rounded, 'Itinerario', RoutesGuia.itinerary),
-                  (Icons.notifications_rounded, 'Alertas', RoutesGuia.alerts),
-                  (Icons.people_rounded, 'Grupo', RoutesGuia.participants),
                   (Icons.currency_exchange, 'Conversor', RoutesGuia.converter),
                   (Icons.person_rounded, 'Perfil', RoutesGuia.profile),
                 ],
@@ -240,6 +246,36 @@ class _AgenciaMainLayoutState extends State<AgenciaMainLayout> {
               // ── SOS ────────────────────────────────────────────────────
               const SosButton(),
               const SizedBox(height: 16),
+
+              // ── Finalizar Expedición ──────────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed:
+                      () => context.push(
+                        RoutesGuia.reporteFinViaje,
+                        extra: {
+                          'nombre': state.nombreViaje,
+                          'inicio': DateTime.now().subtract(
+                            const Duration(hours: 4),
+                          ),
+                          'distanciaKm': 0.0,
+                          'esGuiaIndependiente': false,
+                        },
+                      ),
+                  icon: const Icon(Icons.flag_rounded),
+                  label: const Text(
+                    'Finalizar Expedición',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red.shade700,
+                    side: BorderSide(color: Colors.red.shade300),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
             ]),
           ),
         ),
@@ -561,6 +597,26 @@ class _HistorialAlertas extends StatelessWidget {
           final a = alertas[i];
           return ListTile(
             dense: true,
+            onTap: () {
+              // Simulamos acceso a la alerta para debug/review
+              final dummyTurista = Turista(
+                id: 't_mock',
+                nombre: 'Turista Afectado',
+                viajeId: 'v_mock',
+                status: 'SOS',
+                bateria: 0.5,
+                enCampo: true,
+                vulnerabilidad: NivelVulnerabilidad.critica,
+              );
+              context.push(
+                RoutesGuia.alertaTurista,
+                extra: AlertaTuristaParams(
+                  turista: dummyTurista,
+                  motivoAlerta: a.descripcion,
+                  distanciaMetros: 50.0,
+                ),
+              );
+            },
             leading: const Icon(
               Icons.notifications_active_rounded,
               color: Color(0xFFE53935),
@@ -614,7 +670,13 @@ class _AccesosRapidos extends StatelessWidget {
       children:
           items.map((a) {
             return GestureDetector(
-              onTap: () => context.push(a.$3),
+              onTap: () {
+                if (a.$3 == RoutesGuia.expeditionLog) {
+                  context.push(a.$3, extra: false); // B2B: Agencia (false)
+                } else {
+                  context.push(a.$3);
+                }
+              },
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
