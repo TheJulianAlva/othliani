@@ -10,13 +10,13 @@ import 'package:frontend/features/turista/chat/data/datasources/chat_remote_data
 import 'package:frontend/features/turista/chat/data/repositories/chat_repository_impl.dart';
 import 'package:frontend/features/turista/home/data/datasources/itinerary_remote_data_source.dart';
 import 'package:frontend/features/turista/home/data/repositories/itinerary_repository_impl.dart';
-import 'package:frontend/features/turista/tools/currency/data/datasources/currency_remote_data_source.dart';
-import 'package:frontend/features/turista/tools/currency/data/repositories/currency_repository_impl.dart';
+import 'package:frontend/core/tools/currency/data/datasources/currency_remote_data_source.dart';
+import 'package:frontend/core/tools/currency/data/repositories/currency_repository_impl.dart';
 
 import 'package:frontend/features/turista/auth/domain/repositories/auth_repository.dart';
 import 'package:frontend/features/turista/home/domain/repositories/trip_repository.dart';
 import 'package:frontend/features/turista/home/domain/repositories/itinerary_repository.dart';
-import 'package:frontend/features/turista/tools/currency/domain/repositories/currency_repository.dart';
+import 'package:frontend/core/tools/currency/domain/repositories/currency_repository.dart';
 import 'package:frontend/features/turista/profile/domain/repositories/profile_repository.dart';
 
 import 'package:frontend/features/turista/chat/domain/repositories/chat_repository.dart';
@@ -38,8 +38,8 @@ import 'package:frontend/features/turista/auth/domain/usecases/request_phone_cod
 import 'package:frontend/features/turista/auth/domain/usecases/verify_phone_code_usecase.dart';
 import 'package:frontend/features/turista/auth/domain/usecases/resend_email_verification_usecase.dart';
 import 'package:frontend/features/turista/home/domain/usecases/get_itinerary_usecase.dart';
-import 'package:frontend/features/turista/tools/currency/domain/usecases/get_exchange_rates_usecase.dart';
-import 'package:frontend/features/turista/tools/currency/domain/usecases/convert_currency_usecase.dart';
+import 'package:frontend/core/tools/currency/domain/usecases/get_exchange_rates_usecase.dart';
+import 'package:frontend/core/tools/currency/domain/usecases/convert_currency_usecase.dart';
 import 'package:frontend/features/turista/auth/presentation/cubit/login_cubit.dart';
 
 import 'package:frontend/features/turista/auth/presentation/cubit/register_cubit.dart';
@@ -53,7 +53,7 @@ import 'package:frontend/features/turista/chat/presentation/bloc/chat_bloc.dart'
 import 'package:frontend/features/turista/auth/presentation/cubit/verification_cubit.dart';
 
 import 'package:frontend/features/turista/home/presentation/bloc/itinerary_bloc.dart';
-import 'package:frontend/features/turista/tools/currency/presentation/cubit/currency_cubit.dart';
+import 'package:frontend/core/tools/currency/presentation/cubit/currency_cubit.dart';
 import 'package:frontend/features/turista/settings/presentation/cubit/theme_cubit.dart';
 import 'package:frontend/features/turista/settings/presentation/cubit/locale_cubit.dart';
 import 'package:frontend/features/turista/settings/presentation/cubit/accessibility_cubit.dart';

@@ -103,7 +103,10 @@ class MockAgenciaDataSource {
         longitud: -99.1332,
         guiaNombre: 'Marcos Ruiz',
         horaInicio: '09:00 AM',
-        alertasActivas: 1, // Ana G. en pánico
+        alertasActivas: 1,
+        tipoViaje: TipoViaje.agencia,
+        coGuiasIds: ['G-02', 'G-03'], // Pedro Sánchez y Ana Paula como co-guías
+        tipoGrupo: TipoGrupo.familiar,
       ),
       Viaje(
         id: '205',
@@ -117,7 +120,19 @@ class MockAgenciaDataSource {
         longitud: -99.3147,
         guiaNombre: 'Pedro Sánchez',
         horaInicio: '08:30 AM',
-        alertasActivas: 2, // Batería baja + Conectividad
+        alertasActivas: 2,
+        tipoViaje: TipoViaje.personal, // B2C: guía independiente
+        contactosConfianza: [
+          ContactoConfianza(
+            nombre: 'María Sánchez', // esposa
+            telefono: '+52 55 9876 5432',
+          ),
+          ContactoConfianza(
+            nombre: 'Carlos Sánchez', // hermano
+            telefono: '+52 55 1111 2222',
+          ),
+        ],
+        tipoGrupo: TipoGrupo.aventuraAdultos,
       ),
       Viaje(
         id: '110',
@@ -132,6 +147,9 @@ class MockAgenciaDataSource {
         guiaNombre: 'Ana Paula G.',
         horaInicio: '07:00 AM',
         alertasActivas: 1, // Luis P. alejado
+        tipoViaje: TipoViaje.agencia,
+        coGuiasIds: ['G-08'], // Jorge T. como co-guía de espera
+        tipoGrupo: TipoGrupo.escolar,
       ),
 
       // 🔵 Viajes PROGRAMADOS - VIAJES LARGOS (Multi-día, 2-3 días)
