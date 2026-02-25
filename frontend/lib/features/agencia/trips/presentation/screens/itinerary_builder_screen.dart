@@ -2,54 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/itinerary_builder/itinerary_builder_cubit.dart';
 import '../../domain/entities/actividad_itinerario.dart'; // Para TipoActividad
+import '../../domain/entities/categoria_actividad.dart'; // 🎭 Categorías dinámicas
 import '../widgets/itinerary_builder/activity_edit_dialog.dart'; // ✨ Fase 4
+import '../widgets/itinerary_builder/new_category_modal.dart'; // 🎭 Modal nueva categoría
 import 'package:frontend/core/di/service_locator.dart' as di; // ✨ Fase 5: DI
 import '../../domain/repositories/trip_repository.dart'; // ✨ Fase 5
+import '../../domain/repositories/categorias_repository.dart'; // 🎭 Clean Arch
 import 'itinerary_builder_route_map.dart'; // ✨ Widget del mapa de ruta
 import '../../domain/entities/viaje.dart'; // ✨ Import necesario
 import 'package:frontend/features/agencia/trips/data/datasources/trip_local_data_source.dart'; // 💾 Import necesario
-import '../../../shared/presentation/widgets/draft_guard_widget.dart'; // 🛡️ Draft Guard
 import 'package:frontend/core/services/unsaved_changes_service.dart';
 
-// Configuración visual de las herramientas
-final List<Map<String, dynamic>> _catalogoHerramientas = [
-  {
-    'tipo': TipoActividad.hospedaje,
-    'icon': Icons.hotel_rounded,
-    'color': Colors.purple,
-    'label': 'Hospedaje',
-  },
-  {
-    'tipo': TipoActividad.comida,
-    'icon': Icons.restaurant_rounded,
-    'color': Colors.orange,
-    'label': 'Alimentos',
-  },
-  {
-    'tipo': TipoActividad.traslado,
-    'icon': Icons.directions_bus_rounded,
-    'color': Colors.blue,
-    'label': 'Traslado',
-  },
-  {
-    'tipo': TipoActividad.cultura,
-    'icon': Icons.museum_rounded,
-    'color': Colors.brown,
-    'label': 'Cultura / Museo',
-  },
-  {
-    'tipo': TipoActividad.aventura,
-    'icon': Icons.hiking_rounded,
-    'color': Colors.green,
-    'label': 'Aventura',
-  },
-  {
-    'tipo': TipoActividad.tiempoLibre,
-    'icon': Icons.beach_access_rounded,
-    'color': Colors.teal,
-    'label': 'Tiempo Libre',
-  },
-];
+// El catálogo de herramientas ahora viene de ItineraryBuilderState.categorias
+// y se construye dinámicamente (defaults + personalizadas de la agencia).
 
 class ItineraryBuilderScreen extends StatelessWidget {
   final Viaje viajeBase; // ✨ AHORA: Recibimos todo el objeto
@@ -61,9 +26,11 @@ class ItineraryBuilderScreen extends StatelessWidget {
     return BlocProvider(
       create:
           (_) => ItineraryBuilderCubit(
-            repository: di.sl<TripRepository>(), // ✨ FASE 5: Inyectar repo
-            localDataSource: di.sl<TripLocalDataSource>(), // 💾 Persistencia
+            repository: di.sl<TripRepository>(),
+            localDataSource: di.sl<TripLocalDataSource>(),
             unsavedChangesService: di.sl<UnsavedChangesService>(),
+            categoriasRepository:
+                di.sl<CategoriasRepository>(), // 🎭 Clean Arch
           )..init(
             // Calculamos duración aquí o en el Cubit.
             // Si es 1 día, duration es 1. Si son fechas diferentes, diff + 1.
@@ -87,103 +54,97 @@ class ItineraryBuilderScreen extends StatelessWidget {
           ),
       child: BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
         builder: (context, state) {
-          // Condición: Si hay actividades en el mapa, advertimos
-          final bool hayCambios = state.actividadesPorDia.isNotEmpty;
-          // O si ya se guardó exitosamente, NO advertimos al salir
-          final bool yaGuardo = state.isSaved;
-
-          return DraftGuardWidget(
-            shouldWarn: hayCambios && !yaGuardo,
-            child: Scaffold(
-              backgroundColor: Colors.grey[50],
-              appBar: AppBar(
-                title: const Text("Constructor de Itinerario"),
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black87,
-                elevation: 0.5,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed:
-                      () => Navigator.maybePop(context), // Trigger PopScope
+          // El itinerary builder NO intercepta el back — deja que el
+          // DraftGuardWidget del TripCreationScreen maneje eso.
+          return Scaffold(
+            backgroundColor: Colors.grey[50],
+            appBar: AppBar(
+              title: const Text("Constructor de Itinerario"),
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black87,
+              elevation: 0.5,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed:
+                    () => Navigator.maybePop(context), // Trigger PopScope
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child:
+                      BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
+                        builder: (context, state) {
+                          return ElevatedButton.icon(
+                            onPressed:
+                                state.isSaving
+                                    ? null
+                                    : () {
+                                      context
+                                          .read<ItineraryBuilderCubit>()
+                                          .saveFullTrip(viajeBase);
+                                    },
+                            icon:
+                                state.isSaving
+                                    ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Icon(Icons.save),
+                            label: Text(
+                              state.isSaving
+                                  ? "Guardando..."
+                                  : "Finalizar Viaje",
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[800],
+                              foregroundColor: Colors.white,
+                            ),
+                          );
+                        },
+                      ),
                 ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: BlocBuilder<
-                      ItineraryBuilderCubit,
-                      ItineraryBuilderState
-                    >(
-                      builder: (context, state) {
-                        return ElevatedButton.icon(
-                          onPressed:
-                              state.isSaving
-                                  ? null
-                                  : () {
-                                    context
-                                        .read<ItineraryBuilderCubit>()
-                                        .saveFullTrip(viajeBase);
-                                  },
-                          icon:
-                              state.isSaving
-                                  ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                  : const Icon(Icons.save),
-                          label: Text(
-                            state.isSaving ? "Guardando..." : "Finalizar Viaje",
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue[800],
-                            foregroundColor: Colors.white,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              body: BlocListener<ItineraryBuilderCubit, ItineraryBuilderState>(
-                listener: (context, state) {
-                  if (state.isSaved) {
-                    // ✨ ÉXITO: Navegar al Dashboard / Lista de Viajes
-                    Navigator.of(
-                      context,
-                    ).pop(); // Regresar a la lista (refresh auto?)
-                  }
+              ],
+            ),
+            body: BlocListener<ItineraryBuilderCubit, ItineraryBuilderState>(
+              listener: (context, state) {
+                if (state.isSaved) {
+                  // ✨ ÉXITO: Navegar al Dashboard / Lista de Viajes
+                  Navigator.of(
+                    context,
+                  ).pop(); // Regresar a la lista (refresh auto?)
+                }
 
-                  if (state.errorMessage != null) {
-                    showDialog(
-                      context: context,
-                      builder:
-                          (dialogContext) => AlertDialog(
-                            icon: const Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.orange,
-                              size: 48,
-                            ),
-                            title: const Text('Horario Inválido'),
-                            content: Text(
-                              state.errorMessage!,
-                              textAlign: TextAlign.center,
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed:
-                                    () => Navigator.of(dialogContext).pop(),
-                                child: const Text('Entendido'),
-                              ),
-                            ],
+                if (state.errorMessage != null) {
+                  showDialog(
+                    context: context,
+                    builder:
+                        (dialogContext) => AlertDialog(
+                          icon: const Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.orange,
+                            size: 48,
                           ),
-                    );
-                  }
-                },
-                child: const _BodyContent(),
-              ),
+                          title: const Text('Horario Inválido'),
+                          content: Text(
+                            state.errorMessage!,
+                            textAlign: TextAlign.center,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed:
+                                  () => Navigator.of(dialogContext).pop(),
+                              child: const Text('Entendido'),
+                            ),
+                          ],
+                        ),
+                  );
+                }
+              },
+              child: const _BodyContent(),
             ),
           );
         },
@@ -221,15 +182,67 @@ class _BodyContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: _catalogoHerramientas.length,
-                    itemBuilder: (context, index) {
-                      final item = _catalogoHerramientas[index];
-                      return _buildDraggableToolItem(
-                        tipo: item['tipo'],
-                        icon: item['icon'],
-                        color: item['color'],
-                        label: item['label'],
+                  child: BlocBuilder<
+                    ItineraryBuilderCubit,
+                    ItineraryBuilderState
+                  >(
+                    buildWhen:
+                        (prev, curr) => prev.categorias != curr.categorias,
+                    builder: (context, state) {
+                      return ListView.builder(
+                        itemCount:
+                            state.categorias.length + 1, // +1 para el botón
+                        itemBuilder: (context, index) {
+                          // Último item: botón de nueva categoría
+                          if (index == state.categorias.length) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: OutlinedButton.icon(
+                                icon: const Icon(
+                                  Icons.add_circle_outline,
+                                  size: 18,
+                                ),
+                                label: const Text('Nueva Actividad'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF1B263B),
+                                  side: const BorderSide(
+                                    color: Color(0xFF1B263B),
+                                    style: BorderStyle.solid,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                    horizontal: 8,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  final nueva = await showModalBottomSheet<
+                                    CategoriaActividad
+                                  >(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20),
+                                      ),
+                                    ),
+                                    builder: (_) => const NewCategoryModal(),
+                                  );
+                                  if (nueva != null && context.mounted) {
+                                    context
+                                        .read<ItineraryBuilderCubit>()
+                                        .agregarCategoriaPersonalizada(nueva);
+                                  }
+                                },
+                              ),
+                            );
+                          }
+                          return _buildDraggableToolItem(
+                            categoria: state.categorias[index],
+                          );
+                        },
                       );
                     },
                   ),
@@ -320,12 +333,11 @@ class _BodyContent extends StatelessWidget {
     );
   }
 
-  Widget _buildDraggableToolItem({
-    required TipoActividad tipo,
-    required IconData icon,
-    required Color color,
-    required String label,
-  }) {
+  Widget _buildDraggableToolItem({required CategoriaActividad categoria}) {
+    final color = Color(
+      int.parse(categoria.colorHex.replaceFirst('#', '0xFF')),
+    );
+
     final baseCard = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
@@ -348,13 +360,25 @@ class _BodyContent extends StatelessWidget {
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Text(categoria.emoji, style: const TextStyle(fontSize: 20)),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  categoria.nombre,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                Text(
+                  '${categoria.duracionDefaultMinutos} min',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                ),
+              ],
             ),
           ),
           const Icon(Icons.drag_indicator, color: Colors.grey, size: 16),
@@ -362,8 +386,8 @@ class _BodyContent extends StatelessWidget {
       ),
     );
 
-    return Draggable<TipoActividad>(
-      data: tipo,
+    return Draggable<CategoriaActividad>(
+      data: categoria,
       feedback: Material(
         color: Colors.transparent,
         child: Transform.scale(
@@ -1115,13 +1139,13 @@ class _TimelineDropZone extends StatelessWidget {
         final actividadContinuacion = state.actividadNocturnaDelDiaAnterior;
         final diaAnterior = state.diaSeleccionadoIndex - 1;
 
-        return DragTarget<TipoActividad>(
+        return DragTarget<CategoriaActividad>(
           // Bloquear el drop si no hay tiempo y el modo horas extra no está activo
           onWillAcceptWithDetails: (details) {
-            final tipoActividad = details.data;
+            final categoria = details.data;
             final cubit = context.read<ItineraryBuilderCubit>();
             // Verificar si la actividad cabe en el tiempo restante
-            return cubit.wouldActivityFit(tipoActividad);
+            return cubit.wouldActivityFit(categoria);
           },
           // 2. Cuando el usuario suelta el ítem
           onAcceptWithDetails: (details) {

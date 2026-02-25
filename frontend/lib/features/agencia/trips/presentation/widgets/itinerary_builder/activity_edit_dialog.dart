@@ -101,6 +101,9 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
   }
 
   bool _esTituloDefault(String titulo) {
+    // Título vacío → siempre placeholder
+    if (titulo.trim().isEmpty) return true;
+
     const defaults = [
       "Check-in Hotel",
       "Alimentos",
@@ -155,7 +158,8 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
         descValida &&
         horasValidas &&
         inicioValido &&
-        finValido;
+        finValido &&
+        _ubicacion != null; // 📍 Ubicación obligatoria
   }
 
   @override
@@ -741,6 +745,8 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
                           _descCtrl.text.trim().isNotEmpty;
                       final textosOk = tituloOk && descOk;
 
+                      final ubicacionOk = _ubicacion != null;
+
                       if (!textosOk) {
                         return Column(
                           children: [
@@ -771,6 +777,47 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.amber.shade800,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+
+                      // Textos ok pero falta ubicación
+                      if (!ubicacionOk) {
+                        return Column(
+                          children: [
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.orange.shade200,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_off_outlined,
+                                    size: 16,
+                                    color: Colors.orange.shade700,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      "¿Dónde se realizará? Agrega la ubicación en el mapa",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.orange.shade800,
                                       ),
                                     ),
                                   ),
@@ -1160,18 +1207,17 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
         return Icons.restaurant_rounded;
       case TipoActividad.traslado:
         return Icons.directions_bus_rounded;
+      case TipoActividad.visitaGuiada:
       case TipoActividad.cultura:
         return Icons.museum_rounded;
+      case TipoActividad.checkIn:
+        return Icons.location_on_rounded;
       case TipoActividad.aventura:
         return Icons.hiking_rounded;
       case TipoActividad.tiempoLibre:
         return Icons.beach_access_rounded;
-      case TipoActividad.visitaGuiada:
-        return Icons.tour_rounded;
-      case TipoActividad.checkIn:
-        return Icons.where_to_vote_rounded;
-      default:
-        return Icons.local_activity_rounded;
+      case TipoActividad.otro:
+        return Icons.extension_rounded; // Categoría personalizada
     }
   }
 
@@ -1183,18 +1229,17 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
         return Colors.orange;
       case TipoActividad.traslado:
         return Colors.blue;
+      case TipoActividad.visitaGuiada:
       case TipoActividad.cultura:
         return Colors.brown;
+      case TipoActividad.checkIn:
+        return Colors.green;
       case TipoActividad.aventura:
         return Colors.green;
       case TipoActividad.tiempoLibre:
         return Colors.teal;
-      case TipoActividad.visitaGuiada:
-        return Colors.indigo;
-      case TipoActividad.checkIn:
-        return Colors.cyan;
-      default:
-        return Colors.grey;
+      case TipoActividad.otro:
+        return Colors.deepPurple; // Categoría personalizada
     }
   }
 }

@@ -177,21 +177,41 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
   // --- MÉTODOS DE AUTOGUARDADO (Fase 13) ---
   void _autoSave() {
-    final draft = TripDraftModel(
-      destino: state.destino,
-      guiaId: state.selectedGuiaId,
-      fotoPortadaUrl: state.fotoPortadaUrl,
-      fechaInicio: state.fechaInicio?.toIso8601String(),
-      fechaFin: state.fechaFin?.toIso8601String(),
-      lat: state.location?.latitude,
-      lng: state.location?.longitude,
-      actividades: [], // Paso 1 no tiene actividades aún
-    );
-    _localDataSource.saveDraft(draft);
-    _unsavedChangesService.setDirty(
-      true,
-    ); // 📝 Marcar como sucio al guardar borrador
-    // print("💾 Auto-guardado Paso 1: ${state.destino}");
+    // Serializar TimeOfDay como "HH:mm"
+    final hi = state.horaInicio;
+    final hf = state.horaFin;
+
+    // Leemos el draft existente primero para preservar actividades
+    // que el ItineraryBuilderCubit haya guardado (evitar sobreescritura)
+    _localDataSource.getDraft().then((existingDraft) {
+      final draft = TripDraftModel(
+        destino: state.destino,
+        guiaId: state.selectedGuiaId,
+        coGuiasIds: state.coGuiasIds,
+        fotoPortadaUrl: state.fotoPortadaUrl,
+        fechaInicio: state.fechaInicio?.toIso8601String(),
+        fechaFin: state.fechaFin?.toIso8601String(),
+        horaInicio:
+            hi != null
+                ? '${hi.hour.toString().padLeft(2, '0')}:${hi.minute.toString().padLeft(2, '0')}'
+                : null,
+        horaFin:
+            hf != null
+                ? '${hf.hour.toString().padLeft(2, '0')}:${hf.minute.toString().padLeft(2, '0')}'
+                : null,
+        isMultiDay: state.isMultiDay,
+        lat: state.location?.latitude,
+        lng: state.location?.longitude,
+        // 💾 Si el cubit tiene actividades propias úsalas, si no
+        // preservar las que el ItineraryBuilderCubit ya guardó en disco
+        actividades:
+            state.itinerario.isNotEmpty
+                ? state.itinerario
+                : (existingDraft?.actividades ?? []),
+      );
+      _localDataSource.saveDraft(draft);
+      _unsavedChangesService.setDirty(true);
+    });
   }
 
   // --- MÉTODOS DE RECUPERACIÓN ---
@@ -210,19 +230,25 @@ class TripCreationCubit extends Cubit<TripCreationState> {
       state.copyWith(
         destino: draft.destino ?? '',
         selectedGuiaId: draft.guiaId,
+        coGuiasIds: draft.coGuiasIds,
+        isMultiDay: draft.isMultiDay,
         fechaInicio:
             draft.fechaInicio != null
                 ? DateTime.parse(draft.fechaInicio!)
                 : null,
         fechaFin:
             draft.fechaFin != null ? DateTime.parse(draft.fechaFin!) : null,
+        horaInicio: _timeOfDayFromString(draft.horaInicio),
+        horaFin: _timeOfDayFromString(draft.horaFin),
         location:
             (draft.lat != null && draft.lng != null)
                 ? LatLng(draft.lat!, draft.lng!)
                 : null,
-        fotoPortadaUrl: draft.fotoPortadaUrl, // 📸 Restaurar foto elegida
-        draftFound: false, // Ya restaurado, apagamos la bandera
-        currentStep: 0, // Volvemos al inicio para que vea los datos
+        fotoPortadaUrl: draft.fotoPortadaUrl,
+        itinerario:
+            draft.actividades, // 🗓️ Restaurar actividades del itinerario
+        draftFound: false,
+        currentStep: 0,
       ),
     );
 
@@ -550,10 +576,19 @@ class TripCreationCubit extends Cubit<TripCreationState> {
         horaFin: null,
       ),
     );
+    _autoSave(); // 💾 Guardar modo multi-día
   }
 
-  void setHoraInicio(TimeOfDay t) => emit(state.copyWith(horaInicio: t));
-  void setHoraFin(TimeOfDay t) => emit(state.copyWith(horaFin: t));
+  void setHoraInicio(TimeOfDay t) {
+    emit(state.copyWith(horaInicio: t));
+    _autoSave(); // 💾
+  }
+
+  void setHoraFin(TimeOfDay t) {
+    emit(state.copyWith(horaFin: t));
+    _autoSave(); // 💾
+  }
+
   void searchGuia(String query) => emit(state.copyWith(searchQueryGuia: query));
 
   /// Establece la fecha de inicio con validaciones inteligentes:
@@ -608,6 +643,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
         horaFin: nuevaHoraFin,
       ),
     );
+    _autoSave(); // 💾 Guardar fecha de inicio
   }
 
   /// Establece la fecha de fin (sin lógica especial, la UI ya valida que sea > inicio)
@@ -744,5 +780,16 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     final periodo = h >= 12 ? 'PM' : 'AM';
     final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
     return "$h12:$m $periodo";
+  }
+
+  /// Convierte un string "HH:mm" a TimeOfDay. Retorna null si el string es nulo o inválido.
+  TimeOfDay? _timeOfDayFromString(String? s) {
+    if (s == null) return null;
+    final parts = s.split(':');
+    if (parts.length != 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+    return TimeOfDay(hour: hour, minute: minute);
   }
 }

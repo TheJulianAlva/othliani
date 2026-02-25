@@ -1,11 +1,14 @@
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../features/agencia/trips/data/datasources/trip_local_data_source.dart'; // 💾 Persistencia Local
-import '../../features/agencia/shared/data/datasources/mock_agencia_datasource.dart'; // 📌 Necesario para MockAgenciaDataSource
+import '../../features/agencia/trips/data/datasources/trip_local_data_source.dart';
+import '../../features/agencia/shared/data/datasources/mock_agencia_datasource.dart';
 import 'package:frontend/core/network/dio_client.dart';
 import 'package:frontend/core/services/pexels_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:frontend/core/services/unsaved_changes_service.dart';
+import '../../features/agencia/trips/data/datasources/mock_categorias_datasource.dart';
+import '../../features/agencia/trips/data/repositories/categorias_repository_impl.dart';
+import '../../features/agencia/trips/domain/repositories/categorias_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -22,4 +25,10 @@ Future<void> initSharedDependencies() async {
   sl.registerLazySingleton(() => PexelsService());
   sl.registerLazySingleton(() => Connectivity());
   sl.registerLazySingleton(() => UnsavedChangesService());
+
+  // 🎭 Categorías Dinámicas
+  sl.registerLazySingleton(() => MockCategoriasDataSource());
+  sl.registerLazySingleton<CategoriasRepository>(
+    () => CategoriasRepositoryImpl(sl<MockCategoriasDataSource>()),
+  );
 }

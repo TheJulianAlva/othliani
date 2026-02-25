@@ -27,7 +27,10 @@ class ItineraryBuilderState extends Equatable {
   final bool isSaving;
   final bool isSaved;
 
-  const ItineraryBuilderState({
+  // 🎭 Categorías disponibles en el toolbox (defaults + personalizadas)
+  final List<CategoriaActividad> categorias;
+
+  ItineraryBuilderState({
     this.diaSeleccionadoIndex = 0,
     this.totalDias = 1,
     this.actividadesPorDia = const {},
@@ -40,7 +43,8 @@ class ItineraryBuilderState extends Equatable {
     this.imagenesSugeridas = const [],
     this.isSaving = false,
     this.isSaved = false,
-  });
+    List<CategoriaActividad>? categorias,
+  }) : categorias = categorias ?? CategoriaActividad.defaults();
 
   // ✨ Helper: Fecha base del día seleccionado (00:00 AM) con FECHA REAL
   DateTime get fechaBaseDiaActual {
@@ -285,6 +289,7 @@ class ItineraryBuilderState extends Equatable {
     List<String>? imagenesSugeridas,
     bool? isSaving,
     bool? isSaved,
+    List<CategoriaActividad>? categorias,
   }) {
     return ItineraryBuilderState(
       diaSeleccionadoIndex: diaSeleccionadoIndex ?? this.diaSeleccionadoIndex,
@@ -299,6 +304,7 @@ class ItineraryBuilderState extends Equatable {
       imagenesSugeridas: imagenesSugeridas ?? this.imagenesSugeridas,
       isSaving: isSaving ?? this.isSaving,
       isSaved: isSaved ?? this.isSaved,
+      categorias: categorias ?? this.categorias,
     );
   }
 
@@ -317,5 +323,6 @@ class ItineraryBuilderState extends Equatable {
     imagenesSugeridas,
     isSaving,
     isSaved,
+    categorias,
   ];
 }

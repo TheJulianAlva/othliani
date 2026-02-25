@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:frontend/features/agencia/trips/presentation/blocs/trip_creation/trip_creation_cubit.dart';
 import 'package:frontend/core/navigation/routes_agencia.dart'; // Importar rutas
 import 'package:frontend/core/di/service_locator.dart' as di; // Importar DI
+import 'package:frontend/core/widgets/saving_overlay.dart'; // ✨ Overlay de guardado
 import '../widgets/destino_field_widget.dart'; // <--- Validar ubicación
 import '../../../shared/presentation/widgets/draft_guard_widget.dart'; // 🛡️ Draft Guard
 
@@ -29,10 +30,21 @@ class TripCreationScreen extends StatelessWidget {
         },
         child: BlocBuilder<TripCreationCubit, TripCreationState>(
           builder: (context, state) {
-            final bool hayDatos = state.destino.isNotEmpty;
+            final bool hayDatos =
+                state.destino.isNotEmpty ||
+                state.location != null ||
+                state.selectedGuiaId != null ||
+                state.fechaInicio != null ||
+                state.horaInicio != null;
 
             return DraftGuardWidget(
               shouldWarn: hayDatos,
+              // Cuando hay pasos anteriores, el gesto de atrás del sistema
+              // debe ir al paso previo, NO mostrar el diálogo de advertencia.
+              onBackOverride:
+                  state.currentStep > 0
+                      ? () => context.read<TripCreationCubit>().prevStep()
+                      : null,
               child: Scaffold(
                 appBar: AppBar(
                   title: const Text("Nuevo Viaje Inteligente"),
@@ -150,10 +162,13 @@ class _TripCreationForm extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: details.onStepContinue,
+                      onPressed:
+                          cubit.isStep1Valid ? details.onStepContinue : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[800],
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.blue[200],
+                        disabledForegroundColor: Colors.white70,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -164,7 +179,31 @@ class _TripCreationForm extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   TextButton(
-                    onPressed: details.onStepCancel,
+                    onPressed: () async {
+                      final hayDatos =
+                          state.destino.isNotEmpty ||
+                          state.location != null ||
+                          state.selectedGuiaId != null;
+
+                      if (hayDatos) {
+                        final salir =
+                            await DraftGuardWidget.showExitDialog(context) ??
+                            false;
+                        if (salir && context.mounted) {
+                          // Overlay de guardado antes de salir
+                          await SavingOverlay.showAndWait(
+                            context,
+                            mensaje: "Guardando borrador...",
+                            duration: const Duration(milliseconds: 800),
+                          );
+                          if (context.mounted) {
+                            context.go(RoutesAgencia.viajes);
+                          }
+                        }
+                      } else {
+                        context.go(RoutesAgencia.viajes);
+                      }
+                    },
                     child: const Text("Cancelar"),
                   ),
                 ],

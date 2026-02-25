@@ -312,12 +312,6 @@ class _AgencyHeaderState extends State<AgencyHeader> {
         context.go('/usuarios?tab=clientes&search=${result.name}');
         break;
       case SearchResultType.trip:
-        // push preserves the stack, so it might be safe?
-        // But if trip creation is a "modal" on top of trips, pushing another trip might be weird.
-        // Actually, TripCreation is /viajes/nuevo. TripDetail is /viajes/:id.
-        // context.push works if we want to come back.
-        // But standard requirement says "unsaved changes warning on navigation".
-        // Let's warn to be safe.
         context.push('/viajes/${result.id}');
         break;
     }
@@ -564,7 +558,11 @@ class _AgencyHeaderState extends State<AgencyHeader> {
               child: Row(
                 children: [
                   InkWell(
-                    onTap: () => context.go(RoutesAgencia.dashboard),
+                    onTap: () async {
+                      if (!await _checkUnsavedChanges()) return;
+                      // ignore: use_build_context_synchronously
+                      if (mounted) context.go(RoutesAgencia.dashboard);
+                    },
                     borderRadius: BorderRadius.circular(4),
                     hoverColor: Colors.grey.shade100,
                     child: const Padding(
@@ -592,7 +590,14 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                         final displaySegment = segment.split('?')[0];
 
                         return InkWell(
-                          onTap: isLast ? null : () => context.go(targetPath),
+                          onTap:
+                              isLast
+                                  ? null
+                                  : () async {
+                                    if (!await _checkUnsavedChanges()) return;
+                                    // ignore: use_build_context_synchronously
+                                    if (mounted) context.go(targetPath);
+                                  },
                           borderRadius: BorderRadius.circular(4),
                           hoverColor: isLast ? null : Colors.grey.shade100,
                           child: Padding(
@@ -781,12 +786,9 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                         // Usar Future.microtask para navegar después de que el popup se cierre
                         Future.microtask(() async {
                           if (mounted) {
-                            // Validar cambios sin guardar antes de navegar
                             if (!await _checkUnsavedChanges()) return;
                             if (!mounted) return;
 
-                            // Navegación inteligente con resaltado contextual
-                            // Si la alerta tiene turistaId, resaltar ese turista
                             final focusParam =
                                 alerta.turistaId != null
                                     ? '?alert_focus=${alerta.turistaId}&return_to=dashboard'

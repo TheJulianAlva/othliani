@@ -47,13 +47,13 @@ void main() {
         await tester.pumpWidget(createWidgetUnderTest());
 
         // Obtenemos los campos de texto
-        final TextFields =
+        final textFields =
             tester.widgetList<TextField>(find.byType(TextField)).toList();
-        expect(TextFields.length, 2);
+        expect(textFields.length, 2);
 
         // El índice 0 es el email, el 1 es el password
-        await tester.enterText(find.byWidget(TextFields[0]), 'guia@test.com');
-        await tester.enterText(find.byWidget(TextFields[1]), '123456');
+        await tester.enterText(find.byWidget(textFields[0]), 'guia@test.com');
+        await tester.enterText(find.byWidget(textFields[1]), '123456');
         await tester.pumpAndSettle();
 
         await tester.tap(find.widgetWithText(ElevatedButton, 'Ingresar'));

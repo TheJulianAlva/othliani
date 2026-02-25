@@ -10,22 +10,30 @@ import 'package:frontend/features/agencia/trips/domain/repositories/trip_reposit
 import 'package:frontend/features/agencia/trips/data/datasources/trip_local_data_source.dart'; // 💾 Persistencia
 import 'package:frontend/features/agencia/trips/data/models/trip_draft_model.dart'; // 💾 Modelo
 import 'package:frontend/core/services/unsaved_changes_service.dart';
+import 'package:frontend/features/agencia/trips/domain/entities/categoria_actividad.dart';
+import 'package:frontend/features/agencia/trips/domain/repositories/categorias_repository.dart';
 part 'itinerary_builder_state.dart';
 
 class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
   final TripRepository _repository;
-  final TripLocalDataSource _localDataSource; // 💾 Inyección
+  final TripLocalDataSource _localDataSource;
   final UnsavedChangesService _unsavedChangesService;
+  final CategoriasRepository _categoriasRepository;
   Timer? _debounce;
+
+  /// ID de agencia — placeholder hasta que llegue auth (se usa para el repositorio).
+  static const String _agenciaId = 'agencia_default';
 
   ItineraryBuilderCubit({
     required TripRepository repository,
     required TripLocalDataSource localDataSource,
     required UnsavedChangesService unsavedChangesService,
+    required CategoriasRepository categoriasRepository,
   }) : _repository = repository,
        _localDataSource = localDataSource,
        _unsavedChangesService = unsavedChangesService,
-       super(const ItineraryBuilderState());
+       _categoriasRepository = categoriasRepository,
+       super(ItineraryBuilderState());
 
   // --- AUTOGUARDADO (Fase 13) ---
   void _autoSave() {
@@ -33,36 +41,110 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     List<ActividadItinerario> todas = [];
     state.actividadesPorDia.forEach((_, lista) => todas.addAll(lista));
 
-    // Recuperamos draft existente para mantener datos del Paso 1
+    // Recuperamos draft existente para mantener TODOS los datos del Paso 1
     _localDataSource.getDraft().then((currentDraft) {
       if (currentDraft != null) {
         final updatedDraft = TripDraftModel(
+          // ─── Datos Paso 1 (preservar todos) ───────────────────────────
           destino: currentDraft.destino,
           fechaInicio: currentDraft.fechaInicio,
           fechaFin: currentDraft.fechaFin,
+          horaInicio: currentDraft.horaInicio, // ✅ Hora inicio viaje
+          horaFin: currentDraft.horaFin, // ✅ Hora fin viaje
+          isMultiDay: currentDraft.isMultiDay, // ✅ Modo multi-día
           guiaId: currentDraft.guiaId,
+          coGuiasIds: currentDraft.coGuiasIds, // ✅ Guías auxiliares
+          fotoPortadaUrl: currentDraft.fotoPortadaUrl, // ✅ Foto de portada
           lat: currentDraft.lat,
           lng: currentDraft.lng,
-          actividades: todas, // 💾 Actualizamos solo actividades
+          // ─── Paso 2: Actualizamos solo las actividades ──────────────
+          actividades: todas,
         );
         _localDataSource.saveDraft(updatedDraft);
       }
     });
-    _unsavedChangesService.setDirty(
-      true,
-    ); // 📝 Trabajo en progreso en Itinerario
+    _unsavedChangesService.setDirty(true); // 📝 Trabajo en progreso
   }
 
-  // Inicializar con la duración del viaje y fechas reales
-  void init(int duracionDias, {DateTime? fechaInicio, DateTime? fechaFin}) {
+  // Inicializar con la duración del viaje y fechas reales,
+  // y restaurar actividades guardadas en el borrador
+  Future<void> init(
+    int duracionDias, {
+    DateTime? fechaInicio,
+    DateTime? fechaFin,
+  }) async {
     emit(
       state.copyWith(
         totalDias: duracionDias,
-        // Si vienen fechas nulas, el state usará DateTime.now() como base fallback
         horaInicioViaje: fechaInicio,
         horaFinViaje: fechaFin,
       ),
     );
+
+    // 💾 Restaurar actividades del borrador guardadas en disco
+    final existingDraft = await _localDataSource.getDraft();
+    if (existingDraft != null && existingDraft.actividades.isNotEmpty) {
+      final actividadesPorDia = <int, List<ActividadItinerario>>{};
+
+      for (final actividad in existingDraft.actividades) {
+        int dia = 0;
+        if (fechaInicio != null) {
+          final fechaBase = DateTime(
+            fechaInicio.year,
+            fechaInicio.month,
+            fechaInicio.day,
+          );
+          final fechaAct = DateTime(
+            actividad.horaInicio.year,
+            actividad.horaInicio.month,
+            actividad.horaInicio.day,
+          );
+          dia = fechaAct
+              .difference(fechaBase)
+              .inDays
+              .clamp(0, duracionDias - 1);
+        }
+        actividadesPorDia.putIfAbsent(dia, () => []).add(actividad);
+      }
+
+      // Ordenar cada día cronológicamente
+      for (final key in actividadesPorDia.keys) {
+        actividadesPorDia[key]!.sort(
+          (a, b) => a.horaInicio.compareTo(b.horaInicio),
+        );
+      }
+
+      if (!isClosed) {
+        emit(state.copyWith(actividadesPorDia: actividadesPorDia));
+      }
+    } // fin if existingDraft
+
+    // 🎭 Cargar categorías desde el Repositorio (mock ahora, API real después)
+    try {
+      final categorias = await _categoriasRepository.obtenerCategorias(
+        _agenciaId,
+      );
+      if (!isClosed) {
+        emit(state.copyWith(categorias: categorias));
+      }
+    } catch (_) {
+      // Si falla el datasource, usamos los defaults quemados como fallback
+    }
+  } // fin init()
+
+  // 🎭 Agregar una categoría personalizada creada por la agencia
+  Future<void> agregarCategoriaPersonalizada(CategoriaActividad nueva) async {
+    // 1. Actualizar UI inmediatamente (optimistic update)
+    final todasLasCategorias = [...state.categorias, nueva];
+    emit(state.copyWith(categorias: todasLasCategorias));
+    // 2. Persistir a través del Repositorio
+    await _categoriasRepository.guardarCategoriaPersonalizada(
+      _agenciaId,
+      nueva,
+    );
+    // 3. Reload desde la fuente de verdad
+    final frescas = await _categoriasRepository.obtenerCategorias(_agenciaId);
+    if (!isClosed) emit(state.copyWith(categorias: frescas));
   }
 
   void cambiarDia(int index) {
@@ -240,7 +322,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
   }
 
   // Método para recibir el Drop de una actividad
-  void onActivityDropped(TipoActividad tipo) {
+  void onActivityDropped(CategoriaActividad categoria) {
     final int dia = state.diaSeleccionadoIndex;
     final List<ActividadItinerario> listaActual = List.from(
       state.actividadesDelDiaActual,
@@ -323,7 +405,8 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       }
     }
 
-    final int duracionMinutos = (tipo == TipoActividad.traslado) ? 60 : 90;
+    // 🎭 Usar duracionDefaultMinutos de la categoría dinámica
+    final int duracionMinutos = categoria.duracionDefaultMinutos;
     DateTime horaFin = horaInicio.add(Duration(minutes: duracionMinutos));
 
     final limiteBase = state.horaFinDia;
@@ -370,11 +453,13 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
     final nuevaActividad = ActividadItinerario(
       id: const Uuid().v4(),
-      titulo: _getTituloPorDefecto(tipo),
-      descripcion: "Toca para editar detalles",
+      titulo:
+          '', // Vacío: el diálogo asigna el placeholder, Pexels no se dispara
+      descripcion: '', // Vacío: el diálogo asigna el placeholder
       horaInicio: horaInicio,
       horaFin: horaFin,
-      tipo: tipo,
+      tipo: categoria.toTipoActividad(), // Compatibilidad con el modelo legacy
+      categoriaSnapshot: categoria, // 📸 Snapshot completo → borrador autónomo
     );
 
     listaActual.add(nuevaActividad);
@@ -391,7 +476,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
   }
 
   // Método público para verificar si una actividad cabe en el horario
-  bool wouldActivityFit(TipoActividad tipo) {
+  bool wouldActivityFit(CategoriaActividad categoria) {
     if (!state.puedeAgregarActividades) return false;
 
     final int dia = state.diaSeleccionadoIndex;
@@ -436,7 +521,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       }
     }
 
-    final int duracionMinutos = (tipo == TipoActividad.traslado) ? 60 : 90;
+    final int duracionMinutos = categoria.duracionDefaultMinutos;
     final DateTime horaFin = horaInicio.add(Duration(minutes: duracionMinutos));
 
     final limiteBase = state.horaFinDia;
@@ -451,25 +536,6 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
     final minutosDisponibles = limiteAbsoluto.difference(horaInicio).inMinutes;
     return minutosDisponibles >= 5;
-  }
-
-  String _getTituloPorDefecto(TipoActividad tipo) {
-    switch (tipo) {
-      case TipoActividad.hospedaje:
-        return "Check-in Hotel";
-      case TipoActividad.comida:
-        return "Alimentos";
-      case TipoActividad.traslado:
-        return "Traslado";
-      case TipoActividad.cultura:
-        return "Visita Cultural";
-      case TipoActividad.aventura:
-        return "Actividad Aventura";
-      case TipoActividad.tiempoLibre:
-        return "Tiempo Libre";
-      default:
-        return "Nueva Actividad";
-    }
   }
 
   // ✨ FASE 4: ACTUALIZAR ACTIVIDAD EXISTENTE
