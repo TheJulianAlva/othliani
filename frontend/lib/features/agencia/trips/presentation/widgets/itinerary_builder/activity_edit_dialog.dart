@@ -134,6 +134,12 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
     final tituloValido =
         !_tituloEsPlaceholder && _tituloCtrl.text.trim().isNotEmpty;
     final descValida = !_descEsPlaceholder && _descCtrl.text.trim().isNotEmpty;
+
+    // En modo creación (isNew), no se validan horas ni ubicación obligatoria
+    if (widget.isNew) {
+      return tituloValido && descValida;
+    }
+
     final horasValidas = _horaFin.isAfter(_horaInicio);
 
     // Validar minTime (solo chequear horas/minutos para evitar problemas de fecha base)
@@ -508,124 +514,151 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
 
                   const SizedBox(height: 4),
 
-                  // --- HORARIOS ---
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildTimePicker(
-                          label: "Inicio",
-                          time: _horaInicio,
-                          icon: Icons.play_circle_outline,
-                          onChanged:
-                              (t) => setState(() {
-                                _horaInicio = t;
-                                _errorHoras = null;
-                              }),
+                  // --- HORARIOS (solo visible en modo EDICIÓN, no al crear) ---
+                  if (!widget.isNew) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTimePicker(
+                            label: "Inicio",
+                            time: _horaInicio,
+                            icon: Icons.play_circle_outline,
+                            onChanged:
+                                (t) => setState(() {
+                                  _horaInicio = t;
+                                  _errorHoras = null;
+                                }),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildTimePicker(
-                          label: "Fin",
-                          time: _horaFin,
-                          icon: Icons.stop_circle_outlined,
-                          onChanged:
-                              (t) => setState(() {
-                                _horaFin = t;
-                                _errorHoras = null;
-                              }),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildTimePicker(
+                            label: "Fin",
+                            time: _horaFin,
+                            icon: Icons.stop_circle_outlined,
+                            onChanged:
+                                (t) => setState(() {
+                                  _horaFin = t;
+                                  _errorHoras = null;
+                                }),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    // Duración calculada + error de horas
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Builder(
+                        builder: (_) {
+                          final diff =
+                              _horaFin.difference(_horaInicio).inMinutes;
+                          final valido = diff > 0;
 
-                  // Duración calculada + error de horas
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Builder(
-                      builder: (_) {
-                        final diff = _horaFin.difference(_horaInicio).inMinutes;
-                        final valido = diff > 0;
+                          // Validar minTime
+                          bool inicioValido = true;
+                          if (widget.minTime != null &&
+                              _horaInicio.isBefore(widget.minTime!)) {
+                            inicioValido = false;
+                          }
 
-                        // Validar minTime
-                        bool inicioValido = true;
-                        if (widget.minTime != null &&
-                            _horaInicio.isBefore(widget.minTime!)) {
-                          inicioValido = false;
-                        }
+                          // Validar maxTime
+                          bool finValido = true;
+                          if (widget.maxTime != null &&
+                              _horaFin.isAfter(widget.maxTime!)) {
+                            finValido = false;
+                          }
 
-                        // Validar maxTime
-                        bool finValido = true;
-                        if (widget.maxTime != null &&
-                            _horaFin.isAfter(widget.maxTime!)) {
-                          finValido = false;
-                        }
+                          String mensaje;
+                          if (_errorHoras != null) {
+                            mensaje = _errorHoras!;
+                          } else if (!valido) {
+                            mensaje =
+                                "⚠ La hora de fin debe ser posterior al inicio";
+                          } else if (!inicioValido) {
+                            final h = widget.minTime!.hour;
+                            final m = widget.minTime!.minute.toString().padLeft(
+                              2,
+                              '0',
+                            );
+                            final p = h >= 12 ? 'PM' : 'AM';
+                            final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+                            mensaje =
+                                "⚠ No puede iniciar antes de las $h12:$m $p";
+                          } else if (!finValido) {
+                            final h = widget.maxTime!.hour;
+                            final m = widget.maxTime!.minute.toString().padLeft(
+                              2,
+                              '0',
+                            );
+                            final p = h >= 12 ? 'PM' : 'AM';
+                            final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+                            mensaje =
+                                "⚠ Límite del día + extra: $h12:$m $p. Ajusta la Hora Fin del Día para extender.";
+                          } else {
+                            mensaje = "Duración: ${diff ~/ 60}h ${diff % 60}m";
+                          }
 
-                        String mensaje;
-                        if (_errorHoras != null) {
-                          mensaje = _errorHoras!;
-                        } else if (!valido) {
-                          mensaje =
-                              "⚠ La hora de fin debe ser posterior al inicio";
-                        } else if (!inicioValido) {
-                          final h = widget.minTime!.hour;
-                          final m = widget.minTime!.minute.toString().padLeft(
-                            2,
-                            '0',
-                          );
-                          final p = h >= 12 ? 'PM' : 'AM';
-                          final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
-                          mensaje =
-                              "⚠ No puede iniciar antes de las $h12:$m $p";
-                        } else if (!finValido) {
-                          final h = widget.maxTime!.hour;
-                          final m = widget.maxTime!.minute.toString().padLeft(
-                            2,
-                            '0',
-                          );
-                          final p = h >= 12 ? 'PM' : 'AM';
-                          final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
-                          // ✨ Mensaje más educativo: Explicar que el límite depende del horario del día
-                          mensaje =
-                              "⚠ Límite del día + extra: $h12:$m $p. Ajusta la Hora Fin del Día para extender.";
-                        } else {
-                          mensaje = "Duración: ${diff ~/ 60}h ${diff % 60}m";
-                        }
+                          final esError =
+                              _errorHoras != null ||
+                              !valido ||
+                              !inicioValido ||
+                              !finValido;
 
-                        final esError =
-                            _errorHoras != null ||
-                            !valido ||
-                            !inicioValido ||
-                            !finValido;
-
-                        return Row(
-                          children: [
-                            Icon(
-                              esError
-                                  ? Icons.error_outline
-                                  : Icons.timer_outlined,
-                              size: 14,
-                              color: esError ? Colors.orange : Colors.grey[500],
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                mensaje,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color:
-                                      esError
-                                          ? Colors.orange
-                                          : Colors.grey[500],
+                          return Row(
+                            children: [
+                              Icon(
+                                esError
+                                    ? Icons.error_outline
+                                    : Icons.timer_outlined,
+                                size: 14,
+                                color:
+                                    esError ? Colors.orange : Colors.grey[500],
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  mensaje,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color:
+                                        esError
+                                            ? Colors.orange
+                                            : Colors.grey[500],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        );
-                      },
+                            ],
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
+                  ] else ...[
+                    // Mensaje indicativo en modo creación
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 14,
+                            color: Colors.blue[400],
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              "⏰ Podrás ajustar los horarios con el ✏️ al editar la actividad.",
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.blue[400],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
 
                   // --- DESCRIPCIÓN ---
                   GestureDetector(
@@ -1078,81 +1111,83 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
       return;
     }
 
-    // Validar horas
-    if (!_horaFin.isAfter(_horaInicio)) {
-      setState(
-        () => _errorHoras = "La hora de fin debe ser posterior al inicio",
-      );
-      return;
-    }
-
-    // Validar solapamiento con otras actividades del día
-    for (final otra in widget.actividadesDelDia) {
-      if (otra.id == widget.actividad.id) continue;
-      final seSolapa =
-          _horaInicio.isBefore(otra.horaFin) &&
-          _horaFin.isAfter(otra.horaInicio);
-      if (seSolapa) {
-        final h1 = otra.horaInicio.hour;
-        final m1 = otra.horaInicio.minute.toString().padLeft(2, '0');
-        final p1 = h1 >= 12 ? 'PM' : 'AM';
-        final h12a = h1 == 0 ? 12 : (h1 > 12 ? h1 - 12 : h1);
-        final h2 = otra.horaFin.hour;
-        final m2 = otra.horaFin.minute.toString().padLeft(2, '0');
-        final p2 = h2 >= 12 ? 'PM' : 'AM';
-        final h12b = h2 == 0 ? 12 : (h2 > 12 ? h2 - 12 : h2);
+    // Validar horas (solo en modo edición, no al crear por primera vez)
+    if (!widget.isNew) {
+      if (!_horaFin.isAfter(_horaInicio)) {
         setState(
-          () =>
-              _errorHoras =
-                  "Se solapa con \"${otra.titulo}\" ($h12a:$m1 $p1 – $h12b:$m2 $p2)",
+          () => _errorHoras = "La hora de fin debe ser posterior al inicio",
         );
         return;
       }
-    }
 
-    // ✨ FASE 5: Validar que la ubicación haya sido seleccionada (REQUERIDO)
-    if (_ubicacion == null) {
-      showDialog(
-        context: context,
-        builder:
-            (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              title: Row(
-                children: [
-                  Icon(Icons.location_off_rounded, color: Colors.orange[800]),
-                  const SizedBox(width: 10),
-                  const Text("Ubicación Requerida"),
+      // Validar solapamiento con otras actividades del día (solo en modo edición)
+      for (final otra in widget.actividadesDelDia) {
+        if (otra.id == widget.actividad.id) continue;
+        final seSolapa =
+            _horaInicio.isBefore(otra.horaFin) &&
+            _horaFin.isAfter(otra.horaInicio);
+        if (seSolapa) {
+          final h1 = otra.horaInicio.hour;
+          final m1 = otra.horaInicio.minute.toString().padLeft(2, '0');
+          final p1 = h1 >= 12 ? 'PM' : 'AM';
+          final h12a = h1 == 0 ? 12 : (h1 > 12 ? h1 - 12 : h1);
+          final h2 = otra.horaFin.hour;
+          final m2 = otra.horaFin.minute.toString().padLeft(2, '0');
+          final p2 = h2 >= 12 ? 'PM' : 'AM';
+          final h12b = h2 == 0 ? 12 : (h2 > 12 ? h2 - 12 : h2);
+          setState(
+            () =>
+                _errorHoras =
+                    "Se solapa con \"${otra.titulo}\" ($h12a:$m1 $p1 – $h12b:$m2 $p2)",
+          );
+          return;
+        }
+      }
+
+      // ✨ FASE 5: Validar que la ubicación haya sido seleccionada (REQUERIDO en edición)
+      if (_ubicacion == null) {
+        showDialog(
+          context: context,
+          builder:
+              (ctx) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                title: Row(
+                  children: [
+                    Icon(Icons.location_off_rounded, color: Colors.orange[800]),
+                    const SizedBox(width: 10),
+                    const Text("Ubicación Requerida"),
+                  ],
+                ),
+                content: const Text(
+                  "Es obligatorio seleccionar una ubicación en el mapa para guardar esta actividad.\n\nPor favor, asigna una ubicación geográfica.",
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text("Cancelar"),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx); // Cierra la alerta
+                      _pickLocation(); // Abre el selector de mapa
+                    },
+                    icon: const Icon(Icons.add_location_alt_outlined),
+                    label: const Text("Seleccionar ahora"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[800],
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
                 ],
               ),
-              content: const Text(
-                "Es obligatorio seleccionar una ubicación en el mapa para guardar esta actividad.\n\nPor favor, asigna una ubicación geográfica.",
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text("Cancelar"),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx); // Cierra la alerta
-                    _pickLocation(); // Abre el selector de mapa
-                  },
-                  icon: const Icon(Icons.add_location_alt_outlined),
-                  label: const Text("Seleccionar ahora"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[800],
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-      );
-      setState(() {
-        // Podríamos agregar un estado de error visual al botón si fuera necesario
-      });
-      return;
+        );
+        setState(() {
+          // Podríamos agregar un estado de error visual al botón si fuera necesario
+        });
+        return;
+      }
     }
 
     final actividadActualizada = ActividadItinerario(

@@ -54,7 +54,7 @@ class CallDemoScreen extends StatelessWidget {
                     barrierDismissible: false,
                     builder:
                         (context) => const ConnectedCallDialog(
-                          tripId: '204',
+                          tripId: 'MEX-01',
                           guideName: 'Juan Pérez',
                         ),
                   );

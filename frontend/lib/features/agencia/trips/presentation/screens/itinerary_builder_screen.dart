@@ -12,14 +12,22 @@ import 'itinerary_builder_route_map.dart'; // ✨ Widget del mapa de ruta
 import '../../domain/entities/viaje.dart'; // ✨ Import necesario
 import 'package:frontend/features/agencia/trips/data/datasources/trip_local_data_source.dart'; // 💾 Import necesario
 import 'package:frontend/core/services/unsaved_changes_service.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
 
 // El catálogo de herramientas ahora viene de ItineraryBuilderState.categorias
 // y se construye dinámicamente (defaults + personalizadas de la agencia).
 
 class ItineraryBuilderScreen extends StatelessWidget {
   final Viaje viajeBase; // ✨ AHORA: Recibimos todo el objeto
+  final Map<int, List<ActividadItinerario>>?
+  csvDataAImportar; // ✨ Datos CSV precargados
 
-  const ItineraryBuilderScreen({super.key, required this.viajeBase});
+  const ItineraryBuilderScreen({
+    super.key,
+    required this.viajeBase,
+    this.csvDataAImportar,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +59,7 @@ class ItineraryBuilderScreen extends StatelessWidget {
                 1,
             fechaInicio: viajeBase.fechaInicio,
             fechaFin: viajeBase.fechaFin,
+            csvDataAImportar: csvDataAImportar, // Pasamos los datos CSV al init
           ),
       child: BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
         builder: (context, state) {
@@ -69,43 +78,162 @@ class ItineraryBuilderScreen extends StatelessWidget {
                     () => Navigator.maybePop(context), // Trigger PopScope
               ),
               actions: [
+                // Botón Importar CSV del día
+                Padding(
+                  padding: const EdgeInsets.only(right: 4, top: 8, bottom: 8),
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.upload_file, size: 18),
+                    label: const Text('CSV'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blue[800],
+                      side: BorderSide(color: Colors.blue[300]!),
+                    ),
+                    onPressed: () async {
+                      final resultado = await showDialog<bool>(
+                        context: context,
+                        builder:
+                            (ctx) => AlertDialog(
+                              icon: Icon(
+                                Icons.description_outlined,
+                                color: Colors.blue[800],
+                                size: 40,
+                              ),
+                              title: const Text('Importar CSV del día'),
+                              content: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      'El archivo CSV debe tener esta estructura:',
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[100],
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: Colors.grey[300]!,
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'titulo,descripcion,hora_inicio,hora_fin,tipo,recomendaciones\n'
+                                        'Check-in,Registro,08:00,09:00,hospedaje,Llevar ID\n'
+                                        'Desayuno,Restaurante,09:00,10:00,alimentos,\n'
+                                        'Tour,Centro histórico,10:30,13:00,cultura,',
+                                        style: TextStyle(
+                                          fontFamily: 'monospace',
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Tipos válidos: hospedaje, alimentos, traslado, cultura, aventura, tiempoLibre',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Formato de hora: HH:mm (24 horas)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Cancelar'),
+                                ),
+                                ElevatedButton.icon(
+                                  icon: const Icon(Icons.folder_open),
+                                  label: const Text('Seleccionar CSV'),
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                ),
+                              ],
+                            ),
+                      );
+                      if (resultado != true) return;
+                      // ignore: use_build_context_synchronously
+                      if (!context.mounted) return;
+
+                      final result = await FilePicker.platform.pickFiles(
+                        type: FileType.custom,
+                        allowedExtensions: ['csv'],
+                        withData: true,
+                      );
+                      if (result != null && result.files.single.bytes != null) {
+                        final csvContent = utf8.decode(
+                          result.files.single.bytes!,
+                        );
+                        // ignore: use_build_context_synchronously
+                        if (!context.mounted) return;
+                        context.read<ItineraryBuilderCubit>().importDayFromCsv(
+                          csvContent,
+                        );
+                      }
+                    },
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child:
-                      BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
-                        builder: (context, state) {
-                          return ElevatedButton.icon(
-                            onPressed:
-                                state.isSaving
-                                    ? null
-                                    : () {
-                                      context
-                                          .read<ItineraryBuilderCubit>()
-                                          .saveFullTrip(viajeBase);
-                                    },
-                            icon:
-                                state.isSaving
-                                    ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                    : const Icon(Icons.save),
-                            label: Text(
+                  child: BlocBuilder<
+                    ItineraryBuilderCubit,
+                    ItineraryBuilderState
+                  >(
+                    builder: (context, state) {
+                      final podemos = state.puedeGuardar;
+                      return Tooltip(
+                        message:
+                            !podemos && !state.isSaving
+                                ? (state.hayAlgunaActividad
+                                    ? 'Configura el horario de todas las actividades'
+                                    : 'Agrega al menos una actividad')
+                                : '',
+                        child: ElevatedButton.icon(
+                          onPressed:
+                              state.isSaving || !podemos
+                                  ? null
+                                  : () {
+                                    context
+                                        .read<ItineraryBuilderCubit>()
+                                        .saveFullTrip(viajeBase);
+                                  },
+                          icon:
                               state.isSaving
-                                  ? "Guardando..."
-                                  : "Finalizar Viaje",
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[800],
-                              foregroundColor: Colors.white,
-                            ),
-                          );
-                        },
-                      ),
+                                  ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : state.hayActividadesSinHorario
+                                  ? const Icon(
+                                    Icons.schedule,
+                                    color: Colors.orange,
+                                  )
+                                  : const Icon(Icons.save),
+                          label: Text(
+                            state.isSaving ? "Guardando..." : "Finalizar Viaje",
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[800],
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -270,7 +398,7 @@ class _BodyContent extends StatelessWidget {
         const VerticalDivider(width: 1, thickness: 1),
 
         // ---------------------------------------------
-        // PANEL DERECHO: HORARIOS + MAPA + STATS (30%)
+        // PANEL DERECHO: MAPA + STATS (30%)
         // ---------------------------------------------
         Expanded(
           flex: 3,
@@ -279,7 +407,7 @@ class _BodyContent extends StatelessWidget {
               // Mapa
               Expanded(flex: 1, child: const DayRouteMap()),
               const Divider(height: 1),
-              // Panel de estadísticas y horarios
+              // Panel de estadísticas
               Expanded(
                 flex: 1,
                 child: Container(
@@ -289,18 +417,7 @@ class _BodyContent extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ✨ NUEVO: Selector de horario del día
-                        const _DayTimeRangeSelector(),
-                        const SizedBox(height: 16),
-                        const Divider(),
                         const SizedBox(height: 8),
-
-                        // Indicador de tiempo restante
-                        const _TimeRemainingIndicator(),
-                        const SizedBox(height: 20),
-                        const Divider(),
-                        const SizedBox(height: 10),
-
                         const Text(
                           "Resumen del Día",
                           style: TextStyle(fontWeight: FontWeight.bold),
@@ -423,538 +540,6 @@ class _BodyContent extends StatelessWidget {
 }
 
 // ============================================
-// ✨ NUEVO: SELECTOR DE HORARIO DEL DÍA
-// ============================================
-class _DayTimeRangeSelector extends StatelessWidget {
-  const _DayTimeRangeSelector();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
-      builder: (context, state) {
-        final cubit = context.read<ItineraryBuilderCubit>();
-        final diaActual = state.diaSeleccionadoIndex;
-        final esUnSoloDia = state.totalDias == 1;
-
-        // Formatear horas para mostrar
-        String formatHora(DateTime dt) {
-          final h = dt.hour;
-          final m = dt.minute.toString().padLeft(2, '0');
-          final periodo = h >= 12 ? 'PM' : 'AM';
-          final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
-          return "$h12:$m $periodo";
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.schedule, size: 16, color: Colors.blue[700]),
-                const SizedBox(width: 6),
-                Text(
-                  "Horario del Día ${diaActual + 1}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: Colors.blue[800],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // --- HORA DE INICIO ---
-            _buildTimeRow(
-              context: context,
-              label: "Inicio",
-              hora: formatHora(state.horaInicioDia),
-              esFijo: state.esHoraInicioFija || esUnSoloDia,
-              tooltipFijo:
-                  esUnSoloDia
-                      ? "Hora de inicio del viaje"
-                      : "Hora de inicio fija del viaje",
-              onTap: () async {
-                final picked = await showTimePicker(
-                  context: context,
-                  initialTime: TimeOfDay(
-                    hour: state.horaInicioDia.hour,
-                    minute: state.horaInicioDia.minute,
-                  ),
-                  builder:
-                      (ctx, child) => MediaQuery(
-                        data: MediaQuery.of(
-                          ctx,
-                        ).copyWith(alwaysUse24HourFormat: false),
-                        child: child!,
-                      ),
-                );
-                if (picked != null) {
-                  // ✨ Corrección: usar fechas reales del día
-                  final fechaBase = state.fechaBaseDiaActual;
-                  final pickedDt = DateTime(
-                    fechaBase.year,
-                    fechaBase.month,
-                    fechaBase.day,
-                    picked.hour,
-                    picked.minute,
-                  );
-
-                  // 1. Validar contra el día anterior (continuidad)
-                  if (state.diaSeleccionadoIndex > 0) {
-                    final actividadesAyer =
-                        state.actividadesPorDia[state.diaSeleccionadoIndex - 1];
-                    if (actividadesAyer != null && actividadesAyer.isNotEmpty) {
-                      final ultimaAyer = actividadesAyer.last;
-                      if (pickedDt.isBefore(ultimaAyer.horaFin)) {
-                        if (context.mounted) {
-                          showDialog(
-                            context: context,
-                            builder:
-                                (ctx) => Dialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(24),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.warning_amber_rounded,
-                                          size: 48,
-                                          color: Colors.orange,
-                                        ),
-                                        const SizedBox(height: 16),
-                                        const Text(
-                                          "Horario Inválido",
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          "La actividad anterior termina a las ${formatHora(ultimaAyer.horaFin)}.\nNo puedes iniciar este día antes de esa hora.",
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(height: 1.5),
-                                        ),
-                                        const SizedBox(height: 24),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: FilledButton(
-                                            onPressed: () => Navigator.pop(ctx),
-                                            style: FilledButton.styleFrom(
-                                              backgroundColor: Colors.orange,
-                                            ),
-                                            child: const Text("Entendido"),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                          );
-                        }
-                        return;
-                      }
-                    }
-                  }
-
-                  // 1.5 Validar contra primera actividad del día actual
-                  if (state.actividadesDelDiaActual.isNotEmpty) {
-                    final primeraActividad =
-                        state.actividadesDelDiaActual.first;
-                    // Si la primera actividad empieza ANTES o igual que la nueva hora inicio...
-                    // La hora de inicio del día DEBE ser <= hora inicio primera actividad.
-                    if (pickedDt.isAfter(primeraActividad.horaInicio)) {
-                      if (context.mounted) {
-                        showDialog(
-                          context: context,
-                          builder:
-                              (ctx) => Dialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.warning_amber_rounded,
-                                        size: 48,
-                                        color: Colors.orange,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      const Text(
-                                        "Horario Inválido",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        "Ya tienes una actividad a las ${formatHora(primeraActividad.horaInicio)}.\nLa hora de inicio del día no puede ser posterior a tus actividades.",
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(height: 1.5),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: FilledButton(
-                                          onPressed: () => Navigator.pop(ctx),
-                                          style: FilledButton.styleFrom(
-                                            backgroundColor: Colors.orange,
-                                          ),
-                                          child: const Text("Entendido"),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                        );
-                      }
-                      return;
-                    }
-                  }
-
-                  // 2. Validar contra el fin del mismo día
-                  if (!pickedDt.isBefore(state.horaFinDia)) {
-                    if (context.mounted) {
-                      showDialog(
-                        context: context,
-                        builder:
-                            (ctx) => Dialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(24),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(14),
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange.shade100,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        Icons.schedule,
-                                        size: 40,
-                                        color: Colors.orange.shade700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      "Hora Inválida",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey.shade800,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      "La hora de inicio debe ser anterior a la hora de fin (${formatHora(state.horaFinDia)}).",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade600,
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        onPressed: () => Navigator.pop(ctx),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              Colors.orange.shade600,
-                                          foregroundColor: Colors.white,
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 12,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          "Entendido",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                      );
-                    }
-                    return;
-                  }
-                  // ignore: use_build_context_synchronously
-                  cubit.setHoraInicioDia(diaActual, picked);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-
-            // --- HORA DE FIN ---
-            _buildTimeRow(
-              context: context,
-              label: "Fin",
-              hora: formatHora(state.horaFinDia),
-              esFijo: state.esHoraFinFija || esUnSoloDia,
-              tooltipFijo:
-                  esUnSoloDia
-                      ? "Hora de fin del viaje"
-                      : "Hora de fin fija del viaje",
-              onTap: () async {
-                // ✨ Si horaFin ≤ horaInicio, sugerir horaInicio + 1h como valor inicial
-                final horaInicioActual = state.horaInicioDia;
-                final horaFinActual = state.horaFinDia;
-                final TimeOfDay initialTimeFin;
-                if (!horaFinActual.isAfter(horaInicioActual)) {
-                  final sugerida = horaInicioActual.add(
-                    const Duration(hours: 1),
-                  );
-                  initialTimeFin = TimeOfDay(
-                    hour: sugerida.hour % 24,
-                    minute: sugerida.minute,
-                  );
-                } else {
-                  initialTimeFin = TimeOfDay(
-                    hour: horaFinActual.hour,
-                    minute: horaFinActual.minute,
-                  );
-                }
-
-                final picked = await showTimePicker(
-                  context: context,
-                  initialTime: initialTimeFin,
-                  builder:
-                      (ctx, child) => MediaQuery(
-                        data: MediaQuery.of(
-                          ctx,
-                        ).copyWith(alwaysUse24HourFormat: false),
-                        child: child!,
-                      ),
-                );
-                if (picked != null) {
-                  // ✨ Corrección: usar fechas reales del día
-                  final fechaBase = state.fechaBaseDiaActual;
-                  var pickedDt = DateTime(
-                    fechaBase.year,
-                    fechaBase.month,
-                    fechaBase.day,
-                    picked.hour,
-                    picked.minute,
-                  );
-
-                  // ❌ ELIMINADO: No asumir día siguiente automáticamente.
-                  // Si el usuario quiere terminar al día siguiente, debería ser explícito o
-                  // entender que "02:00 AM" < "08:00 AM" -> Error.
-                  // Pero el usuario pidió explícitamente que NO se auto-corrigiera ni se asumiera,
-                  // sino que "indicara que algo anda mal".
-
-                  // Validar contra inicio
-                  if (!pickedDt.isAfter(state.horaInicioDia)) {
-                    if (context.mounted) {
-                      showDialog(
-                        context: context,
-                        builder:
-                            (ctx) => Dialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(24),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(14),
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange.shade100,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        Icons.schedule,
-                                        size: 40,
-                                        color: Colors.orange.shade700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      "Hora Inválida",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey.shade800,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      "La hora de fin debe ser posterior a la hora de inicio (${formatHora(state.horaInicioDia)}).",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade600,
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        onPressed: () => Navigator.pop(ctx),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              Colors.orange.shade600,
-                                          foregroundColor: Colors.white,
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 12,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          "Entendido",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                      );
-                    }
-                    return;
-                  }
-                  // ignore: use_build_context_synchronously
-                  cubit.setHoraFinDia(diaActual, pickedDt);
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildTimeRow({
-    required BuildContext context,
-    required String label,
-    required String hora,
-    required bool esFijo,
-    required String tooltipFijo,
-    required VoidCallback onTap,
-  }) {
-    return Row(
-      children: [
-        // Etiqueta
-        SizedBox(
-          width: 36,
-          child: Text(
-            label,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
-        ),
-        const SizedBox(width: 8),
-
-        // Campo de hora (editable o fijo)
-        Expanded(
-          child:
-              esFijo
-                  ? _buildFixedTimeChip(hora, tooltipFijo)
-                  : _buildEditableTimeChip(context, hora, onTap),
-        ),
-      ],
-    );
-  }
-
-  // Chip para hora FIJA (con candado)
-  Widget _buildFixedTimeChip(String hora, String tooltip) {
-    return Tooltip(
-      message: tooltip,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.lock_outline, size: 13, color: Colors.grey[500]),
-            const SizedBox(width: 6),
-            Text(
-              hora,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Chip para hora EDITABLE (con lápiz, tappable)
-  Widget _buildEditableTimeChip(
-    BuildContext context,
-    String hora,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: Colors.blue[50],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.blue[200]!),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.edit, size: 13, color: Colors.blue[700]),
-            const SizedBox(width: 6),
-            Text(
-              hora,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.blue[800],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================
 // PESTAÑAS DE DÍAS (con scroll y flechas)
 // ============================================
 class _DaysTabBar extends StatefulWidget {
@@ -1007,10 +592,68 @@ class _DaysTabBarState extends State<_DaysTabBar> {
     super.dispose();
   }
 
+  /// Construye la etiqueta de cada pestaña de día.
+  /// Si [fechaInicio] está disponible, muestra la fecha real en 2 líneas
+  /// (ej: "Sáb" y "28 Feb"). Si no, hace fallback a "Día N".
+  Widget _buildDayLabel({
+    required int index,
+    required DateTime? fechaInicio,
+    required bool isSelected,
+  }) {
+    final color = isSelected ? Colors.white : Colors.grey[700]!;
+    if (fechaInicio != null) {
+      final fecha = fechaInicio.add(Duration(days: index));
+      const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+      const meses = [
+        'Ene',
+        'Feb',
+        'Mar',
+        'Abr',
+        'May',
+        'Jun',
+        'Jul',
+        'Ago',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dic',
+      ];
+      final diaSemana = diasSemana[fecha.weekday - 1];
+      final mes = meses[fecha.month - 1];
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            diaSemana,
+            style: TextStyle(
+              color: color.withValues(alpha: 0.85),
+              fontWeight: FontWeight.w500,
+              fontSize: 11,
+            ),
+          ),
+          Text(
+            '${fecha.day} $mes',
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      );
+    }
+    // Fallback: sin fecha de inicio
+    return Text(
+      'Día ${index + 1}',
+      style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 60,
+      height: 68,
       color: Colors.white,
       child: BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
         builder: (context, state) {
@@ -1050,7 +693,7 @@ class _DaysTabBarState extends State<_DaysTabBar> {
                   itemCount: state.totalDias,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
-                    vertical: 10,
+                    vertical: 6,
                   ),
                   itemBuilder: (context, index) {
                     final isSelected = state.diaSeleccionadoIndex == index;
@@ -1075,14 +718,10 @@ class _DaysTabBarState extends State<_DaysTabBar> {
                                   : Border.all(color: Colors.grey[300]!),
                         ),
                         child: Center(
-                          child: Text(
-                            "Día ${index + 1}",
-                            style: TextStyle(
-                              color:
-                                  isSelected ? Colors.white : Colors.grey[700],
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
+                          child: _buildDayLabel(
+                            index: index,
+                            fechaInicio: state.horaInicioViaje,
+                            isSelected: isSelected,
                           ),
                         ),
                       ),
@@ -1134,47 +773,36 @@ class _TimelineDropZone extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
       builder: (context, state) {
-        final actividades = state.actividadesDelDiaActual;
-        // ✨ SINCRONIZACIÓN NOCTURNA: actividad del día anterior que continúa hoy
-        final actividadContinuacion = state.actividadNocturnaDelDiaAnterior;
-        final diaAnterior = state.diaSeleccionadoIndex - 1;
+        // Ordenar actividades por horaInicio (las sin horario al final)
+        final todasLasActividades = List<ActividadItinerario>.from(
+          state.actividadesDelDiaActual,
+        );
+        final conHorario =
+            todasLasActividades
+                .where((a) => !state.actividadSinHorario(a))
+                .toList()
+              ..sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
+        final sinHorario =
+            todasLasActividades
+                .where((a) => state.actividadSinHorario(a))
+                .toList();
+
+        // Lista combinada para el timeline: actividades ordenadas + sin horario al final
+        final actividades = [...conHorario, ...sinHorario];
 
         return DragTarget<CategoriaActividad>(
-          // Bloquear el drop si no hay tiempo y el modo horas extra no está activo
-          onWillAcceptWithDetails: (details) {
-            final categoria = details.data;
-            final cubit = context.read<ItineraryBuilderCubit>();
-            // Verificar si la actividad cabe en el tiempo restante
-            return cubit.wouldActivityFit(categoria);
-          },
-          // 2. Cuando el usuario suelta el ítem
+          // Siempre acepta — las restricciones de tiempo ya no aplican
+          onWillAcceptWithDetails: (_) => true,
           onAcceptWithDetails: (details) {
             final cubit = context.read<ItineraryBuilderCubit>();
-            // Guardar cuántas actividades había ANTES del drop
             final cantidadAntes = cubit.state.actividadesDelDiaActual.length;
             cubit.onActivityDropped(details.data);
 
-            // ✨ BONUS: Auto-abrir el dialog de edición al soltar
-            // Solo si realmente se agregó una actividad nueva
+            // Auto-abrir el dialog de edición al soltar
             WidgetsBinding.instance.addPostFrameCallback((_) {
               final actividadesDespues = cubit.state.actividadesDelDiaActual;
-              // Verificar que la lista creció (se agregó una actividad)
               if (actividadesDespues.length <= cantidadAntes) return;
               final ultimaActividad = actividadesDespues.last;
-              // Calcular minTime correctamente sincronizado con fecha base del día
-              // Calcular minTime y maxTime usando fechas reales del state
-              final minTime = cubit.state.horaInicioDia;
-              final limiteBase = cubit.state.horaFinDia;
-
-              final esUltimoDia =
-                  cubit.state.diaSeleccionadoIndex == cubit.state.totalDias - 1;
-              final permiteHorasExtra =
-                  cubit.state.modoHorasExtraActivo && !esUltimoDia;
-
-              final maxTime =
-                  permiteHorasExtra
-                      ? limiteBase.add(const Duration(hours: 3))
-                      : limiteBase;
 
               showDialog(
                 // ignore: use_build_context_synchronously
@@ -1189,8 +817,6 @@ class _TimelineDropZone extends StatelessWidget {
                         onDelete: (id) => cubit.deleteActivity(id),
                         isNew: true,
                         actividadesDelDia: cubit.state.actividadesDelDiaActual,
-                        minTime: minTime,
-                        maxTime: maxTime,
                       ),
                     ),
               );
@@ -1198,112 +824,88 @@ class _TimelineDropZone extends StatelessWidget {
           },
           builder: (context, candidateData, rejectedData) {
             final isHovering = candidateData.isNotEmpty;
-            final isRejected = rejectedData.isNotEmpty;
 
-            // Construir la lista combinada: continuación nocturna + actividades del día
-            final tieneContenido =
-                actividadContinuacion != null || actividades.isNotEmpty;
-
-            return Stack(
-              children: [
-                Container(
-                  color:
-                      isRejected
-                          ? Colors.red.withValues(alpha: 0.06)
-                          : isHovering
-                          ? Colors.blue.withValues(alpha: 0.05)
-                          : Colors.grey[50],
-                  child:
-                      !tieneContenido
-                          ? _buildEmptyState()
-                          : ListView(
-                            padding: const EdgeInsets.all(16),
-                            children: [
-                              // ✨ Tarjeta de continuación nocturna (si existe)
-                              if (actividadContinuacion != null) ...[
-                                _ContinuationCard(
-                                  activity: actividadContinuacion,
-                                  diaOrigen: diaAnterior,
-                                ),
-                                // Conector hacia las actividades propias del día
-                                if (actividades.isNotEmpty)
-                                  _buildConnectorLine(),
-                              ],
-                              // Actividades propias del día actual
-                              ...List.generate(actividades.length, (index) {
-                                return Column(
-                                  children: [
-                                    _ItineraryItemCard(
-                                      activity: actividades[index],
-                                      usaHorasExtra:
-                                          state.modoHorasExtraActivo &&
-                                          actividades[index].horaFin.isAfter(
-                                            state.horaFinDia,
-                                          ),
-                                    ),
-                                    if (index < actividades.length - 1)
-                                      _buildConnectorLine(),
-                                  ],
-                                );
-                              }),
-                            ],
-                          ),
-                ),
-                // Banner de rechazo: aparece al intentar soltar sin tiempo
-                if (isRejected)
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 16,
+            return Container(
+              color:
+                  isHovering
+                      ? Colors.blue.withValues(alpha: 0.05)
+                      : Colors.grey[50],
+              child:
+                  actividades.isEmpty
+                      ? _buildEmptyState()
+                      : ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: _buildTimelineItems(
+                          conHorario,
+                          sinHorario,
+                          state.fechaBaseDiaActual,
+                        ),
                       ),
-                      color: Colors.red.shade700,
-                      child: Builder(
-                        builder: (context) {
-                          final cubit = context.watch<ItineraryBuilderCubit>();
-                          final esUltimoDia =
-                              cubit.state.diaSeleccionadoIndex ==
-                              cubit.state.totalDias - 1;
-                          final esViajeLargo = cubit.state.totalDias > 1;
-
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.block,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                cubit.state.actividadesUsanHorasNocturnas
-                                    ? "Límite: Solo una actividad nocturna por día"
-                                    : (esViajeLargo &&
-                                        !esUltimoDia &&
-                                        !cubit.state.modoHorasExtraActivo)
-                                    ? "Sin tiempo — activa las horas extra para continuar"
-                                    : "Sin tiempo disponible — límite de horario alcanzado",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-              ],
             );
           },
         );
       },
     );
+  }
+
+  /// Construye la lista de items del timeline intercalando bloques
+  /// de Tiempo Libre cuando hay huecos entre actividades con horario.
+  /// [diaBase] es las 00:00 h del día actual — se usa para mostrar
+  /// tiempo libre antes de la primera actividad.
+  List<Widget> _buildTimelineItems(
+    List<ActividadItinerario> conHorario,
+    List<ActividadItinerario> sinHorario,
+    DateTime diaBase,
+  ) {
+    final widgets = <Widget>[];
+
+    // Tiempo libre ANTES de la primera actividad del día
+    if (conHorario.isNotEmpty) {
+      final gapInicio =
+          conHorario.first.horaInicio.difference(diaBase).inMinutes;
+      if (gapInicio > 0) {
+        widgets.add(_FreeTimeBlock(duracionMinutos: gapInicio));
+        widgets.add(_buildConnectorLine());
+      }
+    }
+
+    for (int i = 0; i < conHorario.length; i++) {
+      final act = conHorario[i];
+
+      widgets.add(_ItineraryItemCard(activity: act));
+
+      // ¿Hay una siguiente actividad con horario?
+      if (i < conHorario.length - 1) {
+        final siguiente = conHorario[i + 1];
+        final gapMinutos =
+            siguiente.horaInicio.difference(act.horaFin).inMinutes;
+
+        if (gapMinutos > 0) {
+          // Hay tiempo libre entre estas dos actividades
+          widgets.add(_buildConnectorLine());
+          widgets.add(_FreeTimeBlock(duracionMinutos: gapMinutos));
+          widgets.add(_buildConnectorLine());
+        } else {
+          // Actividades consecutivas — solo conector
+          widgets.add(_buildConnectorLine());
+        }
+      }
+    }
+
+    // Actividades sin horario al final (si las hay)
+    if (sinHorario.isNotEmpty) {
+      if (conHorario.isNotEmpty) {
+        widgets.add(_buildConnectorLine());
+      }
+      for (int i = 0; i < sinHorario.length; i++) {
+        widgets.add(_ItineraryItemCard(activity: sinHorario[i]));
+        if (i < sinHorario.length - 1) {
+          widgets.add(_buildConnectorLine());
+        }
+      }
+    }
+
+    return widgets;
   }
 
   Widget _buildEmptyState() {
@@ -1342,41 +944,78 @@ class _TimelineDropZone extends StatelessWidget {
 // ============================================
 class _ItineraryItemCard extends StatelessWidget {
   final ActividadItinerario activity;
-  final bool usaHorasExtra;
 
-  const _ItineraryItemCard({
-    required this.activity,
-    this.usaHorasExtra = false,
-  });
+  const _ItineraryItemCard({required this.activity});
+
+  // Una actividad "sin horario" tiene horaInicio == horaFin
+  bool get _sinHorario =>
+      activity.horaInicio.isAtSameMomentAs(activity.horaFin);
 
   @override
   Widget build(BuildContext context) {
     final start =
-        "${activity.horaInicio.hour}:${activity.horaInicio.minute.toString().padLeft(2, '0')}";
+        "${activity.horaInicio.hour.toString().padLeft(2, '0')}:${activity.horaInicio.minute.toString().padLeft(2, '0')}";
     final end =
-        "${activity.horaFin.hour}:${activity.horaFin.minute.toString().padLeft(2, '0')}";
+        "${activity.horaFin.hour.toString().padLeft(2, '0')}:${activity.horaFin.minute.toString().padLeft(2, '0')}";
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          children: [
-            Text(
-              start,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            ),
-            const SizedBox(height: 4),
-            Text(end, style: TextStyle(color: Colors.grey[500], fontSize: 11)),
-          ],
+        // Columna de hora (o indicador sin horario)
+        SizedBox(
+          width: 54,
+          child:
+              _sinHorario
+                  ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Sin hora",
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: Colors.red.shade700,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  )
+                  : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        start,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        end,
+                        style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                      ),
+                    ],
+                  ),
         ),
         const SizedBox(width: 12),
+        // Punto en la línea de tiempo
         Column(
           children: [
             Container(
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: Colors.blue[800],
+                color: _sinHorario ? Colors.red.shade400 : Colors.blue[800],
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: const [
@@ -1393,6 +1032,10 @@ class _ItineraryItemCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
+              border:
+                  _sinHorario
+                      ? Border.all(color: Colors.red.shade200, width: 1)
+                      : null,
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black12,
@@ -1414,10 +1057,33 @@ class _ItineraryItemCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        activity.titulo,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        activity.titulo.isEmpty
+                            ? (activity.categoriaSnapshot?.nombre ??
+                                'Actividad')
+                            : activity.titulo,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color:
+                              activity.titulo.isEmpty ? Colors.grey[500] : null,
+                          fontStyle:
+                              activity.titulo.isEmpty
+                                  ? FontStyle.italic
+                                  : FontStyle.normal,
+                        ),
                       ),
-                      if (activity.descripcion.isNotEmpty)
+                      if (_sinHorario)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            "Toca ✏️ para configurar el horario",
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.red.shade600,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        )
+                      else if (activity.descripcion.isNotEmpty)
                         Text(
                           activity.descripcion,
                           style: TextStyle(
@@ -1427,60 +1093,17 @@ class _ItineraryItemCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      // ✨ Badge de Horas Extra
-                      if (usaHorasExtra)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.indigo.shade50,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.indigo.shade200),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.nightlight_round,
-                                size: 10,
-                                color: Colors.indigo.shade700,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                "Horas Extra",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo.shade700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                     ],
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit, size: 18, color: Colors.grey),
+                  icon: Icon(
+                    Icons.edit,
+                    size: 18,
+                    color: _sinHorario ? Colors.red : Colors.grey,
+                  ),
                   onPressed: () {
                     final cubit = context.read<ItineraryBuilderCubit>();
-
-                    // Calcular límites para validación en edición
-                    final minTime = cubit.state.horaInicioDia;
-                    final limiteBase = cubit.state.horaFinDia;
-                    final esUltimoDia =
-                        cubit.state.diaSeleccionadoIndex ==
-                        cubit.state.totalDias - 1;
-                    final permiteHorasExtra =
-                        cubit.state.modoHorasExtraActivo && !esUltimoDia;
-                    final maxTime =
-                        permiteHorasExtra
-                            ? limiteBase.add(const Duration(hours: 3))
-                            : limiteBase;
-
                     showDialog(
                       context: context,
                       builder:
@@ -1493,8 +1116,6 @@ class _ItineraryItemCard extends StatelessWidget {
                               onDelete: (id) => cubit.deleteActivity(id),
                               actividadesDelDia:
                                   cubit.state.actividadesDelDiaActual,
-                              minTime: minTime,
-                              maxTime: maxTime,
                             ),
                           ),
                     );
@@ -1529,608 +1150,111 @@ class _ItineraryItemCard extends StatelessWidget {
 }
 
 // ============================================
-// ✨ TARJETA DE CONTINUACIÓN NOCTURNA
+// BLOQUE DE TIEMPO LIBRE
 // ============================================
-class _ContinuationCard extends StatelessWidget {
-  final ActividadItinerario activity;
-  final int diaOrigen; // Índice del día donde vive la actividad (0-based)
+class _FreeTimeBlock extends StatelessWidget {
+  final int duracionMinutos;
 
-  const _ContinuationCard({required this.activity, required this.diaOrigen});
+  const _FreeTimeBlock({required this.duracionMinutos});
 
-  String _formatHora(DateTime dt) {
-    final h = dt.hour;
-    final m = dt.minute.toString().padLeft(2, '0');
-    final periodo = h >= 12 ? 'PM' : 'AM';
-    final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
-    return '$h12:$m $periodo';
-  }
-
-  IconData _getIconForType(TipoActividad tipo) {
-    switch (tipo) {
-      case TipoActividad.hospedaje:
-        return Icons.hotel;
-      case TipoActividad.comida:
-        return Icons.restaurant;
-      case TipoActividad.traslado:
-        return Icons.directions_bus;
-      case TipoActividad.cultura:
-        return Icons.museum;
-      case TipoActividad.aventura:
-        return Icons.hiking;
-      case TipoActividad.tiempoLibre:
-        return Icons.beach_access;
-      default:
-        return Icons.local_activity;
-    }
+  String get _label {
+    if (duracionMinutos < 60) return '$duracionMinutos min';
+    final h = duracionMinutos ~/ 60;
+    final m = duracionMinutos % 60;
+    return m == 0 ? '$h h' : '$h h $m min';
   }
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<ItineraryBuilderCubit>();
-    final startStr = _formatHora(activity.horaInicio);
-    final endStr = _formatHora(activity.horaFin);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.indigo.shade50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.indigo.shade300,
-          width: 1.5,
-          // Simular borde punteado con un borde sólido suave
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 54,
+          child: Center(
+            child: Icon(
+              Icons.hourglass_bottom,
+              size: 14,
+              color: Colors.teal[300],
+            ),
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Badge superior
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        const SizedBox(width: 12),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: Colors.teal[200],
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 1.5),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.indigo.shade100,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(9),
-                topRight: Radius.circular(9),
+              color: Colors.teal.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.teal.withValues(alpha: 0.25),
+                width: 1,
               ),
             ),
             child: Row(
               children: [
                 Icon(
-                  Icons.nightlight_round,
-                  size: 13,
-                  color: Colors.indigo.shade700,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '↩ Continúa del Día ${diaOrigen + 1}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.indigo.shade700,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Contenido de la tarjeta
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Columna de horas
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      startStr,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.indigo.shade800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      endStr,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.indigo.shade400,
-                      ),
-                    ),
-                  ],
+                  Icons.beach_access_outlined,
+                  color: Colors.teal[600],
+                  size: 18,
                 ),
                 const SizedBox(width: 10),
-                // Punto de timeline
-                Container(
-                  margin: const EdgeInsets.only(top: 2),
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: Colors.indigo.shade400,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                // Contenido de la actividad
                 Expanded(
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        _getIconForType(activity.tipo),
-                        color: Colors.indigo.shade400,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              activity.titulo,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: Colors.indigo.shade900,
-                              ),
-                            ),
-                            if (activity.descripcion.isNotEmpty)
-                              Text(
-                                activity.descripcion,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.indigo.shade400,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                          ],
+                      Text(
+                        'Tiempo Libre',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: Colors.teal[700],
                         ),
                       ),
-                      // Botón eliminar con confirmación
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete_outline,
-                          size: 18,
-                          color: Colors.indigo.shade300,
+                      Text(
+                        'Cada quien decide que hacer',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.teal[500],
+                          fontStyle: FontStyle.italic,
                         ),
-                        tooltip: 'Eliminar actividad nocturna',
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder:
-                                (ctx) => AlertDialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  icon: Icon(
-                                    Icons.nightlight_round,
-                                    color: Colors.indigo.shade400,
-                                    size: 36,
-                                  ),
-                                  title: const Text(
-                                    'Eliminar actividad nocturna',
-                                  ),
-                                  content: Text(
-                                    '"${activity.titulo}" fue creada en el Día ${diaOrigen + 1} '
-                                    'y continúa hasta las $endStr de este día.\n\n'
-                                    '¿Deseas eliminarla completamente?',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(ctx),
-                                      child: const Text('Cancelar'),
-                                    ),
-                                    FilledButton(
-                                      style: FilledButton.styleFrom(
-                                        backgroundColor: Colors.indigo,
-                                      ),
-                                      onPressed: () {
-                                        Navigator.pop(ctx);
-                                        cubit.deleteActivityFromDay(
-                                          activity.id,
-                                          diaOrigen,
-                                        );
-                                      },
-                                      child: const Text('Eliminar'),
-                                    ),
-                                  ],
-                                ),
-                          );
-                        },
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ============================================
-// INDICADOR DE TIEMPO RESTANTE
-// ============================================
-class _TimeRemainingIndicator extends StatelessWidget {
-  const _TimeRemainingIndicator();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
-      builder: (context, state) {
-        // ✨ CASO ESPECIAL: Actividades nocturnas (cruzan medianoche)
-        if (state.actividadesUsanHorasNocturnas) {
-          return Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.indigo.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.indigo.shade300, width: 2),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.nightlight_round,
-                      color: Colors.indigo.shade600,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Actividad nocturna",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.indigo.shade700,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "Este día usa horas del día siguiente. El Día ${state.diaSeleccionadoIndex + 2} comenzará más tarde automáticamente.",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.indigo.shade600,
-                    height: 1.4,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                ),
-                const SizedBox(height: 8),
-                InkWell(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder:
-                          (ctx) => AlertDialog(
-                            title: const Row(
-                              children: [
-                                Icon(
-                                  Icons.nightlight_round,
-                                  color: Colors.indigo,
-                                ),
-                                SizedBox(width: 10),
-                                Text("Actividades Nocturnas"),
-                              ],
-                            ),
-                            content: const Text(
-                              "Para mantener la coherencia del itinerario, solo se permite una actividad nocturna por día (que cruce la medianoche).\n\n"
-                              "Si deseas agregar más actividades después de esta, ve al Día siguiente. El sistema ajustará automáticamente la hora de inicio para que coincida con el final de tu actividad nocturna.",
-                              style: TextStyle(height: 1.5),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx),
-                                child: const Text("Entendido"),
-                              ),
-                            ],
-                          ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(4),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 4,
-                      horizontal: 2,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.help_outline,
-                          size: 16,
-                          color: Colors.indigo.shade500,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          "¿Por qué solo una actividad?",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.indigo.shade600,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ],
-                    ),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        final tiempoRestante = state.tiempoRestanteHoy;
-        final tiempoUsado = state.tiempoUsadoHoy;
-        final tiempoTotal =
-            state.horaFinDia.difference(state.horaInicioDia).inMinutes;
-
-        // Proteger contra valores negativos inesperados
-        final tiempoRestanteSafe = tiempoRestante.clamp(0, tiempoTotal);
-        final tiempoUsadoSafe = tiempoUsado.clamp(0, tiempoTotal);
-
-        final horasRestantes = tiempoRestanteSafe ~/ 60;
-        final minutosRestantes = tiempoRestanteSafe % 60;
-        final horasUsadas = tiempoUsadoSafe ~/ 60;
-        final minutosUsados = tiempoUsadoSafe % 60;
-
-        Color indicatorColor;
-        IconData indicatorIcon;
-        String statusText;
-
-        if (tiempoRestante > 240) {
-          indicatorColor = Colors.green;
-          indicatorIcon = Icons.check_circle;
-          statusText = "Tiempo disponible";
-        } else if (tiempoRestante > 120) {
-          indicatorColor = Colors.orange;
-          indicatorIcon = Icons.warning;
-          statusText = "Tiempo limitado";
-        } else if (tiempoRestante > 0) {
-          indicatorColor = Colors.red;
-          indicatorIcon = Icons.error;
-          statusText = "Poco tiempo";
-        } else {
-          indicatorColor = Colors.red.shade900;
-          indicatorIcon = Icons.block;
-          statusText = "Sin tiempo disponible";
-        }
-
-        // Mostrar botón desde "Tiempo limitado" (≤ 4h) hasta "Sin tiempo"
-        // SOLO si el viaje tiene más de 1 día y NO es el último día
-        final esUltimoDia = state.diaSeleccionadoIndex >= state.totalDias - 1;
-        final sinTiempo = tiempoRestante <= 240 && !esUltimoDia;
-        final modoExtra = state.modoHorasExtraActivo;
-
-        // ✨ Calcular minutos extra consumidos (last activity beyond normal limit)
-        int minutosExtra = 0;
-        if (modoExtra) {
-          final actividades = state.actividadesDelDiaActual;
-          if (actividades.isNotEmpty) {
-            final limiteNormal = state.horaFinDia;
-            final ultimaFin = actividades.last.horaFin;
-            if (ultimaFin.isAfter(limiteNormal)) {
-              minutosExtra = ultimaFin.difference(limiteNormal).inMinutes;
-            }
-          }
-        }
-        final horasExtra = minutosExtra ~/ 60;
-        final minsExtra = minutosExtra % 60;
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: indicatorColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: indicatorColor, width: 2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(indicatorIcon, color: indicatorColor, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    statusText,
+                  child: Text(
+                    _label,
                     style: TextStyle(
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: indicatorColor,
-                      fontSize: 14,
+                      color: Colors.teal[700],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("Usado:", style: TextStyle(fontSize: 12)),
-                  Text(
-                    "${horasUsadas}h ${minutosUsados}m",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("Restante:", style: TextStyle(fontSize: 12)),
-                  Text(
-                    "${horasRestantes}h ${minutosRestantes}m",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                      color: indicatorColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: tiempoTotal > 0 ? tiempoUsadoSafe / tiempoTotal : 0,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(indicatorColor),
-                  minHeight: 6,
-                ),
-              ),
-
-              // ✨ BOTÓN HORAS EXTRA: Solo visible cuando no hay tiempo
-              if (sinTiempo) ...[
-                const SizedBox(height: 12),
-                const Divider(height: 1),
-                const SizedBox(height: 10),
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap:
-                        () =>
-                            context
-                                .read<ItineraryBuilderCubit>()
-                                .toggleModoHorasExtra(),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            modoExtra
-                                ? Colors.indigo.shade600
-                                : Colors.indigo.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Colors.indigo.shade400,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                modoExtra
-                                    ? Icons.nightlight_round
-                                    : Icons.nightlight_outlined,
-                                size: 18,
-                                color:
-                                    modoExtra
-                                        ? Colors.white
-                                        : Colors.indigo.shade600,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                modoExtra
-                                    ? "Horas extra activas"
-                                    : "Activar horas extra",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      modoExtra
-                                          ? Colors.white
-                                          : Colors.indigo.shade700,
-                                ),
-                              ),
-                              if (modoExtra) ...[
-                                const SizedBox(width: 6),
-                                Icon(
-                                  Icons.check_circle,
-                                  size: 16,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                ),
-                              ],
-                            ],
-                          ),
-                          // ✨ Badge de horas extra consumidas (línea separada)
-                          if (modoExtra && minutosExtra > 0) ...[
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                horasExtra > 0
-                                    ? "+${horasExtra}h ${minsExtra}m en horas extra"
-                                    : "+${minsExtra}m en horas extra",
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  modoExtra
-                      ? "Margen de +3h habilitado. Puedes programar actividades más allá del cierre normal del día."
-                      : "Añade un margen de 3 horas al final del día. Úsalo para extender tu itinerario o conectar con la madrugada siguiente.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.indigo.shade400,
-                    height: 1.3,
                   ),
                 ),
               ],
-
-              if (tiempoRestante <= 0 && state.totalDias == 1) ...[
-                const SizedBox(height: 12),
-                const Divider(height: 1),
-                const SizedBox(height: 10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color: Colors.grey.shade500,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "El viaje termina hoy. No se puede extender más el horario.",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                          height: 1.3,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
+            ),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

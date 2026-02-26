@@ -4,9 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/service_locator.dart' as di;
 import 'routes_agencia.dart';
 import '../../features/agencia/trips/domain/entities/viaje.dart';
+import '../../features/agencia/trips/domain/entities/actividad_itinerario.dart';
 
 // Importa tus Widgets de Pantalla
 import '../../features/agencia/auth/presentation/screens/login_screen.dart';
+import '../../features/agencia/auth/presentation/screens/recover_password_screen.dart';
 import '../../features/agencia/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/agencia/trips/presentation/screens/trips_screen.dart';
 import '../../features/agencia/trips/presentation/screens/trip_detail_screen.dart';
@@ -40,6 +42,10 @@ class AppRouterAgencia {
       GoRoute(
         path: RoutesAgencia.login,
         builder: (context, state) => const AgencyLoginScreen(),
+      ),
+      GoRoute(
+        path: RoutesAgencia.recoverPassword,
+        builder: (context, state) => const AgencyRecoverPasswordScreen(),
       ),
 
       // 2. STATEFUL SHELL ROUTE (Tabs persistentes)
@@ -82,10 +88,10 @@ class AppRouterAgencia {
                           (_) =>
                               di.sl<ViajesBloc>()..add(
                                 LoadViajesEvent(
-                                  filterStatus:
+                                  filterStatuses:
                                       filter != null
-                                          ? filter.toUpperCase()
-                                          : 'TODOS',
+                                          ? [filter.toUpperCase()]
+                                          : ['TODOS'],
                                 ),
                               ),
                       child: const TripsScreen(),
@@ -100,8 +106,23 @@ class AppRouterAgencia {
                   GoRoute(
                     path: 'itinerary-builder',
                     builder: (context, state) {
-                      final Viaje viaje = state.extra as Viaje;
-                      return ItineraryBuilderScreen(viajeBase: viaje);
+                      Viaje viaje;
+                      Map<int, List<ActividadItinerario>>? csvData;
+
+                      if (state.extra is Map) {
+                        final rawMap = state.extra as Map;
+                        viaje = rawMap['viaje'] as Viaje;
+                        csvData =
+                            rawMap['csvData']
+                                as Map<int, List<ActividadItinerario>>?;
+                      } else {
+                        viaje = state.extra as Viaje;
+                      }
+
+                      return ItineraryBuilderScreen(
+                        viajeBase: viaje,
+                        csvDataAImportar: csvData,
+                      );
                     },
                   ),
                   GoRoute(
