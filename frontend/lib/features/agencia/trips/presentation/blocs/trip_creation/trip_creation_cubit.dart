@@ -197,10 +197,17 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   // --- MÉTODOS DE RECUPERACIÓN ---
   Future<void> checkForDraft() async {
     final draft = await _localDataSource.getDraft();
-    if (draft != null && (draft.destino?.isNotEmpty ?? false)) {
+    if (draft != null && _draftHasData(draft)) {
       emit(state.copyWith(draftFound: true, draftData: draft));
     }
   }
+
+  /// Retorna true si el borrador tiene al menos un campo con datos relevantes.
+  bool _draftHasData(TripDraftModel d) =>
+      (d.destino?.isNotEmpty ?? false) ||
+      (d.claveBase?.isNotEmpty ?? false) ||
+      d.guiaId != null ||
+      d.actividades.isNotEmpty;
 
   void restoreDraft() {
     final draft = state.draftData;

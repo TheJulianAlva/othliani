@@ -70,6 +70,44 @@ class ActividadItinerario extends Equatable {
     this.imagenUrl,
   });
 
+  ActividadItinerario copyWith({
+    String? id,
+    String? titulo,
+    String? descripcion,
+    DateTime? horaInicio,
+    DateTime? horaFin,
+    int? holguraMinutos,
+    TipoActividad? tipo,
+    LatLng? ubicacionCentral,
+    double? radioGeocerca,
+    List<LatLng>? poligonoGeocerca,
+    String? urlFotoPuntoReunion,
+    String? recomendaciones,
+    String? imagenUrl,
+    double? huellaCarbono,
+    String? guiaResponsableId,
+    CategoriaActividad? categoriaSnapshot,
+  }) {
+    return ActividadItinerario(
+      id: id ?? this.id,
+      titulo: titulo ?? this.titulo,
+      descripcion: descripcion ?? this.descripcion,
+      horaInicio: horaInicio ?? this.horaInicio,
+      horaFin: horaFin ?? this.horaFin,
+      holguraMinutos: holguraMinutos ?? this.holguraMinutos,
+      tipo: tipo ?? this.tipo,
+      ubicacionCentral: ubicacionCentral ?? this.ubicacionCentral,
+      radioGeocerca: radioGeocerca ?? this.radioGeocerca,
+      poligonoGeocerca: poligonoGeocerca ?? this.poligonoGeocerca,
+      urlFotoPuntoReunion: urlFotoPuntoReunion ?? this.urlFotoPuntoReunion,
+      recomendaciones: recomendaciones ?? this.recomendaciones,
+      imagenUrl: imagenUrl ?? this.imagenUrl,
+      huellaCarbono: huellaCarbono ?? this.huellaCarbono,
+      guiaResponsableId: guiaResponsableId ?? this.guiaResponsableId,
+      categoriaSnapshot: categoriaSnapshot ?? this.categoriaSnapshot,
+    );
+  }
+
   /*
    * ✨ FASE 13: SERIALIZACIÓN PARA PERSISTENCIA LOCAL
    * Necesaria para guardar borradores en SharedPreferences

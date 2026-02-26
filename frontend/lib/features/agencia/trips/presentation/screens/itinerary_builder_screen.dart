@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/itinerary_builder/itinerary_builder_cubit.dart';
@@ -224,7 +225,9 @@ class ItineraryBuilderScreen extends StatelessWidget {
                                   )
                                   : const Icon(Icons.save),
                           label: Text(
-                            state.isSaving ? "Guardando..." : "Finalizar Viaje",
+                            state.isSaving
+                                ? "Guardando..."
+                                : "Finalizar Itinerario",
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue[800],
@@ -766,8 +769,40 @@ class _DaysTabBarState extends State<_DaysTabBar> {
 // ============================================
 // ZONA DE DROP: TIMELINE
 // ============================================
-class _TimelineDropZone extends StatelessWidget {
+class _TimelineDropZone extends StatefulWidget {
   const _TimelineDropZone();
+
+  @override
+  State<_TimelineDropZone> createState() => _TimelineDropZoneState();
+}
+
+class _TimelineDropZoneState extends State<_TimelineDropZone> {
+  final ScrollController _scrollController = ScrollController();
+  Timer? _scrollTimer;
+
+  @override
+  void dispose() {
+    _scrollTimer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _startScrolling(double speed) {
+    _scrollTimer?.cancel();
+    _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
+      if (!_scrollController.hasClients) return;
+      final offset = (_scrollController.offset + speed).clamp(
+        0.0,
+        _scrollController.position.maxScrollExtent,
+      );
+      _scrollController.jumpTo(offset);
+    });
+  }
+
+  void _stopScrolling() {
+    _scrollTimer?.cancel();
+    _scrollTimer = null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -787,8 +822,8 @@ class _TimelineDropZone extends StatelessWidget {
                 .where((a) => state.actividadSinHorario(a))
                 .toList();
 
-        // Lista combinada para el timeline: actividades ordenadas + sin horario al final
-        final actividades = [...conHorario, ...sinHorario];
+        // Lista combinada para el timeline: sin horario al inicio (prioridad), luego con horario
+        final actividades = [...sinHorario, ...conHorario];
 
         return DragTarget<CategoriaActividad>(
           // Siempre acepta — las restricciones de tiempo ya no aplican
@@ -833,13 +868,53 @@ class _TimelineDropZone extends StatelessWidget {
               child:
                   actividades.isEmpty
                       ? _buildEmptyState()
-                      : ListView(
-                        padding: const EdgeInsets.all(16),
-                        children: _buildTimelineItems(
-                          conHorario,
-                          sinHorario,
-                          state.fechaBaseDiaActual,
-                        ),
+                      : Stack(
+                        children: [
+                          // ─── Contenido con scroll ───────────────────────
+                          SingleChildScrollView(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: _buildTimelineItems(
+                                context,
+                                conHorario,
+                                sinHorario,
+                                state.fechaBaseDiaActual,
+                              ),
+                            ),
+                          ),
+                          // ─── Zona auto-scroll superior ────────────────
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: 60,
+                            child: DragTarget<ActividadItinerario>(
+                              onWillAcceptWithDetails: (d) {
+                                _startScrolling(-8);
+                                return false; // no consume el drop
+                              },
+                              onLeave: (_) => _stopScrolling(),
+                              builder: (_, __, ___) => const SizedBox.expand(),
+                            ),
+                          ),
+                          // ─── Zona auto-scroll inferior ────────────────
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: 60,
+                            child: DragTarget<ActividadItinerario>(
+                              onWillAcceptWithDetails: (d) {
+                                _startScrolling(8);
+                                return false; // no consume el drop
+                              },
+                              onLeave: (_) => _stopScrolling(),
+                              builder: (_, __, ___) => const SizedBox.expand(),
+                            ),
+                          ),
+                        ],
                       ),
             );
           },
@@ -853,59 +928,280 @@ class _TimelineDropZone extends StatelessWidget {
   /// [diaBase] es las 00:00 h del día actual — se usa para mostrar
   /// tiempo libre antes de la primera actividad.
   List<Widget> _buildTimelineItems(
+    BuildContext context,
     List<ActividadItinerario> conHorario,
     List<ActividadItinerario> sinHorario,
     DateTime diaBase,
   ) {
     final widgets = <Widget>[];
+    final cubit = context.read<ItineraryBuilderCubit>();
+    final state = cubit.state;
 
-    // Tiempo libre ANTES de la primera actividad del día
+    // ─── SECCIÓN SIN HORARIO (al inicio) ────────────────────────────────────
+    if (sinHorario.isNotEmpty) {
+      // El encabezado + lista se envuelven en DragTarget para recibir
+      // actividades con-horario que quieran perder su horario.
+      widgets.add(
+        DragTarget<ActividadItinerario>(
+          onWillAcceptWithDetails:
+              (details) =>
+                  !state.actividadSinHorario(details.data) &&
+                  details.data.tipo != TipoActividad.tiempoLibre,
+          onAcceptWithDetails: (details) {
+            final act = details.data;
+            showDialog<bool>(
+              context: context,
+              builder:
+                  (dlgCtx) => AlertDialog(
+                    title: const Text('¿Quitar horario?'),
+                    content: Text(
+                      '¿Deseas quitarle el horario a "${act.titulo.isNotEmpty ? act.titulo : 'esta actividad'}"?\n'
+                      'Pasará a la lista de actividades pendientes.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(dlgCtx).pop(false),
+                        child: const Text('Cancelar'),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.of(dlgCtx).pop(true);
+                          cubit.quitarHorario(act.id);
+                        },
+                        child: const Text('Sí, quitar horario'),
+                      ),
+                    ],
+                  ),
+            );
+          },
+          builder: (context, candidateData, _) {
+            final isTarget = candidateData.isNotEmpty;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    isTarget
+                        ? Border.all(color: Colors.orange.shade300, width: 2)
+                        : null,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Separador de sección sin horario
+                  _buildSectionDivider('Sin Horario', color: Colors.red[400]),
+                  const SizedBox(height: 4),
+                  // Tarjetas sin-horario: LongPressDraggable + DragTarget
+                  ...sinHorario.asMap().entries.map((entry) {
+                    final idx = entry.key;
+                    final act = entry.value;
+                    return Column(
+                      key: ValueKey(act.id),
+                      children: [
+                        if (idx > 0) _buildConnectorLine(),
+                        Draggable<ActividadItinerario>(
+                          data: act,
+                          axis: Axis.vertical,
+                          feedback: Material(
+                            elevation: 8,
+                            borderRadius: BorderRadius.circular(8),
+                            child: SizedBox(
+                              width: 420,
+                              child: Opacity(
+                                opacity: 0.9,
+                                child: _ItineraryItemCard(activity: act),
+                              ),
+                            ),
+                          ),
+                          childWhenDragging: Opacity(
+                            opacity: 0.3,
+                            child: _ItineraryItemCard(activity: act),
+                          ),
+                          child: DragTarget<ActividadItinerario>(
+                            // Acepta otras sin-horario para reordenar
+                            onWillAcceptWithDetails:
+                                (details) =>
+                                    state.actividadSinHorario(details.data) &&
+                                    details.data.id != act.id,
+                            onAcceptWithDetails: (details) {
+                              cubit.reordenarSinHorarioPorId(
+                                details.data.id,
+                                act.id,
+                              );
+                            },
+                            builder: (context, candidateData, _) {
+                              final hovering = candidateData.isNotEmpty;
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border:
+                                      hovering
+                                          ? Border.all(
+                                            color: Colors.blue.shade300,
+                                            width: 2,
+                                          )
+                                          : null,
+                                ),
+                                child: _ItineraryItemCard(activity: act),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
+        ),
+      );
+
+      // Separador antes de las actividades con horario
+      if (conHorario.isNotEmpty) {
+        widgets.add(_buildConnectorLine());
+        widgets.add(_buildSectionDivider('Actividades del Día'));
+        widgets.add(_buildConnectorLine());
+      }
+    }
+
+    // ─── SECCIÓN CON HORARIO ─────────────────────────────────────────────────
     if (conHorario.isNotEmpty) {
+      // Tiempo libre antes de la primera actividad
       final gapInicio =
           conHorario.first.horaInicio.difference(diaBase).inMinutes;
       if (gapInicio > 0) {
         widgets.add(_FreeTimeBlock(duracionMinutos: gapInicio));
         widgets.add(_buildConnectorLine());
       }
-    }
 
-    for (int i = 0; i < conHorario.length; i++) {
-      final act = conHorario[i];
+      for (int i = 0; i < conHorario.length; i++) {
+        final act = conHorario[i];
+        final esTiempoLibre = act.tipo == TipoActividad.tiempoLibre;
 
-      widgets.add(_ItineraryItemCard(activity: act));
+        // Las actividades con-horario (no TL) son LongPressDraggable
+        // y DragTarget para recibir sin-horario (swap)
+        final cardWidget =
+            esTiempoLibre
+                ? _ItineraryItemCard(activity: act) // TL no es draggable
+                : DragTarget<ActividadItinerario>(
+                  onWillAcceptWithDetails:
+                      (details) => state.actividadSinHorario(details.data),
+                  onAcceptWithDetails: (details) {
+                    final sinAct = details.data;
+                    showDialog<bool>(
+                      context: context,
+                      builder:
+                          (dlgCtx) => AlertDialog(
+                            title: const Text('¿Intercambiar horario?'),
+                            content: Text(
+                              '¿Deseas asignarle el horario de '
+                              '"${act.titulo.isNotEmpty ? act.titulo : 'esta actividad'}" '
+                              'a "${sinAct.titulo.isNotEmpty ? sinAct.titulo : 'la actividad sin horario'}"?\n\n'
+                              'La actividad que tenía el horario pasará a pendientes.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(dlgCtx).pop(false),
+                                child: const Text('Cancelar'),
+                              ),
+                              FilledButton(
+                                onPressed: () {
+                                  Navigator.of(dlgCtx).pop(true);
+                                  cubit.intercambiarHorario(sinAct.id, act.id);
+                                },
+                                child: const Text('Sí, intercambiar'),
+                              ),
+                            ],
+                          ),
+                    );
+                  },
+                  builder: (context, candidateData, _) {
+                    final hovering = candidateData.isNotEmpty;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border:
+                            hovering
+                                ? Border.all(
+                                  color: Colors.green.shade400,
+                                  width: 2,
+                                )
+                                : null,
+                      ),
+                      child: Draggable<ActividadItinerario>(
+                        data: act,
+                        axis: Axis.vertical,
+                        feedback: Material(
+                          elevation: 8,
+                          borderRadius: BorderRadius.circular(8),
+                          child: SizedBox(
+                            width: 420,
+                            child: Opacity(
+                              opacity: 0.9,
+                              child: _ItineraryItemCard(activity: act),
+                            ),
+                          ),
+                        ),
+                        childWhenDragging: Opacity(
+                          opacity: 0.3,
+                          child: _ItineraryItemCard(activity: act),
+                        ),
+                        child: _ItineraryItemCard(activity: act),
+                      ),
+                    );
+                  },
+                );
 
-      // ¿Hay una siguiente actividad con horario?
-      if (i < conHorario.length - 1) {
-        final siguiente = conHorario[i + 1];
-        final gapMinutos =
-            siguiente.horaInicio.difference(act.horaFin).inMinutes;
+        widgets.add(cardWidget);
 
-        if (gapMinutos > 0) {
-          // Hay tiempo libre entre estas dos actividades
-          widgets.add(_buildConnectorLine());
-          widgets.add(_FreeTimeBlock(duracionMinutos: gapMinutos));
-          widgets.add(_buildConnectorLine());
-        } else {
-          // Actividades consecutivas — solo conector
-          widgets.add(_buildConnectorLine());
-        }
-      }
-    }
-
-    // Actividades sin horario al final (si las hay)
-    if (sinHorario.isNotEmpty) {
-      if (conHorario.isNotEmpty) {
-        widgets.add(_buildConnectorLine());
-      }
-      for (int i = 0; i < sinHorario.length; i++) {
-        widgets.add(_ItineraryItemCard(activity: sinHorario[i]));
-        if (i < sinHorario.length - 1) {
-          widgets.add(_buildConnectorLine());
+        if (i < conHorario.length - 1) {
+          final siguiente = conHorario[i + 1];
+          final gapMinutos =
+              siguiente.horaInicio.difference(act.horaFin).inMinutes;
+          if (gapMinutos > 0) {
+            widgets.add(_buildConnectorLine());
+            widgets.add(_FreeTimeBlock(duracionMinutos: gapMinutos));
+            widgets.add(_buildConnectorLine());
+          } else {
+            widgets.add(_buildConnectorLine());
+          }
         }
       }
     }
 
     return widgets;
+  }
+
+  Widget _buildSectionDivider(String label, {Color? color}) {
+    final c = color ?? Colors.blue[400]!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Divider(color: c.withValues(alpha: 0.5), thickness: 1),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: c,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Divider(color: c.withValues(alpha: 0.5), thickness: 1),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildEmptyState() {
@@ -969,23 +1265,10 @@ class _ItineraryItemCard extends StatelessWidget {
                   ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "Sin hora",
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.red.shade700,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
+                      Icon(
+                        Icons.schedule,
+                        color: Colors.red.shade600,
+                        size: 22,
                       ),
                     ],
                   )
@@ -1008,14 +1291,14 @@ class _ItineraryItemCard extends StatelessWidget {
                   ),
         ),
         const SizedBox(width: 12),
-        // Punto en la línea de tiempo
+        // Punto en la línea de tiempo (más pequeño para sin-horario)
         Column(
           children: [
             Container(
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: _sinHorario ? Colors.red.shade400 : Colors.blue[800],
+                color: _sinHorario ? Colors.red.shade300 : Colors.blue[800],
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: const [

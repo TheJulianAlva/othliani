@@ -165,7 +165,8 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
         horasValidas &&
         inicioValido &&
         finValido &&
-        _ubicacion != null; // 📍 Ubicación obligatoria
+        // 📍 Ubicación SOLO obligatoria si NO es traslado
+        (widget.actividad.tipo == TipoActividad.traslado || _ubicacion != null);
   }
 
   @override
@@ -730,42 +731,76 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
                   const SizedBox(height: 16),
 
                   // ✨ FASE 5: BOTÓN DE UBICACIÓN REAL
-                  OutlinedButton.icon(
-                    onPressed: _pickLocation,
-                    icon: Icon(
-                      _ubicacion != null
-                          ? Icons.location_on
-                          : Icons.add_location_alt_outlined,
-                      color: _ubicacion != null ? Colors.green : Colors.grey,
-                    ),
-                    label: Text(
-                      _ubicacion != null
-                          ? 'Ubicación guardada (✅ ${_ubicacion!.latitude.toStringAsFixed(4)}, ${_ubicacion!.longitude.toStringAsFixed(4)})'
-                          : 'Agregar Ubicación en Mapa',
-                      style: TextStyle(
-                        color:
-                            _ubicacion != null
-                                ? Colors.green[700]
-                                : Colors.grey[700],
-                        fontSize: 13,
+                  // Los traslados no necesitan ubicación propia
+                  if (widget.actividad.tipo == TipoActividad.traslado)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(44),
-                      side: BorderSide(
-                        color:
-                            _ubicacion != null
-                                ? Colors.green
-                                : Colors.grey.shade300,
-                      ),
-                      backgroundColor:
-                          _ubicacion != null ? Colors.green[50] : null,
-                      shape: RoundedRectangleBorder(
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
                         borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 18,
+                            color: Colors.blue[700],
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'El traslado parte de la actividad anterior '
+                              'y llega a la siguiente — no necesita ubicación propia.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue[700],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    OutlinedButton.icon(
+                      onPressed: _pickLocation,
+                      icon: Icon(
+                        _ubicacion != null
+                            ? Icons.location_on
+                            : Icons.add_location_alt_outlined,
+                        color: _ubicacion != null ? Colors.green : Colors.grey,
+                      ),
+                      label: Text(
+                        _ubicacion != null
+                            ? 'Ubicación guardada (✅ ${_ubicacion!.latitude.toStringAsFixed(4)}, ${_ubicacion!.longitude.toStringAsFixed(4)})'
+                            : 'Agregar Ubicación en Mapa',
+                        style: TextStyle(
+                          color:
+                              _ubicacion != null
+                                  ? Colors.green[700]
+                                  : Colors.grey[700],
+                          fontSize: 13,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(44),
+                        side: BorderSide(
+                          color:
+                              _ubicacion != null
+                                  ? Colors.green
+                                  : Colors.grey.shade300,
+                        ),
+                        backgroundColor:
+                            _ubicacion != null ? Colors.green[50] : null,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
-                  ),
 
                   // Indicador de validación dinámico
                   Builder(
@@ -1218,6 +1253,18 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
 
   /// ✨ FASE 5: Abre el mapa y devuelve la ubicación seleccionada
   Future<void> _pickLocation() async {
+    // Obtener coordenadas del destino del viaje para centrar el mapa
+    LatLng? tripCenter;
+    try {
+      final cubit = context.read<ItineraryBuilderCubit>();
+      final centro = await cubit.getDestinoCentro();
+      if (centro != null) {
+        tripCenter = LatLng(centro.$1, centro.$2);
+      }
+    } catch (_) {}
+
+    if (!mounted) return;
+
     final LatLng? result = await showModalBottomSheet<LatLng>(
       context: context,
       isScrollControlled: true,
@@ -1225,7 +1272,10 @@ class _ActivityEditDialogState extends State<ActivityEditDialog> {
       builder:
           (ctx) => SizedBox(
             height: MediaQuery.of(context).size.height * 0.92,
-            child: LocationPickerModal(initialLocation: _ubicacion),
+            child: LocationPickerModal(
+              initialLocation: _ubicacion,
+              tripCenter: tripCenter,
+            ),
           ),
     );
 

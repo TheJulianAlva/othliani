@@ -47,6 +47,8 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       if (currentDraft != null) {
         final updatedDraft = TripDraftModel(
           // ─── Datos Paso 1 (preservar todos) ───────────────────────────
+          claveBase:
+              currentDraft.claveBase, // 🔑 IMPORTANTE: preservar la clave
           destino: currentDraft.destino,
           fechaInicio: currentDraft.fechaInicio,
           fechaFin: currentDraft.fechaFin,
@@ -285,13 +287,105 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     );
     nuevoMapa[dia] = lista;
     emit(state.copyWith(actividadesPorDia: nuevoMapa));
-
     _autoSave(); // 💾 Autoguardado
   }
 
-  Future<void> saveFullTrip(Viaje viajeBase) async {
-    if (state.isSaving) return;
+  /// 🔁 Reordena sin-horario por ID — llamado desde LongPressDraggable.
+  void reordenarSinHorarioPorId(String idMovido, String idDestino) {
+    final int dia = state.diaSeleccionadoIndex;
+    final List<ActividadItinerario> todas = List.from(
+      state.actividadesPorDia[dia] ?? [],
+    );
+    final conHorario =
+        todas.where((a) => !state.actividadSinHorario(a)).toList();
+    final sinHorario =
+        todas.where((a) => state.actividadSinHorario(a)).toList();
 
+    final fromIdx = sinHorario.indexWhere((a) => a.id == idMovido);
+    final toIdx = sinHorario.indexWhere((a) => a.id == idDestino);
+    if (fromIdx == -1 || toIdx == -1 || fromIdx == toIdx) return;
+
+    final item = sinHorario.removeAt(fromIdx);
+    sinHorario.insert(toIdx, item);
+
+    final nuevoMapa = Map<int, List<ActividadItinerario>>.from(
+      state.actividadesPorDia,
+    );
+    nuevoMapa[dia] = [...sinHorario, ...conHorario];
+    emit(state.copyWith(actividadesPorDia: nuevoMapa));
+    _autoSave();
+  }
+
+  /// 🔄 Intercambia el horario entre una sin-horario y una con-horario.
+  void intercambiarHorario(String idSinHorario, String idConHorario) {
+    final int dia = state.diaSeleccionadoIndex;
+    final List<ActividadItinerario> todas = List.from(
+      state.actividadesPorDia[dia] ?? [],
+    );
+
+    final idxSin = todas.indexWhere((a) => a.id == idSinHorario);
+    final idxCon = todas.indexWhere((a) => a.id == idConHorario);
+    if (idxSin == -1 || idxCon == -1) return;
+
+    final sinAct = todas[idxSin];
+    final conAct = todas[idxCon];
+    final fb = state.fechaBaseDiaActual;
+    final base = DateTime(fb.year, fb.month, fb.day);
+
+    todas[idxSin] = sinAct.copyWith(
+      horaInicio: conAct.horaInicio,
+      horaFin: conAct.horaFin,
+    );
+    todas[idxCon] = conAct.copyWith(horaInicio: base, horaFin: base);
+
+    todas.sort((a, b) {
+      final as_ = state.actividadSinHorario(a);
+      final bs_ = state.actividadSinHorario(b);
+      if (as_ && bs_) return 0;
+      if (as_) return -1;
+      if (bs_) return 1;
+      return a.horaInicio.compareTo(b.horaInicio);
+    });
+
+    final nuevoMapa = Map<int, List<ActividadItinerario>>.from(
+      state.actividadesPorDia,
+    );
+    nuevoMapa[dia] = todas;
+    emit(state.copyWith(actividadesPorDia: nuevoMapa));
+    _autoSave();
+  }
+
+  /// ⏰→📋 Quita el horario a una actividad y la mueve a sin-horario.
+  void quitarHorario(String idActividad) {
+    final int dia = state.diaSeleccionadoIndex;
+    final List<ActividadItinerario> todas = List.from(
+      state.actividadesPorDia[dia] ?? [],
+    );
+    final idx = todas.indexWhere((a) => a.id == idActividad);
+    if (idx == -1) return;
+
+    final fb = state.fechaBaseDiaActual;
+    final base = DateTime(fb.year, fb.month, fb.day);
+    todas[idx] = todas[idx].copyWith(horaInicio: base, horaFin: base);
+
+    todas.sort((a, b) {
+      final as_ = state.actividadSinHorario(a);
+      final bs_ = state.actividadSinHorario(b);
+      if (as_ && bs_) return 0;
+      if (as_) return -1;
+      if (bs_) return 1;
+      return a.horaInicio.compareTo(b.horaInicio);
+    });
+
+    final nuevoMapa = Map<int, List<ActividadItinerario>>.from(
+      state.actividadesPorDia,
+    );
+    nuevoMapa[dia] = todas;
+    emit(state.copyWith(actividadesPorDia: nuevoMapa));
+    _autoSave();
+  }
+
+  Future<void> saveFullTrip(Viaje viajeBase) async {
     // Validación: todas las actividades deben tener horario
     if (!state.puedeGuardar) {
       emit(
@@ -396,5 +490,15 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
         if (!isClosed) emit(state.copyWith(errorMessage: null));
       });
     }
+  }
+
+  /// Devuelve las coordenadas del destino del viaje guardadas en el borrador.
+  /// Se usa para centrar el mapa al seleccionar la ubicación de una actividad.
+  Future<(double lat, double lng)?> getDestinoCentro() async {
+    final draft = await _localDataSource.getDraft();
+    if (draft?.lat != null && draft?.lng != null) {
+      return (draft!.lat!, draft.lng!);
+    }
+    return null;
   }
 }

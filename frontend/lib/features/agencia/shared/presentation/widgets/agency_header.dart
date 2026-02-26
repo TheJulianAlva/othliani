@@ -606,7 +606,7 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                               vertical: 2,
                             ),
                             child: Text(
-                              _capitalize(displaySegment),
+                              _routeLabel(displaySegment),
                               style: TextStyle(
                                 color: isLast ? Colors.black : Colors.grey,
                                 fontSize: 13,
@@ -886,9 +886,25 @@ class _AgencyHeaderState extends State<AgencyHeader> {
     }
   }
 
+  /// Mapa de segmentos URL → etiquetas en español para el breadcrumb.
+  static const Map<String, String> _routeLabels = {
+    'dashboard': 'Inicio',
+    'viajes': 'Viajes',
+    'itinerary-builder': 'Constructor de Itinerario',
+    'nuevo': 'Nuevo Viaje',
+    'detalle': 'Detalle del Viaje',
+    'usuarios': 'Usuarios',
+    'auditoria': 'Auditoría',
+    'configuracion': 'Configuración',
+  };
+
   String _capitalize(String s) {
     if (s.isEmpty) return s;
     return s[0].toUpperCase() + s.substring(1);
+  }
+
+  String _routeLabel(String segment) {
+    return _routeLabels[segment] ?? _capitalize(segment);
   }
 
   // Helpers visuales para Sync

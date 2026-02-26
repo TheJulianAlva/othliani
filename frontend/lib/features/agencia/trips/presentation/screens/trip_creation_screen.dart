@@ -274,6 +274,9 @@ class _TripCreationForm extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Autocomplete<Map<String, String>>(
+                                // 🔑 Key única basada en claveBase para forzar
+                                // reconstrucción al restaurar el borrador.
+                                key: ValueKey('clave_${state.claveBase ?? ''}'),
                                 initialValue:
                                     state.claveBase != null
                                         ? TextEditingValue(
