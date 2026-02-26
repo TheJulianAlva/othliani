@@ -22,15 +22,13 @@ class TripCreationState extends Equatable {
   final bool isSaving;
 
   // Nuevos campos para Datos Generales Robustos
+  final String? claveBase; // Ej: MEX
   final String? selectedGuiaId; // El Principal (Jefe de expedición)
   final List<String> coGuiasIds; // Los Auxiliares (Equipo de apoyo)
   final LatLng? location; // Coordenadas del destino principal
   final String? nombreUbicacionMapa; // Rastrea el nombre autocompletado
   final bool isMultiDay; // Switch para lógica de fechas
 
-  // Añadimos TimeOfDay para manejo preciso de horas
-  final TimeOfDay? horaInicio;
-  final TimeOfDay? horaFin;
   final String searchQueryGuia; // Para el buscador del modal
   final List<Map<String, dynamic>> availableGuides; // Lista de guías
 
@@ -49,13 +47,12 @@ class TripCreationState extends Equatable {
     this.fechaFin,
     this.itinerario = const [],
     this.isSaving = false,
+    this.claveBase,
     this.selectedGuiaId,
     this.coGuiasIds = const [], // Inicializar vacía
     this.location,
     this.nombreUbicacionMapa,
     this.isMultiDay = false,
-    this.horaInicio,
-    this.horaFin,
     this.searchQueryGuia = '',
     this.availableGuides =
         const [], // Lista vacía por defecto, se carga desde el repository
@@ -72,13 +69,12 @@ class TripCreationState extends Equatable {
     DateTime? fechaFin,
     List<ActividadItinerario>? itinerario,
     bool? isSaving,
+    String? claveBase,
     String? selectedGuiaId,
     List<String>? coGuiasIds,
     LatLng? location,
     String? nombreUbicacionMapa,
     bool? isMultiDay,
-    TimeOfDay? horaInicio,
-    TimeOfDay? horaFin,
     String? searchQueryGuia,
     List<Map<String, dynamic>>? availableGuides,
     String? fotoPortadaUrl,
@@ -93,13 +89,12 @@ class TripCreationState extends Equatable {
       fechaFin: fechaFin ?? this.fechaFin,
       itinerario: itinerario ?? this.itinerario,
       isSaving: isSaving ?? this.isSaving,
+      claveBase: claveBase ?? this.claveBase,
       selectedGuiaId: selectedGuiaId ?? this.selectedGuiaId,
       coGuiasIds: coGuiasIds ?? this.coGuiasIds,
       location: location ?? this.location,
       nombreUbicacionMapa: nombreUbicacionMapa ?? this.nombreUbicacionMapa,
       isMultiDay: isMultiDay ?? this.isMultiDay,
-      horaInicio: horaInicio ?? this.horaInicio,
-      horaFin: horaFin ?? this.horaFin,
       searchQueryGuia: searchQueryGuia ?? this.searchQueryGuia,
       availableGuides: availableGuides ?? this.availableGuides,
       fotoPortadaUrl: fotoPortadaUrl ?? this.fotoPortadaUrl,
@@ -142,13 +137,12 @@ class TripCreationState extends Equatable {
     fechaFin,
     itinerario,
     isSaving,
+    claveBase,
     selectedGuiaId,
     coGuiasIds,
     location,
     nombreUbicacionMapa,
     isMultiDay,
-    horaInicio,
-    horaFin,
     searchQueryGuia,
     availableGuides,
     fotoPortadaUrl,
@@ -163,6 +157,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   final TripRepository _repository;
   final TripLocalDataSource _localDataSource; // 💾 Inyección
   final UnsavedChangesService _unsavedChangesService;
+  List<Viaje> _allViajes = []; // Caché de todos los viajes para validaciones
 
   TripCreationCubit({
     required TripRepository repository,
@@ -177,30 +172,42 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
   // --- MÉTODOS DE AUTOGUARDADO (Fase 13) ---
   void _autoSave() {
-    final draft = TripDraftModel(
-      destino: state.destino,
-      guiaId: state.selectedGuiaId,
-      fotoPortadaUrl: state.fotoPortadaUrl,
-      fechaInicio: state.fechaInicio?.toIso8601String(),
-      fechaFin: state.fechaFin?.toIso8601String(),
-      lat: state.location?.latitude,
-      lng: state.location?.longitude,
-      actividades: [], // Paso 1 no tiene actividades aún
-    );
-    _localDataSource.saveDraft(draft);
-    _unsavedChangesService.setDirty(
-      true,
-    ); // 📝 Marcar como sucio al guardar borrador
-    // print("💾 Auto-guardado Paso 1: ${state.destino}");
+    _localDataSource.getDraft().then((existingDraft) {
+      final draft = TripDraftModel(
+        claveBase: state.claveBase,
+        destino: state.destino,
+        guiaId: state.selectedGuiaId,
+        coGuiasIds: state.coGuiasIds,
+        fotoPortadaUrl: state.fotoPortadaUrl,
+        fechaInicio: state.fechaInicio?.toIso8601String(),
+        fechaFin: state.fechaFin?.toIso8601String(),
+        isMultiDay: state.isMultiDay,
+        lat: state.location?.latitude,
+        lng: state.location?.longitude,
+        actividades:
+            state.itinerario.isNotEmpty
+                ? state.itinerario
+                : (existingDraft?.actividades ?? []),
+      );
+      _localDataSource.saveDraft(draft);
+      _unsavedChangesService.setDirty(true);
+    });
   }
 
   // --- MÉTODOS DE RECUPERACIÓN ---
   Future<void> checkForDraft() async {
     final draft = await _localDataSource.getDraft();
-    if (draft != null && (draft.destino?.isNotEmpty ?? false)) {
+    if (draft != null && _draftHasData(draft)) {
       emit(state.copyWith(draftFound: true, draftData: draft));
     }
   }
+
+  /// Retorna true si el borrador tiene al menos un campo con datos relevantes.
+  bool _draftHasData(TripDraftModel d) =>
+      (d.destino?.isNotEmpty ?? false) ||
+      (d.claveBase?.isNotEmpty ?? false) ||
+      d.guiaId != null ||
+      d.actividades.isNotEmpty;
 
   void restoreDraft() {
     final draft = state.draftData;
@@ -208,8 +215,11 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
     emit(
       state.copyWith(
+        claveBase: draft.claveBase,
         destino: draft.destino ?? '',
         selectedGuiaId: draft.guiaId,
+        coGuiasIds: draft.coGuiasIds,
+        isMultiDay: draft.isMultiDay,
         fechaInicio:
             draft.fechaInicio != null
                 ? DateTime.parse(draft.fechaInicio!)
@@ -220,9 +230,10 @@ class TripCreationCubit extends Cubit<TripCreationState> {
             (draft.lat != null && draft.lng != null)
                 ? LatLng(draft.lat!, draft.lng!)
                 : null,
-        fotoPortadaUrl: draft.fotoPortadaUrl, // 📸 Restaurar foto elegida
-        draftFound: false, // Ya restaurado, apagamos la bandera
-        currentStep: 0, // Volvemos al inicio para que vea los datos
+        fotoPortadaUrl: draft.fotoPortadaUrl,
+        itinerario: draft.actividades,
+        draftFound: false,
+        currentStep: 0,
       ),
     );
 
@@ -262,6 +273,7 @@ class TripCreationCubit extends Cubit<TripCreationState> {
       (failure) => {}, // Ignorar error por ahora
       (guias) {
         viajesResult.fold((failure) => {}, (viajes) {
+          _allViajes = viajes;
           // Calcular estado de disponibilidad de cada guía
           final guiasConEstado =
               guias.map((guia) {
@@ -311,13 +323,140 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
   void onDestinoChanged(String query) {
     debugPrint("🟢 Usuario escribió: $query");
-    // Solo actualizamos el texto, NO buscamos fotos
-    // Las fotos solo se buscan desde el mapa
-    emit(state.copyWith(destino: query));
+
+    // Si el usuario escribe el destino, intentamos ver si ya hay una clave registrada
+    String? posibleClave = state.claveBase;
+    try {
+      final viajePrevio = _allViajes.firstWhere(
+        (v) => v.destino.toLowerCase() == query.trim().toLowerCase(),
+      );
+      if (viajePrevio.id.contains('-')) {
+        posibleClave = viajePrevio.id.split('-').first;
+      }
+    } catch (_) {}
+
+    emit(state.copyWith(destino: query, claveBase: posibleClave));
 
     // Cancelar cualquier búsqueda pendiente
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _autoSave(); // 💾
+  }
+
+  void registrarNuevaClaveMock(String clave, String destino, LatLng location) {
+    final cleanClave = clave.trim().toUpperCase();
+    // Creamos un viaje dummy solo para afectar el historial de claves y "guardarla" en memoria
+    final fakeViaje = Viaje(
+      id: '$cleanClave-00', // El "00" indica que es una clave base/plantilla
+      destino: destino,
+      estado: 'PLANTILLA',
+      fechaInicio: DateTime.now(),
+      fechaFin: DateTime.now(),
+      turistas: 0,
+      latitud: location.latitude,
+      longitud: location.longitude,
+      guiaNombre: 'N/A',
+      horaInicio: '--:--',
+      alertasActivas: 0,
+      itinerario: const [],
+    );
+    _allViajes.add(fakeViaje);
+
+    // Forzar actualización de UI si es necesario
+    emit(state.copyWith());
+  }
+
+  void onClaveBaseChanged(String clave) {
+    final cleanClave = clave.trim().toUpperCase();
+
+    // Si el usuario ingresa una clave, buscamos si ya existe en el historial
+    String? destinoSugerido = state.destino;
+    LatLng? locationSugerida = state.location;
+    bool foundExisting = false;
+
+    try {
+      final viajePrevio = _allViajes.firstWhere(
+        (v) => v.id.startsWith('$cleanClave-'),
+      );
+      destinoSugerido = viajePrevio.destino;
+      locationSugerida = LatLng(viajePrevio.latitud, viajePrevio.longitud);
+      foundExisting = true;
+    } catch (_) {}
+
+    emit(
+      state.copyWith(
+        claveBase: cleanClave,
+        destino: destinoSugerido,
+        location: locationSugerida,
+      ),
+    );
+
+    // ✨ ¡Importante! Si la clave ya existía, disparar también la búsqueda de fotos
+    if (foundExisting &&
+        destinoSugerido != null &&
+        destinoSugerido.isNotEmpty) {
+      _repository
+          .buscarFotosDestino(destinoSugerido)
+          .then((fotos) {
+            if (fotos.isNotEmpty) {
+              emit(state.copyWith(fotosCandidatas: fotos));
+              if (state.fotoPortadaUrl == null ||
+                  (state.fotoPortadaUrl?.contains('mapbox') ?? false)) {
+                emit(state.copyWith(fotoPortadaUrl: fotos.first));
+              }
+            }
+          })
+          .catchError((_) {});
+    }
+
+    _autoSave();
+  }
+
+  // Validación Cruzada de Clave vs Destino
+  String? get claveError {
+    if (state.claveBase == null || state.claveBase!.isEmpty) return null;
+    if (state.destino.isEmpty) return null;
+
+    final cleanClave = state.claveBase!.trim().toUpperCase();
+    final cleanDestino = state.destino.trim().toLowerCase();
+
+    // 1. ¿Esta clave ya se usa para OTRO destino?
+    try {
+      final viajeMismaClave = _allViajes.firstWhere(
+        (v) => v.id.startsWith('$cleanClave-'),
+      );
+      if (viajeMismaClave.destino.trim().toLowerCase() != cleanDestino) {
+        return 'La clave $cleanClave ya pertenece a ${viajeMismaClave.destino}';
+      }
+    } catch (_) {}
+
+    // 2. ¿Este destino ya usa OTRA clave?
+    try {
+      final viajeMismoDestino = _allViajes.firstWhere(
+        (v) => v.destino.trim().toLowerCase() == cleanDestino,
+      );
+      final claveOriginal = viajeMismoDestino.id.split('-').first;
+      if (claveOriginal != cleanClave) {
+        return 'Este destino ya utiliza la clave $claveOriginal';
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  // Historial de claves únicas para autocompletado
+  List<Map<String, String>> get clavesHistorial {
+    final Map<String, String> unicas = {};
+    for (final viaje in _allViajes) {
+      if (viaje.id.contains('-')) {
+        final clave = viaje.id.split('-').first;
+        if (!unicas.containsKey(clave)) {
+          unicas[clave] = viaje.destino;
+        }
+      }
+    }
+    return unicas.entries
+        .map((e) => {'clave': e.key, 'destino': e.value})
+        .toList();
   }
 
   // Deprecated: Usar onDestinoChanged para el texto
@@ -358,14 +497,14 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   // Método maestro mejorado: Ubicación + Autocompletado + Fotos
 
   // ✨ COMPUTE TEMPORAL TRIP (Para pasar a Itinerary Builder)
+  // Las horas de inicio/fin reales serán derivadas de las actividades al guardar.
   Viaje get viajeTemporal {
-    // Combinar Fecha + Hora para crear DateTime precisos
     final inicioDateTime = DateTime(
       state.fechaInicio!.year,
       state.fechaInicio!.month,
       state.fechaInicio!.day,
-      state.horaInicio!.hour,
-      state.horaInicio!.minute,
+      0,
+      0,
     );
 
     final finDateBase = state.isMultiDay ? state.fechaFin! : state.fechaInicio!;
@@ -373,27 +512,33 @@ class TripCreationCubit extends Cubit<TripCreationState> {
       finDateBase.year,
       finDateBase.month,
       finDateBase.day,
-      state.horaFin!.hour,
-      state.horaFin!.minute,
+      23,
+      59,
     );
 
+    // Generar ID iterativo
+    String finalId = const Uuid().v4();
+    if (state.claveBase != null && state.claveBase!.isNotEmpty) {
+      final cleanClave = state.claveBase!.trim().toUpperCase();
+      final conteo =
+          _allViajes.where((v) => v.id.startsWith('$cleanClave-')).length;
+      final iterador = (conteo + 1).toString().padLeft(2, '0');
+      finalId = '$cleanClave-$iterador';
+    }
+
     return Viaje(
-      id: const Uuid().v4(), // Generamos ID temporal nuevo cada vez
+      id: finalId,
       destino: state.destino,
-      estado: 'PROGRAMADO', // Estado inicial
+      estado: 'PROGRAMADO',
       fechaInicio: inicioDateTime,
       fechaFin: finDateTime,
-      turistas: 0, // Aún no asignados en este flujo
+      turistas: 0,
       latitud: state.location?.latitude ?? 0.0,
       longitud: state.location?.longitude ?? 0.0,
-      guiaNombre: _getNombreGuia(
-        state.selectedGuiaId,
-      ), // Helper para sacar nombre
-      horaInicio: _formatTimeOfDay(
-        state.horaInicio,
-      ), // String legacy, pero útil
+      guiaNombre: _getNombreGuia(state.selectedGuiaId),
+      horaInicio: '--:--',
       alertasActivas: 0,
-      itinerario: const [], // Vacío al iniciar
+      itinerario: const [],
     );
   }
 
@@ -411,36 +556,9 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     String terminoBusqueda = state.destino;
 
     if (nombreSugerido != null && nombreSugerido.isNotEmpty) {
-      if (state.destino.trim().isEmpty) {
-        // Caso A: Campo vacío -> Usar nombre del mapa directamente
-        nuevoNombre = nombreSugerido;
-        terminoBusqueda = nombreSugerido;
-      } else if (state.nombreUbicacionMapa != null) {
-        // Caso B: Ya hay una ubicación previa del mapa
-        // Buscar y reemplazar el nombre anterior en CUALQUIER parte del texto
-
-        final nombreAnterior = state.nombreUbicacionMapa!;
-
-        // Verificar si el texto contiene el nombre anterior
-        if (state.destino.contains(nombreAnterior)) {
-          // Reemplazar el nombre anterior por el nuevo
-          nuevoNombre = state.destino.replaceAll(
-            nombreAnterior,
-            nombreSugerido,
-          );
-          terminoBusqueda = nombreSugerido;
-        } else {
-          // El usuario editó el texto y quitó el nombre anterior
-          // Agregar el nuevo nombre entre paréntesis
-          nuevoNombre = "${state.destino} ($nombreSugerido)";
-          terminoBusqueda = nombreSugerido;
-        }
-      } else {
-        // Caso C: Primera vez que selecciona del mapa y ya escribió algo
-        // Agregar ubicación entre paréntesis
-        nuevoNombre = "${state.destino} ($nombreSugerido)";
-        terminoBusqueda = nombreSugerido;
-      }
+      // Reemplazamos el destino completamente por lo que dice el mapa interactivo
+      nuevoNombre = nombreSugerido;
+      terminoBusqueda = nombreSugerido;
     }
 
     // Actualizamos el estado
@@ -477,47 +595,21 @@ class TripCreationCubit extends Cubit<TripCreationState> {
 
   // VALIDACIÓN EN TIEMPO REAL (Getters)
   bool get isStep1Valid {
-    // Reglas de Negocio Obligatorias
     final bool tieneNombre = state.destino.trim().isNotEmpty;
     final bool tieneUbicacion = state.location != null;
     final bool tieneGuia = state.selectedGuiaId != null;
     final bool tieneFechaInicio = state.fechaInicio != null;
-    final bool tieneHoraInicio = state.horaInicio != null;
+    final bool tieneClave =
+        state.claveBase != null && state.claveBase!.trim().isNotEmpty;
+    final bool claveSinError = claveError == null;
 
-    // Validación condicional de fechas
     bool fechasValidas = true;
     if (state.isMultiDay) {
-      // Si es multidía, DEBE tener fecha fin Y hora fin
-      if (state.fechaFin == null || state.horaFin == null) {
+      // Multi-día: debe tener fecha fin Y fechaFin > fechaInicio
+      if (state.fechaFin == null) {
         fechasValidas = false;
       } else {
-        // ✨ NUEVO: Validar mínimo 2 horas entre inicio y fin (con fechas reales)
-        final inicio = DateTime(
-          state.fechaInicio!.year,
-          state.fechaInicio!.month,
-          state.fechaInicio!.day,
-          state.horaInicio!.hour,
-          state.horaInicio!.minute,
-        );
-        final fin = DateTime(
-          state.fechaFin!.year,
-          state.fechaFin!.month,
-          state.fechaFin!.day,
-          state.horaFin!.hour,
-          state.horaFin!.minute,
-        );
-        fechasValidas = fin.difference(inicio).inMinutes >= 120;
-      }
-    } else {
-      // Si es un día, DEBE tener hora fin Y al menos 2 horas de diferencia
-      if (state.horaFin == null || state.horaInicio == null) {
-        fechasValidas = false;
-      } else {
-        final inicioMin =
-            state.horaInicio!.hour * 60 + state.horaInicio!.minute;
-        final finMin = state.horaFin!.hour * 60 + state.horaFin!.minute;
-        // ✨ NUEVO: mínimo 120 minutos de diferencia
-        fechasValidas = (finMin - inicioMin) >= 120;
+        fechasValidas = state.fechaFin!.isAfter(state.fechaInicio!);
       }
     }
 
@@ -525,12 +617,12 @@ class TripCreationCubit extends Cubit<TripCreationState> {
         tieneUbicacion &&
         tieneGuia &&
         tieneFechaInicio &&
-        tieneHoraInicio &&
+        tieneClave &&
+        claveSinError &&
         fechasValidas;
   }
 
   void toggleMultiDay(bool value) {
-    // Al cambiar de modo, crear un nuevo estado limpio con fechas y horas reseteadas
     emit(
       TripCreationState(
         currentStep: state.currentStep,
@@ -543,48 +635,21 @@ class TripCreationCubit extends Cubit<TripCreationState> {
         availableGuides: state.availableGuides,
         fotoPortadaUrl: state.fotoPortadaUrl,
         fotosCandidatas: state.fotosCandidatas,
-        // Resetear fechas y horas a null
         fechaInicio: null,
         fechaFin: null,
-        horaInicio: null,
-        horaFin: null,
       ),
     );
+    _autoSave();
   }
 
-  void setHoraInicio(TimeOfDay t) => emit(state.copyWith(horaInicio: t));
-  void setHoraFin(TimeOfDay t) => emit(state.copyWith(horaFin: t));
   void searchGuia(String query) => emit(state.copyWith(searchQueryGuia: query));
 
-  /// Establece la fecha de inicio con validaciones inteligentes:
-  /// - Si la nueva fecha es hoy y la horaInicio ya pasó → resetea horaInicio
-  /// - Si la nueva fecha es posterior a fechaFin → resetea fechaFin y horaFin
+  /// Establece la fecha de inicio.
+  /// Si la nueva fecha es posterior a fechaFin → resetea fechaFin.
   void setFechaInicio(DateTime nuevaFecha) {
-    final ahora = DateTime.now();
-    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
-    final nuevaFechaSinHora = DateTime(
-      nuevaFecha.year,
-      nuevaFecha.month,
-      nuevaFecha.day,
-    );
-
-    // ¿La hora de inicio ya pasó si el viaje es hoy?
-    TimeOfDay? nuevaHoraInicio = state.horaInicio;
-    if (nuevaFechaSinHora == hoy && state.horaInicio != null) {
-      final horaActualEnMinutos = ahora.hour * 60 + ahora.minute;
-      final horaGuardadaEnMinutos =
-          state.horaInicio!.hour * 60 + state.horaInicio!.minute;
-      if (horaGuardadaEnMinutos <= horaActualEnMinutos) {
-        nuevaHoraInicio = null; // Resetear hora inválida
-      }
-    }
-
-    // ¿La nueva fecha de inicio es posterior a la fecha de fin?
     DateTime? nuevaFechaFin = state.fechaFin;
-    TimeOfDay? nuevaHoraFin = state.horaFin;
     if (state.fechaFin != null && nuevaFecha.isAfter(state.fechaFin!)) {
       nuevaFechaFin = null;
-      nuevaHoraFin = null;
     }
 
     emit(
@@ -604,10 +669,9 @@ class TripCreationCubit extends Cubit<TripCreationState> {
         isSaving: state.isSaving,
         fechaInicio: nuevaFecha,
         fechaFin: nuevaFechaFin,
-        horaInicio: nuevaHoraInicio,
-        horaFin: nuevaHoraFin,
       ),
     );
+    _autoSave();
   }
 
   /// Establece la fecha de fin (sin lógica especial, la UI ya valida que sea > inicio)
@@ -641,41 +705,10 @@ class TripCreationCubit extends Cubit<TripCreationState> {
     if (state.destino.isEmpty) return false;
     if (state.selectedGuiaId == null) return false;
     if (state.fechaInicio == null) return false;
-    if (state.horaInicio == null) return false;
-
-    // Validación Multidía
     if (state.isMultiDay) {
-      if (state.fechaFin == null || state.horaFin == null) return false;
-      // Validar que fin sea > inicio (ya lo hace el UI, pero por seguridad)
+      if (state.fechaFin == null) return false;
       if (state.fechaFin!.isBefore(state.fechaInicio!)) return false;
-      // ✨ NUEVO: Mínimo 2 horas entre inicio y fin (con fechas reales)
-      final inicio = DateTime(
-        state.fechaInicio!.year,
-        state.fechaInicio!.month,
-        state.fechaInicio!.day,
-        state.horaInicio!.hour,
-        state.horaInicio!.minute,
-      );
-      final fin = DateTime(
-        state.fechaFin!.year,
-        state.fechaFin!.month,
-        state.fechaFin!.day,
-        state.horaFin!.hour,
-        state.horaFin!.minute,
-      );
-      if (fin.difference(inicio).inMinutes < 120) return false;
-    } else {
-      // Validación 1 Día
-      if (state.horaFin == null) return false;
-      // Validar horas
-      final double start =
-          state.horaInicio!.hour + state.horaInicio!.minute / 60.0;
-      final double end = state.horaFin!.hour + state.horaFin!.minute / 60.0;
-      if (end <= start) return false;
-      // ✨ NUEVO: Mínimo 2 horas de diferencia
-      if ((end - start) < 2.0) return false;
     }
-
     return true;
   }
 
@@ -735,14 +768,5 @@ class TripCreationCubit extends Cubit<TripCreationState> {
   void seleccionarFoto(String url) {
     emit(state.copyWith(fotoPortadaUrl: url));
     _autoSave(); // 💾 Guardar selección
-  }
-
-  String _formatTimeOfDay(TimeOfDay? time) {
-    if (time == null) return "--:--";
-    final h = time.hour;
-    final m = time.minute.toString().padLeft(2, '0');
-    final periodo = h >= 12 ? 'PM' : 'AM';
-    final h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
-    return "$h12:$m $periodo";
   }
 }

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:latlong2/latlong.dart';
+import 'categoria_actividad.dart'; // 📸 Para incrustar snapshot en el JSON
 
 enum TipoActividad {
   traslado, // Monitoreo de ruta (Velocidad, desvío)
@@ -44,12 +45,19 @@ class ActividadItinerario extends Equatable {
 
   final String? guiaResponsableId;
 
+  /// 📸 Snapshot de la categoría incrustado en el documento.
+  /// Se guarda completo en el JSON para que el itinerario sea autónomo:
+  /// aunque el catálogo en memoria se reinicie, la tarjeta se reconstruye
+  /// desde estos datos sin necesidad de consultar ningún repositorio.
+  final CategoriaActividad? categoriaSnapshot;
+
   const ActividadItinerario({
     required this.id,
     required this.titulo,
     required this.tipo,
     required this.horaInicio,
     required this.horaFin,
+    this.categoriaSnapshot,
     this.descripcion = '',
     this.holguraMinutos = 30,
     this.ubicacionCentral,
@@ -61,6 +69,44 @@ class ActividadItinerario extends Equatable {
     this.guiaResponsableId,
     this.imagenUrl,
   });
+
+  ActividadItinerario copyWith({
+    String? id,
+    String? titulo,
+    String? descripcion,
+    DateTime? horaInicio,
+    DateTime? horaFin,
+    int? holguraMinutos,
+    TipoActividad? tipo,
+    LatLng? ubicacionCentral,
+    double? radioGeocerca,
+    List<LatLng>? poligonoGeocerca,
+    String? urlFotoPuntoReunion,
+    String? recomendaciones,
+    String? imagenUrl,
+    double? huellaCarbono,
+    String? guiaResponsableId,
+    CategoriaActividad? categoriaSnapshot,
+  }) {
+    return ActividadItinerario(
+      id: id ?? this.id,
+      titulo: titulo ?? this.titulo,
+      descripcion: descripcion ?? this.descripcion,
+      horaInicio: horaInicio ?? this.horaInicio,
+      horaFin: horaFin ?? this.horaFin,
+      holguraMinutos: holguraMinutos ?? this.holguraMinutos,
+      tipo: tipo ?? this.tipo,
+      ubicacionCentral: ubicacionCentral ?? this.ubicacionCentral,
+      radioGeocerca: radioGeocerca ?? this.radioGeocerca,
+      poligonoGeocerca: poligonoGeocerca ?? this.poligonoGeocerca,
+      urlFotoPuntoReunion: urlFotoPuntoReunion ?? this.urlFotoPuntoReunion,
+      recomendaciones: recomendaciones ?? this.recomendaciones,
+      imagenUrl: imagenUrl ?? this.imagenUrl,
+      huellaCarbono: huellaCarbono ?? this.huellaCarbono,
+      guiaResponsableId: guiaResponsableId ?? this.guiaResponsableId,
+      categoriaSnapshot: categoriaSnapshot ?? this.categoriaSnapshot,
+    );
+  }
 
   /*
    * ✨ FASE 13: SERIALIZACIÓN PARA PERSISTENCIA LOCAL
@@ -74,32 +120,59 @@ class ActividadItinerario extends Equatable {
       'horaInicio': horaInicio.toIso8601String(),
       'horaFin': horaFin.toIso8601String(),
       'holguraMinutos': holguraMinutos,
-      'tipo': tipo.index, // Guardamos índice del Enum
+      'tipo': tipo.index, // Legacy: índice del enum para backward compat
       'imagenUrl': imagenUrl,
       'lat': ubicacionCentral?.latitude,
       'lng': ubicacionCentral?.longitude,
       'recomendaciones': recomendaciones,
-      // Nota: Si necesitamos guardar polígonos o geocercas complejas,
-      // habría que serializarlas también. Por ahora MVP.
+      // 📸 Snapshot completo de la categoría — el itinerario es un documento autónomo.
+      // Si el catálogo en RAM se reinicia, la tarjeta se reconstruye desde aquí.
+      if (categoriaSnapshot != null)
+        'categoria': {
+          'id': categoriaSnapshot!.id,
+          'nombre': categoriaSnapshot!.nombre,
+          'emoji': categoriaSnapshot!.emoji,
+          'colorHex': categoriaSnapshot!.colorHex,
+          'duracionDefaultMinutos': categoriaSnapshot!.duracionDefaultMinutos,
+          'esPersonalizada': categoriaSnapshot!.esPersonalizada,
+        },
     };
   }
 
   factory ActividadItinerario.fromJson(Map<String, dynamic> json) {
+    // 📸 Intentar reconstruir la categoría desde el snapshot guardado en disco.
+    // Si no existe (JSON antiguo), usar fallback desde el tipo legacy.
+    CategoriaActividad? snapshot;
+    if (json['categoria'] != null) {
+      final c = json['categoria'] as Map<String, dynamic>;
+      snapshot = CategoriaActividad(
+        id: c['id'] as String,
+        nombre: c['nombre'] as String,
+        emoji: c['emoji'] as String,
+        colorHex: (c['colorHex'] as String?) ?? '#2196F3',
+        duracionDefaultMinutos: (c['duracionDefaultMinutos'] as int?) ?? 60,
+        esPersonalizada: (c['esPersonalizada'] as bool?) ?? false,
+      );
+    }
+
+    final tipo = TipoActividad.values[json['tipo'] as int];
+
     return ActividadItinerario(
-      id: json['id'],
-      titulo: json['titulo'],
-      descripcion: json['descripcion'] ?? '',
-      horaInicio: DateTime.parse(json['horaInicio']),
-      horaFin: DateTime.parse(json['horaFin']),
-      holguraMinutos: json['holguraMinutos'] ?? 15,
-      tipo: TipoActividad.values[json['tipo']],
-      imagenUrl: json['imagenUrl'],
+      id: json['id'] as String,
+      titulo: json['titulo'] as String,
+      descripcion: json['descripcion'] as String? ?? '',
+      horaInicio: DateTime.parse(json['horaInicio'] as String),
+      horaFin: DateTime.parse(json['horaFin'] as String),
+      holguraMinutos: json['holguraMinutos'] as int? ?? 15,
+      tipo: tipo,
+      // Si hay snapshot lo usamos; si no, derivamos desde el tipo legacy.
+      categoriaSnapshot: snapshot ?? CategoriaActividad.fromTipoActividad(tipo),
+      imagenUrl: json['imagenUrl'] as String?,
       ubicacionCentral:
           (json['lat'] != null && json['lng'] != null)
-              ? LatLng(json['lat'], json['lng'])
+              ? LatLng(json['lat'] as double, json['lng'] as double)
               : null,
-      recomendaciones: json['recomendaciones'] ?? '',
-      // Valores por defecto para campos complejos no persistidos en MVP
+      recomendaciones: json['recomendaciones'] as String? ?? '',
       radioGeocerca: 50.0,
       poligonoGeocerca: const [],
       urlFotoPuntoReunion: null,
@@ -123,5 +196,6 @@ class ActividadItinerario extends Equatable {
     horaFin,
     guiaResponsableId,
     imagenUrl,
+    categoriaSnapshot,
   ];
 }

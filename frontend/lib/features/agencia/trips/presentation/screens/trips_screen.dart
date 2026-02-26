@@ -15,7 +15,9 @@ class TripsScreen extends StatefulWidget {
 
 class _TripsScreenState extends State<TripsScreen> {
   String _searchQuery = '';
-  String _selectedStatus = 'TODOS';
+  Set<String> _selectedStatuses = {
+    'TODOS',
+  }; // <--- CAMBIO: Permite selección múltiple
   String _searchField = 'TODO'; // 'TODO', 'GUIA', 'DESTINO', 'ID'
   DateTimeRange? _selectedDateRange; // <--- CAMBIO: Rango de fechas
   Timer? _debounce; // Para esperar a que el usuario termine de escribir
@@ -30,9 +32,9 @@ class _TripsScreenState extends State<TripsScreen> {
     context.read<ViajesBloc>().add(
       LoadViajesEvent(
         query: _searchQuery,
-        filterStatus: _selectedStatus,
+        filterStatuses: _selectedStatuses.toList(), // <--- ENVÍO DE LISTA
         field: _searchField,
-        filterDateRange: _selectedDateRange, // <--- Enviamos rango
+        filterDateRange: _selectedDateRange,
       ),
     );
   }
@@ -400,7 +402,8 @@ class _TripsScreenState extends State<TripsScreen> {
               const Spacer(),
 
               // Botón Reset (Solo visible si hay filtros activos)
-              if (_selectedStatus != 'TODOS' ||
+              if (!_selectedStatuses.contains('TODOS') ||
+                  _selectedStatuses.length > 1 ||
                   _searchQuery.isNotEmpty ||
                   _searchField != 'TODO' ||
                   _selectedDateRange != null) // <--- Check rango
@@ -411,7 +414,7 @@ class _TripsScreenState extends State<TripsScreen> {
                   onPressed: () {
                     setState(() {
                       _searchQuery = '';
-                      _selectedStatus = 'TODOS';
+                      _selectedStatuses = {'TODOS'};
                       _searchField = 'TODO';
                       _selectedDateRange = null; // <--- Limpiar rango
                     });
@@ -426,7 +429,7 @@ class _TripsScreenState extends State<TripsScreen> {
   }
 
   Widget _buildFilterChip(String label, Color color, String value) {
-    final bool isSelected = _selectedStatus == value;
+    final bool isSelected = _selectedStatuses.contains(value);
     return FilterChip(
       label: Text(label),
       labelStyle: TextStyle(
@@ -437,7 +440,25 @@ class _TripsScreenState extends State<TripsScreen> {
       selected: isSelected,
       onSelected: (bool selected) {
         setState(() {
-          _selectedStatus = selected ? value : 'TODOS';
+          if (value == 'TODOS') {
+            // Si eligen "Todos", se limpian los demás filtros
+            if (selected) {
+              _selectedStatuses.clear();
+              _selectedStatuses.add('TODOS');
+            }
+          } else {
+            // Si eligen otro filtro, quitamos "Todos"
+            _selectedStatuses.remove('TODOS');
+            if (selected) {
+              _selectedStatuses.add(value);
+            } else {
+              _selectedStatuses.remove(value);
+            }
+            // Si quedó vacío después de deseleccionar, volvemos a "Todos"
+            if (_selectedStatuses.isEmpty) {
+              _selectedStatuses.add('TODOS');
+            }
+          }
         });
         _applyFilters();
       },

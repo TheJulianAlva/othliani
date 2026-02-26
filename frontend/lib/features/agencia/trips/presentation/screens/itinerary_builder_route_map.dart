@@ -96,7 +96,13 @@ class _DayRouteMapState extends State<DayRouteMap> {
       listener: (ctx, state) {
         final pts =
             state.actividadesDelDiaActual
-                .where((a) => a.ubicacionCentral != null)
+                .where(
+                  (a) =>
+                      a.ubicacionCentral != null &&
+                      !a.horaInicio.isAtSameMomentAs(
+                        a.horaFin,
+                      ), // excluir sin-horario
+                )
                 .map((a) => a.ubicacionCentral!)
                 .toList();
         Future.delayed(const Duration(milliseconds: 350), () {
@@ -106,7 +112,9 @@ class _DayRouteMapState extends State<DayRouteMap> {
       builder: (ctx, state) {
         final actividades = [
           ...state.actividadesDelDiaActual.where(
-            (a) => a.ubicacionCentral != null,
+            (a) =>
+                a.ubicacionCentral != null &&
+                !a.horaInicio.isAtSameMomentAs(a.horaFin), // solo con horario
           ),
         ]..sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
 

@@ -84,6 +84,7 @@ Future<void> initAgenciaDependencies() async {
       repository: sl(),
       localDataSource: sl(),
       unsavedChangesService: sl(),
+      categoriasRepository: sl(), // 🎭 Clean Arch
     ),
   );
 

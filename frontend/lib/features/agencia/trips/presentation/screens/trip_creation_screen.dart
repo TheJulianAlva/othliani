@@ -9,8 +9,11 @@ import 'dart:convert';
 import 'package:frontend/features/agencia/trips/presentation/blocs/trip_creation/trip_creation_cubit.dart';
 import 'package:frontend/core/navigation/routes_agencia.dart'; // Importar rutas
 import 'package:frontend/core/di/service_locator.dart' as di; // Importar DI
+import 'package:frontend/core/widgets/saving_overlay.dart'; // ✨ Overlay de guardado
 import '../widgets/destino_field_widget.dart'; // <--- Validar ubicación
 import '../../../shared/presentation/widgets/draft_guard_widget.dart'; // 🛡️ Draft Guard
+import 'package:file_picker/file_picker.dart';
+import '../../data/datasources/csv_itinerary_parser.dart';
 
 class TripCreationScreen extends StatelessWidget {
   const TripCreationScreen({super.key});
@@ -29,10 +32,20 @@ class TripCreationScreen extends StatelessWidget {
         },
         child: BlocBuilder<TripCreationCubit, TripCreationState>(
           builder: (context, state) {
-            final bool hayDatos = state.destino.isNotEmpty;
+            final bool hayDatos =
+                state.destino.isNotEmpty ||
+                state.location != null ||
+                state.selectedGuiaId != null ||
+                state.fechaInicio != null;
 
             return DraftGuardWidget(
               shouldWarn: hayDatos,
+              // Cuando hay pasos anteriores, el gesto de atrás del sistema
+              // debe ir al paso previo, NO mostrar el diálogo de advertencia.
+              onBackOverride:
+                  state.currentStep > 0
+                      ? () => context.read<TripCreationCubit>().prevStep()
+                      : null,
               child: Scaffold(
                 appBar: AppBar(
                   title: const Text("Nuevo Viaje Inteligente"),
@@ -150,10 +163,13 @@ class _TripCreationForm extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: details.onStepContinue,
+                      onPressed:
+                          cubit.isStep1Valid ? details.onStepContinue : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[800],
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.blue[200],
+                        disabledForegroundColor: Colors.white70,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -164,7 +180,31 @@ class _TripCreationForm extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   TextButton(
-                    onPressed: details.onStepCancel,
+                    onPressed: () async {
+                      final hayDatos =
+                          state.destino.isNotEmpty ||
+                          state.location != null ||
+                          state.selectedGuiaId != null;
+
+                      if (hayDatos) {
+                        final salir =
+                            await DraftGuardWidget.showExitDialog(context) ??
+                            false;
+                        if (salir && context.mounted) {
+                          // Overlay de guardado antes de salir
+                          await SavingOverlay.showAndWait(
+                            context,
+                            mensaje: "Guardando borrador...",
+                            duration: const Duration(milliseconds: 800),
+                          );
+                          if (context.mounted) {
+                            context.go(RoutesAgencia.viajes);
+                          }
+                        }
+                      } else {
+                        context.go(RoutesAgencia.viajes);
+                      }
+                    },
                     child: const Text("Cancelar"),
                   ),
                 ],
@@ -228,7 +268,163 @@ class _TripCreationForm extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
 
-                        // 1. NOMBRE DEL VIAJE (Sincronizado con Mapa)
+                        // 1. CLAVE BASE DEL VIAJE (Identificador Único) con Autocompletado
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Autocomplete<Map<String, String>>(
+                                // 🔑 Key única basada en claveBase para forzar
+                                // reconstrucción al restaurar el borrador.
+                                key: ValueKey('clave_${state.claveBase ?? ''}'),
+                                initialValue:
+                                    state.claveBase != null
+                                        ? TextEditingValue(
+                                          text: state.claveBase!,
+                                        )
+                                        : null,
+                                optionsBuilder: (
+                                  TextEditingValue textEditingValue,
+                                ) {
+                                  if (textEditingValue.text.isEmpty) {
+                                    return const Iterable<
+                                      Map<String, String>
+                                    >.empty();
+                                  }
+                                  return cubit.clavesHistorial.where((
+                                    Map<String, String> option,
+                                  ) {
+                                    return option['clave']!
+                                            .toLowerCase()
+                                            .contains(
+                                              textEditingValue.text
+                                                  .toLowerCase(),
+                                            ) ||
+                                        option['destino']!
+                                            .toLowerCase()
+                                            .contains(
+                                              textEditingValue.text
+                                                  .toLowerCase(),
+                                            );
+                                  });
+                                },
+                                displayStringForOption:
+                                    (Map<String, String> option) =>
+                                        option['clave']!,
+                                onSelected: (Map<String, String> selection) {
+                                  cubit.onClaveBaseChanged(selection['clave']!);
+                                },
+                                fieldViewBuilder: (
+                                  context,
+                                  controller,
+                                  focusNode,
+                                  onEditingComplete,
+                                ) {
+                                  // Sincronizar el texto del field con el estado (ej. cuando se llena desde el Modal)
+                                  if (state.claveBase != null &&
+                                      controller.text != state.claveBase) {
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                          if (controller.text !=
+                                                  state.claveBase &&
+                                              state.claveBase != null) {
+                                            controller.text = state.claveBase!;
+                                          }
+                                        });
+                                  }
+
+                                  return TextFormField(
+                                    controller: controller,
+                                    focusNode: focusNode,
+                                    onChanged:
+                                        (v) => cubit.onClaveBaseChanged(v),
+                                    textCapitalization:
+                                        TextCapitalization.characters,
+                                    decoration: _inputDecoration(
+                                      'Buscar o crear Clave (Ej. MEX)',
+                                      Icons.vpn_key,
+                                    ).copyWith(errorText: cubit.claveError),
+                                  );
+                                },
+                                optionsViewBuilder: (
+                                  context,
+                                  onSelected,
+                                  options,
+                                ) {
+                                  return Align(
+                                    alignment: Alignment.topLeft,
+                                    child: Material(
+                                      elevation: 4.0,
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: ConstrainedBox(
+                                        constraints: const BoxConstraints(
+                                          maxHeight: 200,
+                                          maxWidth: 350,
+                                        ),
+                                        child: ListView.builder(
+                                          padding: EdgeInsets.zero,
+                                          shrinkWrap: true,
+                                          itemCount: options.length,
+                                          itemBuilder: (
+                                            BuildContext context,
+                                            int index,
+                                          ) {
+                                            final option = options.elementAt(
+                                              index,
+                                            );
+                                            return ListTile(
+                                              leading: const Icon(
+                                                Icons.history,
+                                                color: Colors.blueGrey,
+                                              ),
+                                              title: Text(
+                                                option['clave']!,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              subtitle: Text(
+                                                option['destino']!,
+                                              ),
+                                              onTap: () {
+                                                onSelected(option);
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Botón de más para crear nueva clave + ubicación
+                            Container(
+                              decoration: BoxDecoration(
+                                color:
+                                    Colors.blue[50], // Tono suave de la marca
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.blue[100]!),
+                              ),
+                              height:
+                                  56, // para que cuadre visualmente con el Input
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.add_location_alt,
+                                  color: Colors.blue,
+                                ),
+                                tooltip: 'Registrar nueva Clave',
+                                onPressed: () {
+                                  _showNuevaClaveModal(context, cubit);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // 2. NOMBRE DEL VIAJE (Sincronizado con Mapa)
                         DestinoFieldWidget(
                           initialValue: state.destino,
                           onChanged: (v) {
@@ -465,6 +661,144 @@ class _TripCreationForm extends StatelessWidget {
       filled: true,
       fillColor: Colors.grey[50],
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
+  // --- MODAL DE NUEVA CLAVE ---
+  void _showNuevaClaveModal(BuildContext context, TripCreationCubit cubit) {
+    String nuevaClave = '';
+
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => BlocProvider<TripCreationCubit>.value(
+            value: cubit,
+            child: BlocBuilder<TripCreationCubit, TripCreationState>(
+              builder: (context, state) {
+                return AlertDialog(
+                  title: const Text(
+                    'Registrar Nueva Clave',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Ingresa la nueva clave base y la ubicación predeterminada. Ésta se guardará en el catálogo general.',
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 20),
+                      TextField(
+                        decoration: _inputDecoration(
+                          'Nueva Clave (Ej. MTY)',
+                          Icons.vpn_key,
+                        ),
+                        textCapitalization: TextCapitalization.characters,
+                        onChanged: (v) => nuevaClave = v.toUpperCase(),
+                      ),
+                      const SizedBox(height: 12),
+                      DestinoFieldWidget(
+                        initialValue: state.destino,
+                        onChanged: (v) => cubit.onDestinoChanged(v),
+                        hasPhotos: state.fotosCandidatas.isNotEmpty,
+                        decoration: _inputDecoration(
+                          'Nombre del Viaje / Destino',
+                          Icons.place,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      InkWell(
+                        onTap: () => _showMapPicker(context),
+                        borderRadius: BorderRadius.circular(12),
+                        child: InputDecorator(
+                          decoration: _inputDecoration(
+                            'Ubicación en el Mapa',
+                            Icons.map,
+                          ).copyWith(
+                            suffixIcon: const Icon(
+                              Icons.location_on,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          child: Text(
+                            state.location != null
+                                ? "\${state.location!.latitude.toStringAsFixed(4)}, \${state.location!.longitude.toStringAsFixed(4)}"
+                                : "Toca para abrir el mapa...",
+                            style: TextStyle(
+                              color:
+                                  state.location != null
+                                      ? Colors.black
+                                      : Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        // 1. Validar si la clave ya existe en el historial
+                        final exists = cubit.clavesHistorial.any(
+                          (element) => element['clave'] == nuevaClave,
+                        );
+                        if (exists) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '⚠️ Error: La clave $nuevaClave ya existe en el catálogo.',
+                              ),
+                              backgroundColor: Colors.red.shade600,
+                            ),
+                          );
+                          return;
+                        }
+
+                        // 2. Validar que todo esté lleno
+                        if (nuevaClave.isNotEmpty &&
+                            state.destino.isNotEmpty &&
+                            state.location != null) {
+                          // Guardamos la clave permanentemente en esta sesión
+                          cubit.registrarNuevaClaveMock(
+                            nuevaClave,
+                            state.destino,
+                            state.location!,
+                          );
+                          cubit.onClaveBaseChanged(nuevaClave);
+                          Navigator.pop(ctx);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Por favor completa: Clave, Destino y Ubicación en Mapa.',
+                              ),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[800],
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Guardar'),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
     );
   }
 
@@ -719,93 +1053,6 @@ class _TripCreationForm extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeField(
-    BuildContext context,
-    String label,
-    TimeOfDay? val,
-    Function(TimeOfDay) onPick, {
-    TimeOfDay? minTime,
-    DateTime? selectedDate,
-    bool disabled = false,
-    // ✨ NUEVO: Callback opcional para personalizar el modal de error de minTime
-    VoidCallback? onMinTimeError,
-  }) {
-    return InkWell(
-      onTap:
-          disabled
-              ? () {
-                _showTimeRequiredModal(context);
-              }
-              : () async {
-                final t = await showTimePicker(
-                  context: context,
-                  initialTime: val ?? TimeOfDay.now(),
-                  builder: (context, child) {
-                    return MediaQuery(
-                      data: MediaQuery.of(
-                        context,
-                      ).copyWith(alwaysUse24HourFormat: false),
-                      child: child!,
-                    );
-                  },
-                );
-
-                if (t != null) {
-                  final now = DateTime.now();
-                  final isToday =
-                      selectedDate != null &&
-                      selectedDate.year == now.year &&
-                      selectedDate.month == now.month &&
-                      selectedDate.day == now.day;
-
-                  if (isToday) {
-                    final currentTime = TimeOfDay.now();
-                    final selectedMinutes = t.hour * 60 + t.minute;
-                    final currentMinutes =
-                        currentTime.hour * 60 + currentTime.minute;
-
-                    if (selectedMinutes <= currentMinutes) {
-                      // ignore: use_build_context_synchronously
-                      _showPastTimeErrorModal(context);
-                      return;
-                    }
-                  }
-
-                  // Validación de minTime: usar callback personalizado si existe
-                  if (minTime != null) {
-                    final double selected = t.hour + t.minute / 60.0;
-                    final double min = minTime.hour + minTime.minute / 60.0;
-
-                    if (selected <= min) {
-                      // ignore: use_build_context_synchronously
-                      if (onMinTimeError != null) {
-                        onMinTimeError();
-                      } else {
-                        // ignore: use_build_context_synchronously
-                        _showTimeErrorModal(context);
-                      }
-                      return;
-                    }
-                  }
-                  onPick(t);
-                }
-              },
-      child: InputDecorator(
-        decoration: _inputDecoration(
-          label,
-          Icons.access_time,
-        ).copyWith(enabled: !disabled),
-        child: Text(
-          val != null ? val.format(context) : "--:-- --",
-          style: TextStyle(
-            fontSize: 14,
-            color: disabled ? Colors.grey.shade400 : null,
-          ),
-        ),
-      ),
-    );
-  }
-
   // --- SELECTOR DE GUÍA CON CO-GUÍAS ---
   Widget _buildGuiaSelector(
     BuildContext context,
@@ -987,6 +1234,171 @@ class _TripCreationForm extends StatelessWidget {
           ),
 
           const SizedBox(height: 24),
+
+          // Botón Importar Itinerario Completo por CSV
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.upload_file, size: 22),
+              label: const Text(
+                "Importar Itinerario Completo (CSV)",
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.teal[700],
+                side: BorderSide(color: Colors.teal[300]!),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 18,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                final resultado = await showDialog<bool>(
+                  context: context,
+                  builder:
+                      (ctx) => AlertDialog(
+                        icon: Icon(
+                          Icons.description_outlined,
+                          color: Colors.teal[700],
+                          size: 40,
+                        ),
+                        title: const Text('Importar Itinerario Completo'),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'El archivo CSV debe tener esta estructura:',
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.grey[300]!),
+                                ),
+                                child: const Text(
+                                  'dia,titulo,descripcion,hora_inicio,hora_fin,tipo,recomendaciones\\n'
+                                  '1,Check-in,Registro,08:00,09:00,hospedaje,Llevar ID\\n'
+                                  '1,Desayuno,Restaurante,09:00,10:00,alimentos,\\n'
+                                  '2,Traslado,Bus a playa,07:00,09:00,traslado,\\n'
+                                  '2,Playa,Día libre,09:30,16:00,tiempoLibre,Protector solar',
+                                  style: TextStyle(
+                                    fontFamily: 'monospace',
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Tipos válidos: hospedaje, alimentos, traslado, cultura, aventura, tiempoLibre',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Formato de hora: HH:mm (24 horas)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'La columna "dia" indica el número de día (1, 2, 3...)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Cancelar'),
+                          ),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.folder_open),
+                            label: const Text('Seleccionar CSV'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal[700],
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: () => Navigator.pop(ctx, true),
+                          ),
+                        ],
+                      ),
+                );
+                if (resultado != true) return;
+                // ignore: use_build_context_synchronously
+                if (!context.mounted) return;
+
+                final result = await FilePicker.platform.pickFiles(
+                  type: FileType.custom,
+                  allowedExtensions: ['csv'],
+                  withData: true,
+                );
+                if (result == null || result.files.single.bytes == null) return;
+
+                final csvContent = utf8.decode(result.files.single.bytes!);
+                // ignore: use_build_context_synchronously
+                if (!context.mounted) return;
+
+                try {
+                  final cubit = context.read<TripCreationCubit>();
+                  final viaje = cubit.viajeTemporal;
+
+                  // Validar CSV antes de navegar
+                  final mapa = CsvItineraryParser.parseFullTrip(
+                    csvContent,
+                    viaje.fechaInicio,
+                  );
+
+                  // Navegar al builder con CSV pre-cargado
+                  final ruta =
+                      '\${RoutesAgencia.viajes}/\${RoutesAgencia.itineraryBuilder}';
+                  // ignore: use_build_context_synchronously
+                  if (!context.mounted) return;
+                  // Pasar un map con viaje + datos CSV
+                  context.push(ruta, extra: {'viaje': viaje, 'csvData': mapa});
+                } on FormatException catch (e) {
+                  // ignore: use_build_context_synchronously
+                  if (!context.mounted) return;
+                  showDialog(
+                    context: context,
+                    builder:
+                        (ctx) => AlertDialog(
+                          icon: const Icon(
+                            Icons.error_outline,
+                            color: Colors.red,
+                            size: 40,
+                          ),
+                          title: const Text('Error en CSV'),
+                          content: Text(e.message),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text('Entendido'),
+                            ),
+                          ],
+                        ),
+                  );
+                }
+              },
+            ),
+          ),
+
+          const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 16),
 
@@ -1006,165 +1418,6 @@ class _TripCreationForm extends StatelessWidget {
 
   // --- MODAL: ERROR DE VALIDACIÓN DE HORA ---
   // ✨ NUEVO: Modal cuando el viaje no tiene mínimo 2 horas de duración
-  void _showMinDurationModal(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder:
-          (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            icon: const Icon(
-              Icons.timelapse_rounded,
-              color: Colors.orange,
-              size: 48,
-            ),
-            title: const Text(
-              'Duración insuficiente',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            content: const Text(
-              'El viaje debe tener al menos 2 horas de duración para poder agregar actividades al itinerario.\n\nPor favor elige una hora de fin más tarde.',
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              Center(
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Entendido'),
-                ),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _showTimeErrorModal(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder:
-          (ctx) => Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            elevation: 8,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.orange.shade50, Colors.white],
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Icono animado
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade100,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.access_time_filled,
-                      size: 48,
-                      color: Colors.orange.shade700,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Título
-                  Text(
-                    "Hora Inválida",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Mensaje
-                  Text(
-                    "El viaje no puede terminar antes de empezar.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade600,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Sugerencia
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.shade200, width: 1),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.lightbulb_outline,
-                          size: 20,
-                          color: Colors.blue.shade700,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            "Selecciona una hora posterior a la de inicio",
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.blue.shade900,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Botón de acción
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange.shade600,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: const Text(
-                        "Entendido",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
-  }
 
   // --- MODAL: ADVERTENCIA DE FECHA RESETEADA ---
   void _showDateResetModal(BuildContext context) {
@@ -1296,133 +1549,6 @@ class _TripCreationForm extends StatelessWidget {
   }
 
   // --- MODAL: HORA DE INICIO RESETEADA ---
-  void _showTimeResetModal(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder:
-          (ctx) => Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            elevation: 8,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.orange.shade50, Colors.white],
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Icono
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade100,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.schedule,
-                      size: 48,
-                      color: Colors.orange.shade700,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Título
-                  Text(
-                    "Hora Reseteada",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Mensaje
-                  Text(
-                    "La hora de inicio se ha reseteado porque ya pasó para el día de hoy.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade600,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Sugerencia
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.amber.shade200,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          size: 20,
-                          color: Colors.amber.shade700,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            "Por favor, selecciona una nueva hora de inicio",
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.amber.shade900,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Botón
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange.shade600,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: const Text(
-                        "Entendido",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
-  }
 
   // --- MODAL: FECHA DE INICIO REQUERIDA ---
   void _showDateRequiredModal(BuildContext context) {
@@ -1554,256 +1680,8 @@ class _TripCreationForm extends StatelessWidget {
   }
 
   // --- MODAL: ERROR DE HORA PASADA ---
-  void _showPastTimeErrorModal(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder:
-          (ctx) => Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            elevation: 8,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.red.shade50, Colors.white],
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Icono
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade100,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.access_time,
-                      size: 48,
-                      color: Colors.red.shade700,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Título
-                  Text(
-                    "Hora No Válida",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red.shade900,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Mensaje
-                  Text(
-                    "La hora de inicio no puede ser anterior a la hora actual.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade600,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Sugerencia
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.red.shade200, width: 1),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          size: 20,
-                          color: Colors.red.shade700,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            "Por favor, selecciona una hora futura",
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.red.shade900,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Botón de acción
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade600,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: const Text(
-                        "Entendido",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
-  }
 
   // --- MODAL: HORA DE INICIO REQUERIDA ---
-  void _showTimeRequiredModal(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder:
-          (ctx) => Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            elevation: 8,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.teal.shade50, Colors.white],
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Icono
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.teal.shade100,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.schedule,
-                      size: 48,
-                      color: Colors.teal.shade700,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Título
-                  Text(
-                    "Hora de Inicio Requerida",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Mensaje
-                  Text(
-                    "Primero debes seleccionar la hora de inicio del viaje.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade600,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Sugerencia
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.cyan.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.cyan.shade200, width: 1),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          size: 20,
-                          color: Colors.cyan.shade700,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            "Selecciona primero \"Inicio\" a la izquierda",
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.cyan.shade900,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Botón de acción
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal.shade600,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: const Text(
-                        "Entendido",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
-  }
 
   // --- FUNCIÓN: BÚSQUEDA DE LUGARES (Nominatim API) ---
   Future<List<dynamic>> _buscarLugar(String query) async {
@@ -2129,205 +2007,61 @@ class _TripCreationForm extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // FECHAS Y HORAS (GRID)
+        // FECHAS (sin horas — el usuario las define desde las actividades)
         if (!state.isMultiDay)
           // CASO A: UN SOLO DÍA
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: _buildDateField(
-                  context,
-                  "Fecha",
-                  state.fechaInicio,
-                  (d) {
-                    final hadHoraInicio = state.horaInicio != null;
-                    cubit.setFechaInicio(d);
-                    // Mostrar modal si la hora fue reseteada
-                    // (solo puede pasar si la nueva fecha es hoy)
-                    final ahora = DateTime.now();
-                    final esHoy =
-                        d.year == ahora.year &&
-                        d.month == ahora.month &&
-                        d.day == ahora.day;
-                    if (hadHoraInicio && esHoy && state.horaInicio != null) {
-                      final horaEnMinutos =
-                          state.horaInicio!.hour * 60 +
-                          state.horaInicio!.minute;
-                      final ahoraEnMinutos = ahora.hour * 60 + ahora.minute;
-                      if (horaEnMinutos <= ahoraEnMinutos) {
-                        Future.delayed(
-                          const Duration(milliseconds: 100),
-                          // ignore: use_build_context_synchronously
-                          () => _showTimeResetModal(context),
-                        );
-                      }
-                    }
-                  },
-                  firstDate: DateTime.now(), // Regla 1: No viajes al pasado
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildTimeField(
-                  context,
-                  "Inicio",
-                  state.horaInicio,
-                  (t) => cubit.setHoraInicio(t),
-                  selectedDate: state.fechaInicio, // ✨ Validar hora pasada
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildTimeField(
-                  context,
-                  "Fin",
-                  state.horaFin,
-                  (t) {
-                    // ✨ Validación adicional: mínimo 2 horas de diferencia
-                    // (minTime ya filtró que t > horaInicio, aquí chequeamos el gap)
-                    if (state.horaInicio != null) {
-                      final inicioMin =
-                          state.horaInicio!.hour * 60 +
-                          state.horaInicio!.minute;
-                      final finMin = t.hour * 60 + t.minute;
-                      if ((finMin - inicioMin) < 120) {
-                        _showMinDurationModal(context);
-                        return;
-                      }
-                    }
-                    cubit.setHoraFin(t);
-                  },
-                  // minTime = horaInicio: detecta si fin es antes que inicio
-                  minTime: state.horaInicio,
-                  disabled: state.horaInicio == null,
-                ),
-              ),
-            ],
+          _buildDateField(
+            context,
+            "Fecha",
+            state.fechaInicio,
+            (d) {
+              final hadEndDate = state.fechaFin != null;
+              final endDateWasAfterNew =
+                  state.fechaFin != null && d.isAfter(state.fechaFin!);
+              cubit.setFechaInicio(d);
+              if (hadEndDate && endDateWasAfterNew) {
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  // ignore: use_build_context_synchronously
+                  _showDateResetModal(context);
+                });
+              }
+            },
+            // La fecha de inicio mínima es mañana
+            firstDate: DateTime.now().add(const Duration(days: 1)),
           )
         else
           // CASO B: MULTIDÍA
           Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: _buildDateField(
-                      context,
-                      "Inicia el...",
-                      state.fechaInicio,
-                      (d) {
-                        final hadEndDate = state.fechaFin != null;
-                        final endDateWasAfterNew =
-                            state.fechaFin != null &&
-                            d.isAfter(state.fechaFin!);
-                        final hadHoraInicio = state.horaInicio != null;
-
-                        cubit.setFechaInicio(d);
-
-                        // Modal de fecha fin reseteada
-                        if (hadEndDate && endDateWasAfterNew) {
-                          Future.delayed(const Duration(milliseconds: 100), () {
-                            // ignore: use_build_context_synchronously
-                            _showDateResetModal(context);
-                          });
-                        }
-
-                        // Modal de hora de inicio reseteada
-                        final ahora = DateTime.now();
-                        final esHoy =
-                            d.year == ahora.year &&
-                            d.month == ahora.month &&
-                            d.day == ahora.day;
-                        if (hadHoraInicio &&
-                            esHoy &&
-                            state.horaInicio != null) {
-                          final horaEnMinutos =
-                              state.horaInicio!.hour * 60 +
-                              state.horaInicio!.minute;
-                          final ahoraEnMinutos = ahora.hour * 60 + ahora.minute;
-                          if (horaEnMinutos <= ahoraEnMinutos) {
-                            Future.delayed(
-                              const Duration(milliseconds: 200),
-                              () {
-                                // ignore: use_build_context_synchronously
-                                _showTimeResetModal(context);
-                              },
-                            );
-                          }
-                        }
-                      },
-                      firstDate: DateTime.now(), // Regla 1: No viajes al pasado
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildTimeField(
-                      context,
-                      "A las...",
-                      state.horaInicio,
-                      (t) => cubit.setHoraInicio(t),
-                      selectedDate: state.fechaInicio, // ✨ Validar hora pasada
-                    ),
-                  ),
-                ],
+              _buildDateField(
+                context,
+                "Inicia el...",
+                state.fechaInicio,
+                (d) {
+                  final hadEndDate = state.fechaFin != null;
+                  final endDateWasAfterNew =
+                      state.fechaFin != null && d.isAfter(state.fechaFin!);
+                  cubit.setFechaInicio(d);
+                  if (hadEndDate && endDateWasAfterNew) {
+                    Future.delayed(const Duration(milliseconds: 100), () {
+                      // ignore: use_build_context_synchronously
+                      _showDateResetModal(context);
+                    });
+                  }
+                },
+                // La fecha de inicio mínima es mañana
+                firstDate: DateTime.now().add(const Duration(days: 1)),
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: _buildDateField(
-                      context,
-                      "Termina el...",
-                      state.fechaFin,
-                      (d) => cubit.setDates(start: state.fechaInicio, end: d),
-                      // Regla 2: El fin debe ser AL MENOS el día siguiente del inicio
-                      firstDate:
-                          state.fechaInicio?.add(const Duration(days: 1)) ??
-                          DateTime.now().add(const Duration(days: 1)),
-                      // Deshabilitar si no hay fecha de inicio
-                      disabled: state.fechaInicio == null,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildTimeField(
-                      context,
-                      "A las...",
-                      state.horaFin,
-                      (t) {
-                        // ✨ NUEVO: Validar mínimo 2 horas en multi-día
-                        // (la diferencia involucra fechas distintas)
-                        if (state.fechaInicio != null &&
-                            state.fechaFin != null &&
-                            state.horaInicio != null) {
-                          final inicio = DateTime(
-                            state.fechaInicio!.year,
-                            state.fechaInicio!.month,
-                            state.fechaInicio!.day,
-                            state.horaInicio!.hour,
-                            state.horaInicio!.minute,
-                          );
-                          final fin = DateTime(
-                            state.fechaFin!.year,
-                            state.fechaFin!.month,
-                            state.fechaFin!.day,
-                            t.hour,
-                            t.minute,
-                          );
-                          if (fin.difference(inicio).inMinutes < 120) {
-                            _showMinDurationModal(context);
-                            return; // No guardar hora inválida
-                          }
-                        }
-                        cubit.setHoraFin(t);
-                      },
-                      disabled: state.fechaFin == null,
-                    ),
-                  ),
-                ],
+              _buildDateField(
+                context,
+                "Termina el...",
+                state.fechaFin,
+                (d) => cubit.setDates(start: state.fechaInicio, end: d),
+                firstDate:
+                    state.fechaInicio?.add(const Duration(days: 1)) ??
+                    DateTime.now().add(const Duration(days: 2)),
+                disabled: state.fechaInicio == null,
               ),
             ],
           ),
