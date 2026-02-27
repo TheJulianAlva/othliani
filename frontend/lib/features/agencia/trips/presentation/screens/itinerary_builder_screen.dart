@@ -15,14 +15,14 @@ import 'package:frontend/features/agencia/trips/data/datasources/trip_local_data
 import 'package:frontend/core/services/unsaved_changes_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
+import '../../domain/services/itinerary_import_service.dart'; // ✨ Csv Import
 
 // El catálogo de herramientas ahora viene de ItineraryBuilderState.categorias
 // y se construye dinámicamente (defaults + personalizadas de la agencia).
 
 class ItineraryBuilderScreen extends StatelessWidget {
   final Viaje viajeBase; // ✨ AHORA: Recibimos todo el objeto
-  final Map<int, List<ActividadItinerario>>?
-  csvDataAImportar; // ✨ Datos CSV precargados
+  final String? csvDataAImportar; // ✨ Datos CSV precargados
 
   const ItineraryBuilderScreen({
     super.key,
@@ -38,8 +38,8 @@ class ItineraryBuilderScreen extends StatelessWidget {
             repository: di.sl<TripRepository>(),
             localDataSource: di.sl<TripLocalDataSource>(),
             unsavedChangesService: di.sl<UnsavedChangesService>(),
-            categoriasRepository:
-                di.sl<CategoriasRepository>(), // 🎭 Clean Arch
+            categoriasRepository: di.sl<CategoriasRepository>(),
+            importService: di.sl<ItineraryImportService>(), // ✨ Csv Import
           )..init(
             // Calculamos duración aquí o en el Cubit.
             // Si es 1 día, duration es 1. Si son fechas diferentes, diff + 1.
@@ -99,7 +99,9 @@ class ItineraryBuilderScreen extends StatelessWidget {
                                 color: Colors.blue[800],
                                 size: 40,
                               ),
-                              title: const Text('Importar CSV del día'),
+                              title: const Text(
+                                'Importar Viaje Completo (CSV)',
+                              ),
                               content: SingleChildScrollView(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,10 +122,10 @@ class ItineraryBuilderScreen extends StatelessWidget {
                                         ),
                                       ),
                                       child: const Text(
-                                        'titulo,descripcion,hora_inicio,hora_fin,tipo,recomendaciones\n'
-                                        'Check-in,Registro,08:00,09:00,hospedaje,Llevar ID\n'
-                                        'Desayuno,Restaurante,09:00,10:00,alimentos,\n'
-                                        'Tour,Centro histórico,10:30,13:00,cultura,',
+                                        'Día,Hora_Inicio,Hora_Fin,Título,Descripción,Tipo\n'
+                                        '1,08:00,09:00,Check-in,Registro en hotel,hospedaje\n'
+                                        '1,09:00,10:00,Desayuno,Restaurante Centro,comida\n'
+                                        '2,10:30,13:00,Tour Histórico,Visita guiada,cultura',
                                         style: TextStyle(
                                           fontFamily: 'monospace',
                                           fontSize: 11,
@@ -175,11 +177,10 @@ class ItineraryBuilderScreen extends StatelessWidget {
                         final csvContent = utf8.decode(
                           result.files.single.bytes!,
                         );
-                        // ignore: use_build_context_synchronously
                         if (!context.mounted) return;
-                        context.read<ItineraryBuilderCubit>().importDayFromCsv(
-                          csvContent,
-                        );
+                        context
+                            .read<ItineraryBuilderCubit>()
+                            .procesarCsvImportado(csvContent);
                       }
                     },
                   ),

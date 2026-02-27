@@ -13,6 +13,7 @@ import 'package:frontend/core/services/unsaved_changes_service.dart';
 import 'package:frontend/features/agencia/trips/domain/entities/categoria_actividad.dart';
 import 'package:frontend/features/agencia/trips/domain/repositories/categorias_repository.dart';
 import 'package:frontend/features/agencia/trips/data/datasources/csv_itinerary_parser.dart';
+import 'package:frontend/features/agencia/trips/domain/services/itinerary_import_service.dart'; // ✨ Nueva dependencia
 part 'itinerary_builder_state.dart';
 
 class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
@@ -20,6 +21,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
   final TripLocalDataSource _localDataSource;
   final UnsavedChangesService _unsavedChangesService;
   final CategoriasRepository _categoriasRepository;
+  final ItineraryImportService _importService; // ✨ Nueva dependencia
   Timer? _debounce;
 
   /// ID de agencia — placeholder hasta que llegue auth (se usa para el repositorio).
@@ -30,10 +32,12 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     required TripLocalDataSource localDataSource,
     required UnsavedChangesService unsavedChangesService,
     required CategoriasRepository categoriasRepository,
+    required ItineraryImportService importService, // Inyectarlo
   }) : _repository = repository,
        _localDataSource = localDataSource,
        _unsavedChangesService = unsavedChangesService,
        _categoriasRepository = categoriasRepository,
+       _importService = importService,
        super(ItineraryBuilderState());
 
   // --- AUTOGUARDADO ---
@@ -73,7 +77,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     int duracionDias, {
     DateTime? fechaInicio,
     DateTime? fechaFin,
-    Map<int, List<ActividadItinerario>>? csvDataAImportar,
+    String? csvDataAImportar,
   }) async {
     emit(
       state.copyWith(
@@ -85,8 +89,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
     // Si vienen datos del CSV desde la pantalla pre-builder, cargarlos directamente
     if (csvDataAImportar != null && csvDataAImportar.isNotEmpty) {
-      emit(state.copyWith(actividadesPorDia: csvDataAImportar));
-      _autoSave(); // Guardar el draft con los datos del CSV
+      await procesarCsvImportado(csvDataAImportar);
       return;
     }
 
@@ -500,5 +503,93 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
       return (draft!.lat!, draft.lng!);
     }
     return null;
+  }
+
+  // ✨ NUEVO MÉTODO MAESTRO DE IMPORTACIÓN
+  Future<void> procesarCsvImportado(String csvContent) async {
+    emit(state.copyWith(isImporting: true));
+
+    try {
+      final actividadesNuevas = await _importService.parseCsv(csvContent);
+      final nuevoMapa = Map<int, List<ActividadItinerario>>.from(
+        state.actividadesPorDia,
+      );
+
+      int actividadesConErroresRescatadas = 0; // ✨ Contador de advertencias
+
+      for (var item in actividadesNuevas) {
+        final diaIndex = item.diaIndex;
+
+        // Si la actividad fue auto-completada con nuestra bandera de alerta, sumamos al contador
+        if (item.actividad.titulo.contains('⚠️')) {
+          actividadesConErroresRescatadas++;
+        }
+
+        if (diaIndex < state.totalDias) {
+          final fechaBaseDelDia = (state.horaInicioViaje ?? DateTime.now()).add(
+            Duration(days: diaIndex),
+          );
+
+          final act = item.actividad;
+          final horaInicioReal = DateTime(
+            fechaBaseDelDia.year,
+            fechaBaseDelDia.month,
+            fechaBaseDelDia.day,
+            act.horaInicio.hour,
+            act.horaInicio.minute,
+          );
+          final horaFinReal = DateTime(
+            fechaBaseDelDia.year,
+            fechaBaseDelDia.month,
+            fechaBaseDelDia.day,
+            act.horaFin.hour,
+            act.horaFin.minute,
+          );
+
+          final actividadAjustada = act.copyWith(
+            horaInicio: horaInicioReal,
+            horaFin: horaFinReal,
+          );
+
+          final listaDelDia = nuevoMapa[diaIndex] ?? [];
+          listaDelDia.add(actividadAjustada);
+          listaDelDia.sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
+          nuevoMapa[diaIndex] = listaDelDia;
+        }
+      }
+
+      // ✨ PREPARAMOS EL MENSAJE FINAL
+      String? mensajeAlerta;
+      if (actividadesConErroresRescatadas > 0) {
+        mensajeAlerta =
+            "Importación exitosa, pero $actividadesConErroresRescatadas actividad(es) estaban incompletas en el archivo. Busca las tarjetas con '⚠️' y edítalas.";
+      }
+
+      emit(
+        state.copyWith(
+          actividadesPorDia: nuevoMapa,
+          isImporting: false,
+          errorMessage: mensajeAlerta,
+        ),
+      );
+
+      _autoSave();
+
+      if (mensajeAlerta != null) {
+        Future.delayed(const Duration(seconds: 6), () {
+          if (!isClosed) emit(state.copyWith(errorMessage: null));
+        });
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isImporting: false,
+          errorMessage: "Error crítico leyendo el archivo CSV.",
+        ),
+      );
+      Future.delayed(const Duration(seconds: 3), () {
+        if (!isClosed) emit(state.copyWith(errorMessage: null));
+      });
+    }
   }
 }

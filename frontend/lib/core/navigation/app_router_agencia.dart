@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/di/service_locator.dart' as di;
 import 'routes_agencia.dart';
 import '../../features/agencia/trips/domain/entities/viaje.dart';
-import '../../features/agencia/trips/domain/entities/actividad_itinerario.dart';
 
 // Importa tus Widgets de Pantalla
 import '../../features/agencia/auth/presentation/screens/login_screen.dart';
@@ -107,14 +106,12 @@ class AppRouterAgencia {
                     path: 'itinerary-builder',
                     builder: (context, state) {
                       Viaje viaje;
-                      Map<int, List<ActividadItinerario>>? csvData;
+                      String? csvData;
 
                       if (state.extra is Map) {
                         final rawMap = state.extra as Map;
                         viaje = rawMap['viaje'] as Viaje;
-                        csvData =
-                            rawMap['csvData']
-                                as Map<int, List<ActividadItinerario>>?;
+                        csvData = rawMap['csvData'] as String?;
                       } else {
                         viaje = state.extra as Viaje;
                       }

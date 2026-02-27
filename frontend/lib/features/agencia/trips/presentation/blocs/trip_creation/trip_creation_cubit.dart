@@ -652,25 +652,8 @@ class TripCreationCubit extends Cubit<TripCreationState> {
       nuevaFechaFin = null;
     }
 
-    emit(
-      TripCreationState(
-        currentStep: state.currentStep,
-        destino: state.destino,
-        isMultiDay: state.isMultiDay,
-        selectedGuiaId: state.selectedGuiaId,
-        coGuiasIds: state.coGuiasIds,
-        location: state.location,
-        nombreUbicacionMapa: state.nombreUbicacionMapa,
-        searchQueryGuia: state.searchQueryGuia,
-        availableGuides: state.availableGuides,
-        fotoPortadaUrl: state.fotoPortadaUrl,
-        fotosCandidatas: state.fotosCandidatas,
-        itinerario: state.itinerario,
-        isSaving: state.isSaving,
-        fechaInicio: nuevaFecha,
-        fechaFin: nuevaFechaFin,
-      ),
-    );
+    // ✅ Usar copyWith para preservar TODOS los campos (incluyendo claveBase)
+    emit(state.copyWith(fechaInicio: nuevaFecha, fechaFin: nuevaFechaFin));
     _autoSave();
   }
 

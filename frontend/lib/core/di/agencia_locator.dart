@@ -12,11 +12,11 @@ import 'package:frontend/features/agencia/trips/data/repositories/trip_repositor
 import 'package:frontend/features/agencia/trips/domain/repositories/trip_repository.dart';
 import 'package:frontend/features/agencia/trips/presentation/blocs/viajes/viajes_bloc.dart';
 import 'package:frontend/features/agencia/trips/presentation/blocs/detalle_viaje/detalle_viaje_bloc.dart';
+import 'package:frontend/features/agencia/users/presentation/blocs/usuarios/usuarios_bloc.dart';
 import 'package:frontend/features/agencia/trips/presentation/blocs/trip_creation/trip_creation_cubit.dart';
 import 'package:frontend/features/agencia/trips/presentation/blocs/itinerary_builder/itinerary_builder_cubit.dart';
-import 'package:frontend/features/agencia/users/data/repositories/user_repository_impl.dart';
-import 'package:frontend/features/agencia/users/domain/repositories/user_repository.dart';
-import 'package:frontend/features/agencia/users/presentation/blocs/usuarios/usuarios_bloc.dart';
+import 'package:frontend/features/agencia/trips/domain/services/itinerary_import_service.dart';
+import 'package:frontend/features/agencia/trips/data/services/csv_itinerary_import_service_impl.dart';
 import 'package:frontend/features/agencia/audit/data/repositories/audit_repository_impl.dart';
 import 'package:frontend/features/agencia/audit/domain/repositories/audit_repository.dart';
 import 'package:frontend/features/agencia/audit/presentation/blocs/auditoria/auditoria_bloc.dart';
@@ -48,11 +48,13 @@ Future<void> initAgenciaDependencies() async {
     () => TripRepositoryImpl(sl(), sl()),
   );
 
-  // User Repository
-  sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(sl()));
-
   // Audit Repository
   sl.registerLazySingleton<AuditRepository>(() => AuditRepositoryImpl(sl()));
+
+  // Import Services
+  sl.registerLazySingleton<ItineraryImportService>(
+    () => CsvItineraryImportServiceImpl(),
+  );
 
   // ====================================================
   // 3. USE CASES (Application Layer)
@@ -85,6 +87,7 @@ Future<void> initAgenciaDependencies() async {
       localDataSource: sl(),
       unsavedChangesService: sl(),
       categoriasRepository: sl(), // 🎭 Clean Arch
+      importService: sl(), // ✨ Csv Import
     ),
   );
 

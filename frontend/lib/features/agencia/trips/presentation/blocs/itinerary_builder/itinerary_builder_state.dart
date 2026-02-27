@@ -17,9 +17,10 @@ class ItineraryBuilderState extends Equatable {
   // Fotos sugeridas al escribir el título de la actividad
   final List<String> imagenesSugeridas;
 
-  // Flags de guardado
+  // Flags de guardado y carga
   final bool isSaving;
   final bool isSaved;
+  final bool isImporting;
 
   // Categorías disponibles en el toolbox
   final List<CategoriaActividad> categorias;
@@ -34,6 +35,7 @@ class ItineraryBuilderState extends Equatable {
     this.imagenesSugeridas = const [],
     this.isSaving = false,
     this.isSaved = false,
+    this.isImporting = false,
     List<CategoriaActividad>? categorias,
   }) : categorias = categorias ?? CategoriaActividad.defaults();
 
@@ -109,6 +111,7 @@ class ItineraryBuilderState extends Equatable {
     List<String>? imagenesSugeridas,
     bool? isSaving,
     bool? isSaved,
+    bool? isImporting,
     List<CategoriaActividad>? categorias,
   }) {
     return ItineraryBuilderState(
@@ -121,6 +124,7 @@ class ItineraryBuilderState extends Equatable {
       imagenesSugeridas: imagenesSugeridas ?? this.imagenesSugeridas,
       isSaving: isSaving ?? this.isSaving,
       isSaved: isSaved ?? this.isSaved,
+      isImporting: isImporting ?? this.isImporting,
       categorias: categorias ?? this.categorias,
     );
   }
@@ -136,6 +140,7 @@ class ItineraryBuilderState extends Equatable {
     imagenesSugeridas,
     isSaving,
     isSaved,
+    isImporting,
     categorias,
   ];
 }

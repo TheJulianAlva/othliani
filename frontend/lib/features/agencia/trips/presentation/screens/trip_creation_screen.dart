@@ -13,7 +13,6 @@ import 'package:frontend/core/widgets/saving_overlay.dart'; // ✨ Overlay de gu
 import '../widgets/destino_field_widget.dart'; // <--- Validar ubicación
 import '../../../shared/presentation/widgets/draft_guard_widget.dart'; // 🛡️ Draft Guard
 import 'package:file_picker/file_picker.dart';
-import '../../data/datasources/csv_itinerary_parser.dart';
 
 class TripCreationScreen extends StatelessWidget {
   const TripCreationScreen({super.key});
@@ -1358,19 +1357,16 @@ class _TripCreationForm extends StatelessWidget {
                   final cubit = context.read<TripCreationCubit>();
                   final viaje = cubit.viajeTemporal;
 
-                  // Validar CSV antes de navegar
-                  final mapa = CsvItineraryParser.parseFullTrip(
-                    csvContent,
-                    viaje.fechaInicio,
-                  );
-
                   // Navegar al builder con CSV pre-cargado
                   final ruta =
-                      '\${RoutesAgencia.viajes}/\${RoutesAgencia.itineraryBuilder}';
+                      '${RoutesAgencia.viajes}/${RoutesAgencia.itineraryBuilder}';
                   // ignore: use_build_context_synchronously
                   if (!context.mounted) return;
                   // Pasar un map con viaje + datos CSV
-                  context.push(ruta, extra: {'viaje': viaje, 'csvData': mapa});
+                  context.push(
+                    ruta,
+                    extra: {'viaje': viaje, 'csvData': csvContent},
+                  );
                 } on FormatException catch (e) {
                   // ignore: use_build_context_synchronously
                   if (!context.mounted) return;
