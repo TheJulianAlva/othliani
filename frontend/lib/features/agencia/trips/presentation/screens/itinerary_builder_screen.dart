@@ -17,17 +17,25 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
 import '../../domain/services/itinerary_import_service.dart'; // ✨ Csv Import
 
+// ── Notifier global de drag activo ────────────────────────────────────
+// Cuando una actividad empieza a arrastrarse, se pone en true para que
+// el panel izquierdo muestre la zona de papálera de forma inmediata.
+final _isDraggingActivity = ValueNotifier<bool>(false);
+
 // El catálogo de herramientas ahora viene de ItineraryBuilderState.categorias
 // y se construye dinámicamente (defaults + personalizadas de la agencia).
 
 class ItineraryBuilderScreen extends StatelessWidget {
   final Viaje viajeBase; // ✨ AHORA: Recibimos todo el objeto
   final String? csvDataAImportar; // ✨ Datos CSV precargados
+  final bool
+  reemplazarCsvInicial; // ✨ si true, limpia el borrador antes de importar
 
   const ItineraryBuilderScreen({
     super.key,
     required this.viajeBase,
     this.csvDataAImportar,
+    this.reemplazarCsvInicial = false,
   });
 
   @override
@@ -41,9 +49,6 @@ class ItineraryBuilderScreen extends StatelessWidget {
             categoriasRepository: di.sl<CategoriasRepository>(),
             importService: di.sl<ItineraryImportService>(), // ✨ Csv Import
           )..init(
-            // Calculamos duración aquí o en el Cubit.
-            // Si es 1 día, duration es 1. Si son fechas diferentes, diff + 1.
-            // Calculamos duración en días calendario (ignorando horas)
             DateTime(
                       viajeBase.fechaFin.year,
                       viajeBase.fechaFin.month,
@@ -60,7 +65,8 @@ class ItineraryBuilderScreen extends StatelessWidget {
                 1,
             fechaInicio: viajeBase.fechaInicio,
             fechaFin: viajeBase.fechaFin,
-            csvDataAImportar: csvDataAImportar, // Pasamos los datos CSV al init
+            csvDataAImportar: csvDataAImportar,
+            reemplazarCsvInicial: reemplazarCsvInicial,
           ),
       child: BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
         builder: (context, state) {
@@ -90,6 +96,61 @@ class ItineraryBuilderScreen extends StatelessWidget {
                       side: BorderSide(color: Colors.blue[300]!),
                     ),
                     onPressed: () async {
+                      final cubit = context.read<ItineraryBuilderCubit>();
+                      final estadoActual = cubit.state;
+                      bool reemplazar = false;
+
+                      // ── Paso 1: Si hay actividades → pregunta si quiere reemplazar
+                      if (estadoActual.hayAlgunaActividad) {
+                        if (!context.mounted) return;
+                        final decision = await showDialog<String>(
+                          context: context,
+                          builder:
+                              (ctx) => AlertDialog(
+                                icon: const Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.orange,
+                                  size: 44,
+                                ),
+                                title: const Text('Ya existe un itinerario'),
+                                content: const Text(
+                                  'El constructor ya tiene actividades guardadas.\n\n'
+                                  '¿Qué deseas hacer con el nuevo CSV?',
+                                  textAlign: TextAlign.center,
+                                ),
+                                actionsAlignment: MainAxisAlignment.spaceEvenly,
+                                actions: [
+                                  TextButton.icon(
+                                    icon: const Icon(Icons.close),
+                                    label: const Text('Cancelar'),
+                                    onPressed:
+                                        () => Navigator.of(ctx).pop('cancelar'),
+                                  ),
+                                  OutlinedButton.icon(
+                                    icon: const Icon(Icons.playlist_add),
+                                    label: const Text('Agregar'),
+                                    onPressed:
+                                        () => Navigator.of(ctx).pop('agregar'),
+                                  ),
+                                  FilledButton.icon(
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: Colors.orange[700],
+                                    ),
+                                    icon: const Icon(Icons.swap_horiz),
+                                    label: const Text('Reemplazar'),
+                                    onPressed:
+                                        () =>
+                                            Navigator.of(ctx).pop('reemplazar'),
+                                  ),
+                                ],
+                              ),
+                        );
+                        if (decision == null || decision == 'cancelar') return;
+                        reemplazar = decision == 'reemplazar';
+                      }
+
+                      // ── Paso 2: Diálogo instructivo de formato
+                      if (!context.mounted) return;
                       final resultado = await showDialog<bool>(
                         context: context,
                         builder:
@@ -165,7 +226,6 @@ class ItineraryBuilderScreen extends StatelessWidget {
                             ),
                       );
                       if (resultado != true) return;
-                      // ignore: use_build_context_synchronously
                       if (!context.mounted) return;
 
                       final result = await FilePicker.platform.pickFiles(
@@ -178,9 +238,10 @@ class ItineraryBuilderScreen extends StatelessWidget {
                           result.files.single.bytes!,
                         );
                         if (!context.mounted) return;
-                        context
-                            .read<ItineraryBuilderCubit>()
-                            .procesarCsvImportado(csvContent);
+                        cubit.procesarCsvImportado(
+                          csvContent,
+                          reemplazar: reemplazar,
+                        );
                       }
                     },
                   ),
@@ -285,9 +346,14 @@ class ItineraryBuilderScreen extends StatelessWidget {
   }
 }
 
-class _BodyContent extends StatelessWidget {
+class _BodyContent extends StatefulWidget {
   const _BodyContent();
 
+  @override
+  State<_BodyContent> createState() => _BodyContentState();
+}
+
+class _BodyContentState extends State<_BodyContent> {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -297,90 +363,210 @@ class _BodyContent extends StatelessWidget {
         // ---------------------------------------------
         Expanded(
           flex: 2,
-          child: Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Bloques de Actividad",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Arrastra al itinerario",
-                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: BlocBuilder<
-                    ItineraryBuilderCubit,
-                    ItineraryBuilderState
-                  >(
-                    buildWhen:
-                        (prev, curr) => prev.categorias != curr.categorias,
-                    builder: (context, state) {
-                      return ListView.builder(
-                        itemCount:
-                            state.categorias.length + 1, // +1 para el botón
-                        itemBuilder: (context, index) {
-                          // Último item: botón de nueva categoría
-                          if (index == state.categorias.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: OutlinedButton.icon(
-                                icon: const Icon(
-                                  Icons.add_circle_outline,
-                                  size: 18,
-                                ),
-                                label: const Text('Nueva Actividad'),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF1B263B),
-                                  side: const BorderSide(
-                                    color: Color(0xFF1B263B),
-                                    style: BorderStyle.solid,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 8,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  final nueva = await showModalBottomSheet<
-                                    CategoriaActividad
-                                  >(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(20),
+          child: Stack(
+            children: [
+              // ── CONTENIDO NORMAL DEL PANEL ─────────────────────────────
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Bloques de Actividad',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Arrastra al itinerario',
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: BlocBuilder<
+                        ItineraryBuilderCubit,
+                        ItineraryBuilderState
+                      >(
+                        buildWhen:
+                            (prev, curr) => prev.categorias != curr.categorias,
+                        builder: (context, state) {
+                          return ListView.builder(
+                            itemCount: state.categorias.length + 1,
+                            itemBuilder: (context, index) {
+                              if (index == state.categorias.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: OutlinedButton.icon(
+                                    icon: const Icon(
+                                      Icons.add_circle_outline,
+                                      size: 18,
+                                    ),
+                                    label: const Text('Nueva Actividad'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: const Color(0xFF1B263B),
+                                      side: const BorderSide(
+                                        color: Color(0xFF1B263B),
+                                        style: BorderStyle.solid,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                        horizontal: 8,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
-                                    builder: (_) => const NewCategoryModal(),
-                                  );
-                                  if (nueva != null && context.mounted) {
-                                    context
-                                        .read<ItineraryBuilderCubit>()
-                                        .agregarCategoriaPersonalizada(nueva);
-                                  }
-                                },
-                              ),
-                            );
-                          }
-                          return _buildDraggableToolItem(
-                            categoria: state.categorias[index],
+                                    onPressed: () async {
+                                      final nueva = await showModalBottomSheet<
+                                        CategoriaActividad
+                                      >(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        shape: const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(20),
+                                          ),
+                                        ),
+                                        builder:
+                                            (_) => const NewCategoryModal(),
+                                      );
+                                      if (nueva != null && context.mounted) {
+                                        context
+                                            .read<ItineraryBuilderCubit>()
+                                            .agregarCategoriaPersonalizada(
+                                              nueva,
+                                            );
+                                      }
+                                    },
+                                  ),
+                                );
+                              }
+                              return _buildDraggableToolItem(
+                                categoria: state.categorias[index],
+                              );
+                            },
                           );
                         },
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              // ── DRAG TARGET OVERLAY — CUBRE TODO EL PANEL ──────────────
+              Positioned.fill(
+                child: DragTarget<ActividadItinerario>(
+                  onWillAcceptWithDetails: (_) => true,
+                  onLeave: (_) {},
+                  onAcceptWithDetails: (details) async {
+                    final act = details.data;
+                    if (!context.mounted) return;
+                    final cubit = context.read<ItineraryBuilderCubit>();
+                    final confirmar = await showDialog<bool>(
+                      context: context,
+                      builder:
+                          (ctx) => AlertDialog(
+                            icon: const Icon(
+                              Icons.delete_forever_rounded,
+                              color: Colors.red,
+                              size: 44,
+                            ),
+                            title: const Text('¿Eliminar actividad?'),
+                            content: Text(
+                              '¿Estás seguro de que deseas eliminar '
+                              '"${act.titulo.isNotEmpty ? act.titulo : 'esta actividad'}"?\n\n'
+                              'Esta acción no se puede deshacer.',
+                              textAlign: TextAlign.center,
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: const Text('Cancelar'),
+                              ),
+                              FilledButton.icon(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.red[700],
+                                ),
+                                icon: const Icon(Icons.delete_forever),
+                                label: const Text('Sí, eliminar'),
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                              ),
+                            ],
+                          ),
+                    );
+                    if (confirmar == true) {
+                      cubit.deleteActivityFromDay(
+                        act.id,
+                        cubit.state.diaSeleccionadoIndex,
+                      );
+                    }
+                  },
+                  builder: (context, candidateData, _) {
+                    final hovering = candidateData.isNotEmpty;
+                    return ValueListenableBuilder<bool>(
+                      valueListenable: _isDraggingActivity,
+                      builder: (ctx, isDragging, _) {
+                        // Mostrar overlay rojo completo si hay drag activo
+                        // (desde que empieza) o si el cursor ya está encima
+                        if (!hovering && !isDragging) {
+                          return IgnorePointer(
+                            child: ColoredBox(
+                              color: Colors.transparent,
+                              child: const SizedBox.expand(),
+                            ),
+                          );
+                        }
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(
+                              alpha: hovering ? 0.20 : 0.10,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        hovering
+                                            ? Colors.red[600]
+                                            : Colors.red[400],
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.delete_forever_rounded,
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  hovering
+                                      ? '¡Suelta para eliminar!'
+                                      : 'Arrastra aquí para eliminar',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        hovering ? Colors.red : Colors.red[300],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
 
@@ -394,6 +580,7 @@ class _BodyContent extends StatelessWidget {
           child: Column(
             children: [
               const _DaysTabBar(),
+              const _DayImportHeader(), // 📥 Banner de importación por día
               Expanded(child: const _TimelineDropZone()),
             ],
           ),
@@ -539,6 +726,250 @@ class _BodyContent extends StatelessWidget {
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
+    );
+  }
+}
+
+// ============================================
+// ENCABEZADO DEL DÍA CON BOTÓN DE IMPORTACIÓN
+// ============================================
+class _DayImportHeader extends StatelessWidget {
+  const _DayImportHeader();
+
+  /// Construye la etiqueta del día activo (ej: "Vie 27 Feb" o "Día 3")
+  String _labelDia(ItineraryBuilderState state) {
+    final idx = state.diaSeleccionadoIndex;
+    final fechaInicio = state.horaInicioViaje;
+    if (fechaInicio != null) {
+      final fecha = fechaInicio.add(Duration(days: idx));
+      const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+      const meses = [
+        'Ene',
+        'Feb',
+        'Mar',
+        'Abr',
+        'May',
+        'Jun',
+        'Jul',
+        'Ago',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dic',
+      ];
+      return '${diasSemana[fecha.weekday - 1]} ${fecha.day} ${meses[fecha.month - 1]}';
+    }
+    return 'Día ${idx + 1}';
+  }
+
+  Future<void> _onImportPressed(
+    BuildContext context,
+    ItineraryBuilderState state,
+  ) async {
+    final cubit = context.read<ItineraryBuilderCubit>();
+    // ✅ Siempre leemos del cubit directamente para evitar estado "stale"
+    //    del BlocBuilder (que solo reconstruye en diaSeleccionadoIndex / isImporting)
+    final estadoFresco = cubit.state;
+    final diaIndex = estadoFresco.diaSeleccionadoIndex;
+    final actividadesActuales = estadoFresco.actividadesPorDia[diaIndex] ?? [];
+    bool reemplazar = false;
+
+    if (actividadesActuales.isNotEmpty) {
+      // ─── El día YA tiene actividades → pregunta si quiere reemplazar ────
+      final cantidad = actividadesActuales.length;
+      final labelDia = _labelDia(state);
+      if (!context.mounted) return;
+      final confirmar = await showDialog<bool>(
+        context: context,
+        builder:
+            (ctx) => AlertDialog(
+              icon: const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange,
+                size: 42,
+              ),
+              title: Text('¿Reemplazar actividades del $labelDia?'),
+              content: Text(
+                'El $labelDia ya tiene $cantidad actividad${cantidad == 1 ? '' : 'es'} '
+                'en su itinerario.\n\n'
+                '¿Deseas reemplazarlas con las del nuevo archivo CSV?',
+                textAlign: TextAlign.center,
+              ),
+              actionsAlignment: MainAxisAlignment.spaceEvenly,
+              actions: [
+                TextButton.icon(
+                  icon: const Icon(Icons.close),
+                  label: const Text('Cancelar'),
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                ),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.orange[700],
+                  ),
+                  icon: const Icon(Icons.swap_horiz),
+                  label: const Text('Sí, reemplazar'),
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                ),
+              ],
+            ),
+      );
+      if (confirmar != true) return;
+      reemplazar = true;
+    } else {
+      // ─── El día está VACÍO → muestra instrucciones de formato CSV ───────
+      if (!context.mounted) return;
+      final labelDia = _labelDia(state);
+      final proceder = await showDialog<bool>(
+        context: context,
+        builder:
+            (ctx) => AlertDialog(
+              icon: Icon(
+                Icons.upload_file_outlined,
+                color: Colors.blue[700],
+                size: 44,
+              ),
+              title: Text('Importar CSV al $labelDia'),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'El archivo CSV para un día no necesita la columna "Día". '
+                      'Todas las filas se cargarán en este día automáticamente.',
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: const Text(
+                        'Inicio,Termino,Actividad,Categoria,Detalles\n'
+                        '08:00,09:00,Desayuno en la cabaña,Comida,Huevos y cafe\n'
+                        '09:30,13:30,Rafting en los rápidos,Aventura,Nivel intermedio\n'
+                        '14:00,,Comida a la orilla del rio,Comida,',
+                        style: TextStyle(fontFamily: 'monospace', fontSize: 11),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '💡 Si falta la hora de término, el sistema calculará +1h automáticamente y marcará la actividad con ⚠️.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.folder_open),
+                  label: const Text('Seleccionar CSV'),
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                ),
+              ],
+            ),
+      );
+      if (proceder != true) return;
+    }
+
+    // ─── Abrir selector de archivo ────────────────────────────────────────
+    if (!context.mounted) return;
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+      withData: true,
+    );
+    if (result == null || result.files.single.bytes == null) return;
+    final csvContent = utf8.decode(result.files.single.bytes!);
+    if (!context.mounted) return;
+
+    cubit.procesarCsvPorDia(csvContent, diaIndex, reemplazar: reemplazar);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ItineraryBuilderCubit, ItineraryBuilderState>(
+      buildWhen:
+          (prev, curr) =>
+              prev.diaSeleccionadoIndex != curr.diaSeleccionadoIndex ||
+              prev.isImporting != curr.isImporting,
+      builder: (context, state) {
+        final labelDia = _labelDia(state);
+        return Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+          ),
+          child: Row(
+            children: [
+              // Ícono de calendario
+              Icon(
+                Icons.calendar_today_outlined,
+                size: 15,
+                color: Colors.grey[500],
+              ),
+              const SizedBox(width: 6),
+              Text(
+                labelDia,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const Spacer(),
+              // ─── BOTÓN IMPORTAR CSV A ESTE DÍA ─────────────────────────
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.blue[700],
+                  side: BorderSide(color: Colors.blue[300]!),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
+                  ),
+                  minimumSize: const Size(0, 32),
+                  textStyle: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon:
+                    state.isImporting
+                        ? SizedBox(
+                          width: 13,
+                          height: 13,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.blue[700],
+                          ),
+                        )
+                        : const Icon(Icons.upload_file_outlined, size: 15),
+                label: Text(
+                  state.isImporting
+                      ? 'Importando...'
+                      : 'Importar CSV a este día',
+                ),
+                onPressed:
+                    state.isImporting
+                        ? null
+                        : () => _onImportPressed(context, state),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -1002,7 +1433,12 @@ class _TimelineDropZoneState extends State<_TimelineDropZone> {
                         if (idx > 0) _buildConnectorLine(),
                         Draggable<ActividadItinerario>(
                           data: act,
-                          axis: Axis.vertical,
+                          onDragStarted: () => _isDraggingActivity.value = true,
+                          onDragEnd: (_) => _isDraggingActivity.value = false,
+                          onDraggableCanceled:
+                              (_, __) => _isDraggingActivity.value = false,
+                          onDragCompleted:
+                              () => _isDraggingActivity.value = false,
                           feedback: Material(
                             elevation: 8,
                             borderRadius: BorderRadius.circular(8),
@@ -1135,7 +1571,12 @@ class _TimelineDropZoneState extends State<_TimelineDropZone> {
                       ),
                       child: Draggable<ActividadItinerario>(
                         data: act,
-                        axis: Axis.vertical,
+                        onDragStarted: () => _isDraggingActivity.value = true,
+                        onDragEnd: (_) => _isDraggingActivity.value = false,
+                        onDraggableCanceled:
+                            (_, __) => _isDraggingActivity.value = false,
+                        onDragCompleted:
+                            () => _isDraggingActivity.value = false,
                         feedback: Material(
                           elevation: 8,
                           borderRadius: BorderRadius.circular(8),

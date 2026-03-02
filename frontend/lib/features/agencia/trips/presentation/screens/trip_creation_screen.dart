@@ -1255,6 +1255,58 @@ class _TripCreationForm extends StatelessWidget {
                 ),
               ),
               onPressed: () async {
+                // ── Paso 1: Verificar si el borrador ya tiene actividades ──
+                final tripCubit = context.read<TripCreationCubit>();
+                final draftData = tripCubit.state.draftData;
+                final hayActividades =
+                    draftData != null && draftData.actividades.isNotEmpty;
+
+                bool reemplazar = false;
+
+                if (hayActividades) {
+                  if (!context.mounted) return;
+                  final decision = await showDialog<String>(
+                    context: context,
+                    builder:
+                        (ctx) => AlertDialog(
+                          icon: const Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.orange,
+                            size: 44,
+                          ),
+                          title: const Text('Ya existe un itinerario guardado'),
+                          content: Text(
+                            'El borrador ya tiene ${draftData.actividades.length} '
+                            'actividad${draftData.actividades.length == 1 ? '' : 'es'}.\n\n'
+                            '¿Deseas reemplazar el itinerario con el del nuevo CSV?',
+                            textAlign: TextAlign.center,
+                          ),
+                          actionsAlignment: MainAxisAlignment.spaceEvenly,
+                          actions: [
+                            TextButton.icon(
+                              icon: const Icon(Icons.close),
+                              label: const Text('Cancelar'),
+                              onPressed:
+                                  () => Navigator.of(ctx).pop('cancelar'),
+                            ),
+                            FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.orange[700],
+                              ),
+                              icon: const Icon(Icons.swap_horiz),
+                              label: const Text('Sí, reemplazar'),
+                              onPressed:
+                                  () => Navigator.of(ctx).pop('reemplazar'),
+                            ),
+                          ],
+                        ),
+                  );
+                  if (decision == null || decision == 'cancelar') return;
+                  reemplazar = true; // Solo queda la opcion reemplazar
+                }
+
+                // ── Paso 2: Instrucciones de formato ──────────────────────
+                if (!context.mounted) return;
                 final resultado = await showDialog<bool>(
                   context: context,
                   builder:
@@ -1362,10 +1414,13 @@ class _TripCreationForm extends StatelessWidget {
                       '${RoutesAgencia.viajes}/${RoutesAgencia.itineraryBuilder}';
                   // ignore: use_build_context_synchronously
                   if (!context.mounted) return;
-                  // Pasar un map con viaje + datos CSV
                   context.push(
                     ruta,
-                    extra: {'viaje': viaje, 'csvData': csvContent},
+                    extra: {
+                      'viaje': viaje,
+                      'csvData': csvContent,
+                      'reemplazar': reemplazar,
+                    },
                   );
                 } on FormatException catch (e) {
                   // ignore: use_build_context_synchronously

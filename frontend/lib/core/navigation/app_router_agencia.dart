@@ -107,11 +107,13 @@ class AppRouterAgencia {
                     builder: (context, state) {
                       Viaje viaje;
                       String? csvData;
+                      bool reemplazar = false;
 
                       if (state.extra is Map) {
                         final rawMap = state.extra as Map;
                         viaje = rawMap['viaje'] as Viaje;
                         csvData = rawMap['csvData'] as String?;
+                        reemplazar = rawMap['reemplazar'] as bool? ?? false;
                       } else {
                         viaje = state.extra as Viaje;
                       }
@@ -119,6 +121,7 @@ class AppRouterAgencia {
                       return ItineraryBuilderScreen(
                         viajeBase: viaje,
                         csvDataAImportar: csvData,
+                        reemplazarCsvInicial: reemplazar,
                       );
                     },
                   ),

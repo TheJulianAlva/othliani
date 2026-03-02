@@ -78,6 +78,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
     DateTime? fechaInicio,
     DateTime? fechaFin,
     String? csvDataAImportar,
+    bool reemplazarCsvInicial = false,
   }) async {
     emit(
       state.copyWith(
@@ -89,7 +90,10 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
     // Si vienen datos del CSV desde la pantalla pre-builder, cargarlos directamente
     if (csvDataAImportar != null && csvDataAImportar.isNotEmpty) {
-      await procesarCsvImportado(csvDataAImportar);
+      await procesarCsvImportado(
+        csvDataAImportar,
+        reemplazar: reemplazarCsvInicial,
+      );
       return;
     }
 
@@ -506,14 +510,21 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
   }
 
   // ✨ NUEVO MÉTODO MAESTRO DE IMPORTACIÓN
-  Future<void> procesarCsvImportado(String csvContent) async {
+  Future<void> procesarCsvImportado(
+    String csvContent, {
+    bool reemplazar = false,
+  }) async {
     emit(state.copyWith(isImporting: true));
 
     try {
       final actividadesNuevas = await _importService.parseCsv(csvContent);
-      final nuevoMapa = Map<int, List<ActividadItinerario>>.from(
-        state.actividadesPorDia,
-      );
+      // Si reemplazar=true, vaciamos TODO el mapa antes de insertar
+      final nuevoMapa =
+          reemplazar
+              ? <int, List<ActividadItinerario>>{}
+              : Map<int, List<ActividadItinerario>>.from(
+                state.actividadesPorDia,
+              );
 
       int actividadesConErroresRescatadas = 0; // ✨ Contador de advertencias
 
@@ -585,6 +596,103 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
         state.copyWith(
           isImporting: false,
           errorMessage: "Error crítico leyendo el archivo CSV.",
+        ),
+      );
+      Future.delayed(const Duration(seconds: 3), () {
+        if (!isClosed) emit(state.copyWith(errorMessage: null));
+      });
+    }
+  }
+
+  // ✨ IMPORTACIÓN POR DÍA: Fuerza todas las actividades del CSV al día indicado
+  Future<void> procesarCsvPorDia(
+    String csvContent,
+    int targetDiaIndex, {
+    bool reemplazar = false, // Si true, borra lo existente antes de insertar
+  }) async {
+    emit(state.copyWith(isImporting: true));
+
+    try {
+      // Usamos el mismo servicio blindado (Fuzzy Matching + Degradación Elegante)
+      final actividadesParseadas = await _importService.parseCsv(csvContent);
+
+      final nuevoMapa = Map<int, List<ActividadItinerario>>.from(
+        state.actividadesPorDia,
+      );
+
+      int actividadesConErrores = 0;
+
+      // Calculamos la fecha real del día destino
+      final fechaBaseDelDia = (state.horaInicioViaje ?? DateTime.now()).add(
+        Duration(days: targetDiaIndex),
+      );
+
+      // Si reemplazar=true limpiamos el día; si no, preservamos lo existente
+      final listaDelDia =
+          reemplazar
+              ? <ActividadItinerario>[]
+              : List<ActividadItinerario>.from(nuevoMapa[targetDiaIndex] ?? []);
+
+      // 🎯 EMBUDO: Todas las actividades del CSV van al targetDiaIndex
+      for (var item in actividadesParseadas) {
+        if (item.actividad.titulo.contains('⚠️')) {
+          actividadesConErrores++;
+        }
+
+        final act = item.actividad;
+
+        // Ajustamos la fecha conservando solo la hora del CSV
+        final horaInicioReal = DateTime(
+          fechaBaseDelDia.year,
+          fechaBaseDelDia.month,
+          fechaBaseDelDia.day,
+          act.horaInicio.hour,
+          act.horaInicio.minute,
+        );
+        final horaFinReal = DateTime(
+          fechaBaseDelDia.year,
+          fechaBaseDelDia.month,
+          fechaBaseDelDia.day,
+          act.horaFin.hour,
+          act.horaFin.minute,
+        );
+
+        listaDelDia.add(
+          act.copyWith(horaInicio: horaInicioReal, horaFin: horaFinReal),
+        );
+      }
+
+      // Orden cronológico
+      listaDelDia.sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
+      nuevoMapa[targetDiaIndex] = listaDelDia;
+
+      String? mensajeAlerta;
+      if (actividadesConErrores > 0) {
+        mensajeAlerta =
+            "Día importado correctamente. $actividadesConErrores actividad(es) requieren revisión (busca el ⚠️).";
+      }
+
+      emit(
+        state.copyWith(
+          actividadesPorDia: nuevoMapa,
+          isImporting: false,
+          errorMessage: mensajeAlerta,
+        ),
+      );
+
+      _autoSave();
+
+      if (mensajeAlerta != null) {
+        Future.delayed(const Duration(seconds: 6), () {
+          if (!isClosed) emit(state.copyWith(errorMessage: null));
+        });
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isImporting: false,
+          errorMessage:
+              "Error leyendo el archivo CSV del día. Verifica el formato.",
         ),
       );
       Future.delayed(const Duration(seconds: 3), () {
