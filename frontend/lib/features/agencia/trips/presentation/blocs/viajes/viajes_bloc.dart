@@ -14,18 +14,18 @@ abstract class ViajesEvent extends Equatable {
 class LoadViajesEvent extends ViajesEvent {
   final String query;
   final String field; // 'TODO', 'GUIA', 'DESTINO', 'ID'
-  final String? filterStatus;
+  final List<String> filterStatuses;
   final DateTimeRange? filterDateRange;
 
   const LoadViajesEvent({
     this.query = '',
     this.field = 'TODO',
-    this.filterStatus = 'TODOS',
+    this.filterStatuses = const ['TODOS'],
     this.filterDateRange,
   });
 
   @override
-  List<Object?> get props => [query, field, filterStatus, filterDateRange];
+  List<Object?> get props => [query, field, filterStatuses, filterDateRange];
 }
 
 // States
@@ -107,11 +107,11 @@ class ViajesBloc extends Bloc<ViajesEvent, ViajesState> {
                 viaje.guiaNombre.toLowerCase().contains(q);
           }
 
-          // B. Filtro de Estatus
+          // B. Filtro de Estatus Múltiple
           final matchesStatus =
-              event.filterStatus == 'TODOS' ||
-              event.filterStatus == null ||
-              viaje.estado == event.filterStatus;
+              event.filterStatuses.contains('TODOS') ||
+              event.filterStatuses.isEmpty ||
+              event.filterStatuses.contains(viaje.estado);
 
           // C. FILTRO DE FECHA INTELIGENTE 📅 (Logística PRO con Rangos)
           // Muestra viajes que se SOLAPAN con el rango seleccionado

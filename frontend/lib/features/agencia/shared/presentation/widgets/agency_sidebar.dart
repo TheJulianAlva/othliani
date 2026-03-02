@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/navigation/routes_agencia.dart'; // Mantener Rutas constants si se usan
-import 'package:frontend/core/services/unsaved_changes_service.dart';
-import 'package:frontend/core/di/service_locator.dart' as di;
+import 'package:frontend/core/widgets/saving_overlay.dart';
 
 class AgencySidebar extends StatelessWidget {
   final bool isCollapsed;
@@ -22,38 +21,56 @@ class AgencySidebar extends StatelessWidget {
   }
 
   Future<void> _handleLogout(BuildContext context) async {
-    final unsavedService = di.sl<UnsavedChangesService>();
-
-    if (unsavedService.isDirty) {
-      final shouldLogout = await showDialog<bool>(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text("⚠️ Cambios sin guardar"),
-              content: const Text(
-                "Tienes trabajo pendiente. Si sales ahora, podrías perder los cambios del borrador actual.\n\n¿Estás seguro de cerrar sesión?",
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text("Cancelar"),
-                ),
-                FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () {
-                    unsavedService.setDirty(false); // Forzar limpieza
-                    Navigator.of(context).pop(true);
-                  },
-                  child: const Text("Salir de todas formas"),
-                ),
+    // 1. Pedir confirmación antes de hacer cualquier cosa
+    final confirmar = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.logout, color: Colors.redAccent, size: 22),
+                SizedBox(width: 10),
+                Text('¿Cerrar sesión?'),
               ],
             ),
-      );
+            content: const Text(
+              'Cualquier progreso no guardado se perderá. '
+              '¿Deseas continuar?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Cerrar sesión'),
+              ),
+            ],
+          ),
+    );
 
-      if (shouldLogout != true) return;
-    }
+    // 2. Si rechazó, no hacer nada
+    if (confirmar != true || !context.mounted) return;
 
-    // Proceder con logout
+    // 3. Mostrar animación de cierre de sesión y navegar al login
+    await SavingOverlay.showAndWait(
+      context,
+      mensaje: 'Cerrando sesión...',
+      duration: const Duration(milliseconds: 900),
+    );
+
     if (context.mounted) {
       context.go(RoutesAgencia.login);
     }

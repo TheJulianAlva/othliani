@@ -1,13 +1,21 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
 
 /// Modal de selección de ubicación para actividades del itinerario.
 /// Devuelve un [LatLng] cuando el usuario confirma, o `null` si cancela.
+///
+/// [initialLocation]: ubicación previa de la actividad (si ya tenía).
+/// [tripCenter]: coordenadas del destino del viaje — se usa como centro
+///               inicial si aún no hay [initialLocation].
 class LocationPickerModal extends StatefulWidget {
   final LatLng? initialLocation;
+  final LatLng? tripCenter;
 
-  const LocationPickerModal({super.key, this.initialLocation});
+  const LocationPickerModal({super.key, this.initialLocation, this.tripCenter});
 
   @override
   State<LocationPickerModal> createState() => _LocationPickerModalState();
@@ -17,8 +25,18 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
   LatLng? _pickedLocation;
   final MapController _mapController = MapController();
 
-  // Centro por defecto: CDMX
+  // Barra de búsqueda
+  final TextEditingController _searchCtrl = TextEditingController();
+  Timer? _debounce;
+  List<_NominatimResult> _suggestions = [];
+  bool _isSearching = false;
+  bool _showSuggestions = false;
+
+  // Centro inicial: primero la ubicación ya guardada, luego la del viaje, luego CDMX
   static const LatLng _defaultCenter = LatLng(19.4326, -99.1332);
+
+  LatLng get _initialCenter =>
+      widget.initialLocation ?? widget.tripCenter ?? _defaultCenter;
 
   @override
   void initState() {
@@ -29,9 +47,61 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
   @override
   void dispose() {
     _mapController.dispose();
+    _searchCtrl.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
+  // ── Búsqueda Nominatim ─────────────────────────────────────────────────────
+  void _onSearchChanged(String query) {
+    _debounce?.cancel();
+    if (query.trim().length < 3) {
+      setState(() {
+        _suggestions = [];
+        _showSuggestions = false;
+      });
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 600), () => _search(query));
+  }
+
+  Future<void> _search(String query) async {
+    setState(() => _isSearching = true);
+    try {
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/search'
+        '?q=${Uri.encodeComponent(query)}'
+        '&format=json&limit=5&addressdetails=1',
+      );
+      final response = await http.get(
+        uri,
+        headers: {'User-Agent': 'OthlianniApp/1.0'},
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _suggestions = data.map((e) => _NominatimResult.fromJson(e)).toList();
+          _showSuggestions = _suggestions.isNotEmpty;
+        });
+      }
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _isSearching = false);
+    }
+  }
+
+  void _selectSuggestion(_NominatimResult result) {
+    final latlng = LatLng(result.lat, result.lng);
+    setState(() {
+      _pickedLocation = latlng;
+      _suggestions = [];
+      _showSuggestions = false;
+      _searchCtrl.text = result.displayName;
+    });
+    _mapController.move(latlng, 15.0);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -80,6 +150,65 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
             ),
           ),
         ],
+        // ── Barra de búsqueda en la parte inferior del AppBar ───────────
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: _onSearchChanged,
+              decoration: InputDecoration(
+                hintText: 'Buscar lugar o dirección...',
+                prefixIcon:
+                    _isSearching
+                        ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                        : const Icon(Icons.search, size: 20),
+                suffixIcon:
+                    _searchCtrl.text.isNotEmpty
+                        ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () {
+                            _searchCtrl.clear();
+                            setState(() {
+                              _suggestions = [];
+                              _showSuggestions = false;
+                            });
+                          },
+                        )
+                        : null,
+                filled: true,
+                fillColor: Colors.grey[100],
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(
+                    color: colorScheme.primary,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Stack(
         children: [
@@ -87,10 +216,13 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: widget.initialLocation ?? _defaultCenter,
+              initialCenter: _initialCenter,
               initialZoom: 14.0,
               onTap: (tapPosition, latlng) {
-                setState(() => _pickedLocation = latlng);
+                setState(() {
+                  _pickedLocation = latlng;
+                  _showSuggestions = false;
+                });
               },
             ),
             children: [
@@ -143,6 +275,45 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
             ],
           ),
 
+          // ── Lista de sugerencias de búsqueda ──────────────────────────
+          if (_showSuggestions && _suggestions.isNotEmpty)
+            Positioned(
+              top: 0,
+              left: 12,
+              right: 12,
+              child: Material(
+                elevation: 6,
+                borderRadius: BorderRadius.circular(12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _suggestions.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (context, i) {
+                      final s = _suggestions[i];
+                      return ListTile(
+                        dense: true,
+                        leading: const Icon(
+                          Icons.location_on_outlined,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                        title: Text(
+                          s.displayName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                        onTap: () => _selectSuggestion(s),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+
           // ── Botón de re-centrar al punto marcado ────────────────────────
           if (_pickedLocation != null)
             Positioned(
@@ -170,7 +341,7 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
                       ? _buildInstructionBanner(
                         key: const ValueKey('hint'),
                         icon: Icons.touch_app,
-                        text: 'Toca el mapa para colocar el pin exacto',
+                        text: 'Busca un lugar o toca el mapa para fijar el pin',
                         color: Colors.blue[800]!,
                         bgColor: Colors.blue[50]!,
                       )
@@ -232,4 +403,23 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
       ),
     );
   }
+}
+
+// ── Modelo para resultado de Nominatim ──────────────────────────────────────
+class _NominatimResult {
+  final String displayName;
+  final double lat;
+  final double lng;
+
+  _NominatimResult({
+    required this.displayName,
+    required this.lat,
+    required this.lng,
+  });
+
+  factory _NominatimResult.fromJson(Map<String, dynamic> j) => _NominatimResult(
+    displayName: j['display_name'] as String? ?? '',
+    lat: double.tryParse(j['lat'] as String? ?? '0') ?? 0,
+    lng: double.tryParse(j['lon'] as String? ?? '0') ?? 0,
+  );
 }

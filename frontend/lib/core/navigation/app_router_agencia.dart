@@ -7,6 +7,7 @@ import '../../features/agencia/trips/domain/entities/viaje.dart';
 
 // Importa tus Widgets de Pantalla
 import '../../features/agencia/auth/presentation/screens/login_screen.dart';
+import '../../features/agencia/auth/presentation/screens/recover_password_screen.dart';
 import '../../features/agencia/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/agencia/trips/presentation/screens/trips_screen.dart';
 import '../../features/agencia/trips/presentation/screens/trip_detail_screen.dart';
@@ -40,6 +41,10 @@ class AppRouterAgencia {
       GoRoute(
         path: RoutesAgencia.login,
         builder: (context, state) => const AgencyLoginScreen(),
+      ),
+      GoRoute(
+        path: RoutesAgencia.recoverPassword,
+        builder: (context, state) => const AgencyRecoverPasswordScreen(),
       ),
 
       // 2. STATEFUL SHELL ROUTE (Tabs persistentes)
@@ -82,10 +87,10 @@ class AppRouterAgencia {
                           (_) =>
                               di.sl<ViajesBloc>()..add(
                                 LoadViajesEvent(
-                                  filterStatus:
+                                  filterStatuses:
                                       filter != null
-                                          ? filter.toUpperCase()
-                                          : 'TODOS',
+                                          ? [filter.toUpperCase()]
+                                          : ['TODOS'],
                                 ),
                               ),
                       child: const TripsScreen(),
@@ -100,8 +105,24 @@ class AppRouterAgencia {
                   GoRoute(
                     path: 'itinerary-builder',
                     builder: (context, state) {
-                      final Viaje viaje = state.extra as Viaje;
-                      return ItineraryBuilderScreen(viajeBase: viaje);
+                      Viaje viaje;
+                      String? csvData;
+                      bool reemplazar = false;
+
+                      if (state.extra is Map) {
+                        final rawMap = state.extra as Map;
+                        viaje = rawMap['viaje'] as Viaje;
+                        csvData = rawMap['csvData'] as String?;
+                        reemplazar = rawMap['reemplazar'] as bool? ?? false;
+                      } else {
+                        viaje = state.extra as Viaje;
+                      }
+
+                      return ItineraryBuilderScreen(
+                        viajeBase: viaje,
+                        csvDataAImportar: csvData,
+                        reemplazarCsvInicial: reemplazar,
+                      );
                     },
                   ),
                   GoRoute(

@@ -5,6 +5,7 @@ import 'package:frontend/core/di/service_locator.dart' as di;
 import 'package:frontend/core/services/unsaved_changes_service.dart';
 import 'agency_sidebar.dart';
 import 'agency_header.dart';
+import 'package:frontend/core/widgets/saving_overlay.dart';
 
 class AgencyLayout extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -41,23 +42,25 @@ class _AgencyLayoutState extends State<AgencyLayout> with WindowListener {
     final unsavedService = di.sl<UnsavedChangesService>();
 
     if (unsavedService.isDirty) {
+      // Capturar contexto antes del gap async
+      final ctx = context;
       final shouldClose = await showDialog<bool>(
-        context: context,
+        context: ctx,
         builder:
-            (context) => AlertDialog(
+            (dialogCtx) => AlertDialog(
               title: const Text("⚠️ Cambios sin guardar"),
               content: const Text(
                 "Tienes trabajo pendiente. Si cierras la aplicación, perderás los cambios no guardados.\n\n¿Estás seguro de salir?",
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => Navigator.of(dialogCtx).pop(false),
                   child: const Text("Cancelar"),
                 ),
                 FilledButton(
                   style: FilledButton.styleFrom(backgroundColor: Colors.red),
                   onPressed: () {
-                    Navigator.of(context).pop(true);
+                    Navigator.of(dialogCtx).pop(true);
                   },
                   child: const Text("Salir de todas formas"),
                 ),
@@ -66,10 +69,16 @@ class _AgencyLayoutState extends State<AgencyLayout> with WindowListener {
       );
 
       if (shouldClose == true) {
-        unsavedService.setDirty(false); // Forzar limpieza
+        // Overlay de guardado antes de cerrar la ventana
+        // ignore: use_build_context_synchronously
+        await SavingOverlay.showAndWait(
+          // ignore: use_build_context_synchronously
+          ctx,
+          mensaje: 'Guardando borrador...',
+          duration: const Duration(milliseconds: 800),
+        );
+        unsavedService.setDirty(false);
         await windowManager.destroy();
-      } else {
-        // Usuario canceló, no hacemos nada (la ventana sigue abierta)
       }
     } else {
       await windowManager.destroy();

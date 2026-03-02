@@ -16,19 +16,19 @@ class MockAgenciaDataSource {
       id: 'G-01',
       nombre: 'Marcos Ruiz',
       status: 'EN_RUTA',
-      viajesAsignados: 1, // Viaje #204
+      viajesAsignados: 1, // Viaje #MEX-01
     ),
     const Guia(
       id: 'G-02',
       nombre: 'Pedro Sánchez',
       status: 'EN_RUTA',
-      viajesAsignados: 1, // Viaje #205
+      viajesAsignados: 1, // Viaje #MEX-02
     ),
     const Guia(
       id: 'G-03',
       nombre: 'Ana Paula G.',
       status: 'EN_RUTA',
-      viajesAsignados: 1, // Viaje #110
+      viajesAsignados: 1, // Viaje #MEX-03
     ),
 
     // 📅 GUÍAS CON VIAJES PROGRAMADOS (4)
@@ -36,25 +36,25 @@ class MockAgenciaDataSource {
       id: 'G-04',
       nombre: 'Carlos Vega',
       status: 'ONLINE',
-      viajesAsignados: 1, // Viaje #305 PROGRAMADO
+      viajesAsignados: 1, // Viaje #TOL-01 PROGRAMADO
     ),
     const Guia(
       id: 'G-05',
       nombre: 'Luisa Lane',
       status: 'ONLINE',
-      viajesAsignados: 1, // Viaje #306 PROGRAMADO
+      viajesAsignados: 1, // Viaje #VBR-01 PROGRAMADO
     ),
     const Guia(
       id: 'G-06',
       nombre: 'Roberto Gómez',
       status: 'ONLINE',
-      viajesAsignados: 1, // Viaje #307 PROGRAMADO
+      viajesAsignados: 1, // Viaje #XOC-01 PROGRAMADO
     ),
     const Guia(
       id: 'G-07',
       nombre: 'María López',
       status: 'ONLINE',
-      viajesAsignados: 1, // Viaje #308 PROGRAMADO
+      viajesAsignados: 1, // Viaje #TEP-01 PROGRAMADO
     ),
 
     // ✅ GUÍAS DISPONIBLES (2) - ONLINE sin viajes
@@ -92,7 +92,7 @@ class MockAgenciaDataSource {
     _viajes = [
       // 🟢 Viajes EN CURSO - VIAJES CORTOS (Mismo día, 6-8 horas)
       Viaje(
-        id: '204',
+        id: 'MEX-01',
         destino: 'Centro Histórico CDMX',
         estado: 'EN_CURSO',
         // Inició hace 2 horas, termina en 4 horas (6 horas total)
@@ -109,7 +109,7 @@ class MockAgenciaDataSource {
         tipoGrupo: TipoGrupo.familiar,
       ),
       Viaje(
-        id: '205',
+        id: 'MEX-02',
         destino: 'Zona Montañosa - Desierto de los Leones',
         estado: 'EN_CURSO',
         // Inició hace 3 horas, termina en 5 horas (8 horas total)
@@ -135,7 +135,7 @@ class MockAgenciaDataSource {
         tipoGrupo: TipoGrupo.aventuraAdultos,
       ),
       Viaje(
-        id: '110',
+        id: 'MEX-03',
         destino: 'Teotihuacán',
         estado: 'EN_CURSO',
         // Inició hace 4 horas, termina en 3 horas (7 horas total)
@@ -154,7 +154,7 @@ class MockAgenciaDataSource {
 
       // 🔵 Viajes PROGRAMADOS - VIAJES LARGOS (Multi-día, 2-3 días)
       Viaje(
-        id: '305',
+        id: 'TOL-01',
         destino: 'Nevado de Toluca (Campamento)',
         estado: 'PROGRAMADO',
         // Empieza mañana a las 8 AM, termina pasado mañana a las 6 PM (3 días)
@@ -168,7 +168,7 @@ class MockAgenciaDataSource {
         alertasActivas: 0,
       ),
       Viaje(
-        id: '306',
+        id: 'VBR-01',
         destino: 'Valle de Bravo (Fin de Semana)',
         estado: 'PROGRAMADO',
         // Empieza en 2 días a las 9 AM, termina en 4 días a las 5 PM (2 días)
@@ -182,7 +182,7 @@ class MockAgenciaDataSource {
         alertasActivas: 0,
       ),
       Viaje(
-        id: '307',
+        id: 'XOC-01',
         destino: 'Xochimilco',
         estado: 'PROGRAMADO',
         // Viaje corto programado: En 5 días, 6 horas
@@ -196,7 +196,7 @@ class MockAgenciaDataSource {
         alertasActivas: 0,
       ),
       Viaje(
-        id: '308',
+        id: 'TEP-01',
         destino: 'Tepoztlán',
         estado: 'PROGRAMADO',
         // Viaje corto programado: En 6 días, 7 horas
@@ -210,7 +210,7 @@ class MockAgenciaDataSource {
         alertasActivas: 0,
       ),
       Viaje(
-        id: '309',
+        id: 'TAX-01',
         destino: 'Taxco (Expedición)',
         estado: 'PROGRAMADO',
         // Viaje largo programado: En 7 días, 3 días de duración
@@ -226,7 +226,7 @@ class MockAgenciaDataSource {
 
       // ⚫ Viajes FINALIZADOS - Fechas PASADAS
       Viaje(
-        id: '401',
+        id: 'SUM-01',
         destino: 'Cañón del Sumidero',
         estado: 'FINALIZADO',
         // Empezó ayer a las 7 AM, terminó ayer a las 8 PM (13 horas)
@@ -249,7 +249,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-01',
       nombre: 'Ana Gómez',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'SOS',
       bateria: 0.15,
       enCampo: true,
@@ -258,7 +258,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-02',
       nombre: 'Juan Pérez',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.90,
       enCampo: true,
@@ -266,7 +266,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-03',
       nombre: 'Carla M.',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.85,
       enCampo: true,
@@ -274,7 +274,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04',
       nombre: 'Luis R.',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.88,
       enCampo: true,
@@ -283,7 +283,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-5',
       nombre: 'Turista 204-5',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -291,7 +291,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-6',
       nombre: 'Turista 204-6',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -299,7 +299,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-7',
       nombre: 'Turista 204-7',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -307,7 +307,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-8',
       nombre: 'Turista 204-8',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -315,7 +315,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-9',
       nombre: 'Turista 204-9',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -323,7 +323,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-10',
       nombre: 'Turista 204-10',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -331,7 +331,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-11',
       nombre: 'Turista 204-11',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -339,7 +339,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-12',
       nombre: 'Turista 204-12',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -347,7 +347,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-13',
       nombre: 'Turista 204-13',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -355,7 +355,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-14',
       nombre: 'Turista 204-14',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -363,7 +363,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-04-15',
       nombre: 'Turista 204-15',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -373,7 +373,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-205-01',
       nombre: 'Roberto Sánchez',
-      viajeId: '205',
+      viajeId: 'MEX-02',
       status: 'OK',
       bateria: 0.25,
       enCampo: true,
@@ -381,7 +381,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-205-02',
       nombre: 'María López',
-      viajeId: '205',
+      viajeId: 'MEX-02',
       status: 'OK',
       bateria: 0.30,
       enCampo: true,
@@ -389,7 +389,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-205-03',
       nombre: 'Carlos Mendoza',
-      viajeId: '205',
+      viajeId: 'MEX-02',
       status: 'OK',
       bateria: 0.40,
       enCampo: true,
@@ -397,7 +397,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-205-04',
       nombre: 'Laura Fernández',
-      viajeId: '205',
+      viajeId: 'MEX-02',
       status: 'OK',
       bateria: 0.35,
       enCampo: true,
@@ -405,7 +405,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-205-05',
       nombre: 'Diego Torres',
-      viajeId: '205',
+      viajeId: 'MEX-02',
       status: 'OK',
       bateria: 0.28,
       enCampo: true,
@@ -413,7 +413,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-205-06',
       nombre: 'Patricia Ruiz',
-      viajeId: '205',
+      viajeId: 'MEX-02',
       status: 'OK',
       bateria: 0.32,
       enCampo: true,
@@ -421,7 +421,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-205-07',
       nombre: 'Fernando García',
-      viajeId: '205',
+      viajeId: 'MEX-02',
       status: 'OK',
       bateria: 0.27,
       enCampo: true,
@@ -429,7 +429,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-205-08',
       nombre: 'Sofía Morales',
-      viajeId: '205',
+      viajeId: 'MEX-02',
       status: 'ADVERTENCIA', // ← CORREGIDO: Para que salga amarillo
       bateria: 0.22,
       enCampo: true,
@@ -440,7 +440,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-01',
       nombre: 'Luis P.',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'ADVERTENCIA',
       bateria: 0.30,
       enCampo: true,
@@ -449,7 +449,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-2',
       nombre: 'Turista 110-2',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -457,7 +457,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-3',
       nombre: 'Turista 110-3',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -465,7 +465,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-4',
       nombre: 'Turista 110-4',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -473,7 +473,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-5',
       nombre: 'Turista 110-5',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -481,7 +481,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-6',
       nombre: 'Turista 110-6',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -489,7 +489,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-7',
       nombre: 'Turista 110-7',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -497,7 +497,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-8',
       nombre: 'Turista 110-8',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -505,7 +505,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-9',
       nombre: 'Turista 110-9',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -513,7 +513,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-10',
       nombre: 'Turista 110-10',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -521,7 +521,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-11',
       nombre: 'Turista 110-11',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -529,7 +529,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-12',
       nombre: 'Turista 110-12',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -537,7 +537,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-13',
       nombre: 'Turista 110-13',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -545,7 +545,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-14',
       nombre: 'Turista 110-14',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -553,7 +553,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-15',
       nombre: 'Turista 110-15',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -561,7 +561,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-16',
       nombre: 'Turista 110-16',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -569,7 +569,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-17',
       nombre: 'Turista 110-17',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -577,7 +577,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-18',
       nombre: 'Turista 110-18',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -585,7 +585,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-19',
       nombre: 'Turista 110-19',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -593,7 +593,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-20',
       nombre: 'Turista 110-20',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -601,7 +601,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-21',
       nombre: 'Turista 110-21',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -609,7 +609,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-22',
       nombre: 'Turista 110-22',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -617,7 +617,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-23',
       nombre: 'Turista 110-23',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -625,7 +625,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-24',
       nombre: 'Turista 110-24',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -633,7 +633,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-25',
       nombre: 'Turista 110-25',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -641,7 +641,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-26',
       nombre: 'Turista 110-26',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -649,7 +649,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-27',
       nombre: 'Turista 110-27',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -657,7 +657,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-28',
       nombre: 'Turista 110-28',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -665,7 +665,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-29',
       nombre: 'Turista 110-29',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -673,7 +673,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-30',
       nombre: 'Turista 110-30',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -681,7 +681,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-31',
       nombre: 'Turista 110-31',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -689,7 +689,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-32',
       nombre: 'Turista 110-32',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -697,7 +697,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-33',
       nombre: 'Turista 110-33',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -705,7 +705,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-34',
       nombre: 'Turista 110-34',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -713,7 +713,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-35',
       nombre: 'Turista 110-35',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -721,7 +721,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-36',
       nombre: 'Turista 110-36',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -729,7 +729,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-37',
       nombre: 'Turista 110-37',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -737,7 +737,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-38',
       nombre: 'Turista 110-38',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -745,7 +745,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-39',
       nombre: 'Turista 110-39',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -753,7 +753,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-110-40',
       nombre: 'Turista 110-40',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OK',
       bateria: 0.95,
       enCampo: true,
@@ -765,7 +765,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-OFF-1',
       nombre: 'Pepe L.',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       status: 'OFFLINE',
       bateria: 0.50,
       enCampo: true,
@@ -773,7 +773,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-OFF-2',
       nombre: 'Maria S.',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OFFLINE',
       bateria: 0.40,
       enCampo: true,
@@ -781,7 +781,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-OFF-3',
       nombre: 'Jose K.',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       status: 'OFFLINE',
       bateria: 0.20,
       enCampo: true,
@@ -792,7 +792,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-01',
       nombre: 'Roberto Martínez',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 1.0,
       enCampo: false,
@@ -810,7 +810,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-02',
       nombre: 'Sandra López',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.98,
       enCampo: false,
@@ -828,7 +828,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-03',
       nombre: 'Miguel Ángel Torres',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: false,
@@ -836,7 +836,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-04',
       nombre: 'Patricia Hernández',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.92,
       enCampo: false,
@@ -844,7 +844,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-05',
       nombre: 'Fernando García',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.88,
       enCampo: false,
@@ -852,7 +852,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-06',
       nombre: 'Laura Ramírez',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.90,
       enCampo: false,
@@ -860,7 +860,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-07',
       nombre: 'Javier Sánchez',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.85,
       enCampo: false,
@@ -868,7 +868,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-08',
       nombre: 'Gabriela Morales',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.93,
       enCampo: false,
@@ -876,7 +876,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-09',
       nombre: 'Ricardo Flores',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.87,
       enCampo: false,
@@ -884,7 +884,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-10',
       nombre: 'Daniela Castro',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.91,
       enCampo: false,
@@ -892,7 +892,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-11',
       nombre: 'Alberto Mendoza',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.89,
       enCampo: false,
@@ -900,7 +900,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-305-12',
       nombre: 'Verónica Silva',
-      viajeId: '305',
+      viajeId: 'TOL-01',
       status: 'OK',
       bateria: 0.94,
       enCampo: false,
@@ -910,7 +910,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-306-01',
       nombre: 'Andrés Gutiérrez',
-      viajeId: '306',
+      viajeId: 'VBR-01',
       status: 'OK',
       bateria: 1.0,
       enCampo: false,
@@ -918,7 +918,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-306-02',
       nombre: 'Carolina Vargas',
-      viajeId: '306',
+      viajeId: 'VBR-01',
       status: 'OK',
       bateria: 0.96,
       enCampo: false,
@@ -926,7 +926,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-306-03',
       nombre: 'Diego Rojas',
-      viajeId: '306',
+      viajeId: 'VBR-01',
       status: 'OK',
       bateria: 0.92,
       enCampo: false,
@@ -934,7 +934,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-306-04',
       nombre: 'Mariana Ortiz',
-      viajeId: '306',
+      viajeId: 'VBR-01',
       status: 'OK',
       bateria: 0.88,
       enCampo: false,
@@ -942,7 +942,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-306-05',
       nombre: 'Pablo Reyes',
-      viajeId: '306',
+      viajeId: 'VBR-01',
       status: 'OK',
       bateria: 0.90,
       enCampo: false,
@@ -950,7 +950,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-306-06',
       nombre: 'Sofía Jiménez',
-      viajeId: '306',
+      viajeId: 'VBR-01',
       status: 'OK',
       bateria: 0.94,
       enCampo: false,
@@ -958,7 +958,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-306-07',
       nombre: 'Héctor Medina',
-      viajeId: '306',
+      viajeId: 'VBR-01',
       status: 'OK',
       bateria: 0.87,
       enCampo: false,
@@ -966,7 +966,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-306-08',
       nombre: 'Valeria Cruz',
-      viajeId: '306',
+      viajeId: 'VBR-01',
       status: 'OK',
       bateria: 0.91,
       enCampo: false,
@@ -976,7 +976,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-01',
       nombre: 'Alejandro Ruiz',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 1.0,
       enCampo: false,
@@ -984,7 +984,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-02',
       nombre: 'Beatriz Navarro',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.97,
       enCampo: false,
@@ -992,7 +992,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-03',
       nombre: 'César Domínguez',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.93,
       enCampo: false,
@@ -1000,7 +1000,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-04',
       nombre: 'Diana Peña',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.89,
       enCampo: false,
@@ -1008,7 +1008,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-05',
       nombre: 'Eduardo Vega',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.91,
       enCampo: false,
@@ -1016,7 +1016,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-06',
       nombre: 'Fernanda Ríos',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: false,
@@ -1024,7 +1024,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-07',
       nombre: 'Gustavo Paredes',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.88,
       enCampo: false,
@@ -1032,7 +1032,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-08',
       nombre: 'Helena Campos',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.92,
       enCampo: false,
@@ -1040,7 +1040,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-09',
       nombre: 'Ignacio Salazar',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.86,
       enCampo: false,
@@ -1048,7 +1048,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-10',
       nombre: 'Julia Cortés',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.90,
       enCampo: false,
@@ -1056,7 +1056,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-11',
       nombre: 'Kevin Aguilar',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.94,
       enCampo: false,
@@ -1064,7 +1064,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-12',
       nombre: 'Liliana Fuentes',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.87,
       enCampo: false,
@@ -1072,7 +1072,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-13',
       nombre: 'Manuel Estrada',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.91,
       enCampo: false,
@@ -1080,7 +1080,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-14',
       nombre: 'Natalia Herrera',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.96,
       enCampo: false,
@@ -1088,7 +1088,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-15',
       nombre: 'Óscar Delgado',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.85,
       enCampo: false,
@@ -1096,7 +1096,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-16',
       nombre: 'Paola Montes',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.89,
       enCampo: false,
@@ -1104,7 +1104,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-17',
       nombre: 'Raúl Castillo',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.93,
       enCampo: false,
@@ -1112,7 +1112,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-18',
       nombre: 'Silvia Ramos',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.88,
       enCampo: false,
@@ -1120,7 +1120,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-19',
       nombre: 'Tomás Ibarra',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.92,
       enCampo: false,
@@ -1128,7 +1128,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-307-20',
       nombre: 'Úrsula Molina',
-      viajeId: '307',
+      viajeId: 'XOC-01',
       status: 'OK',
       bateria: 0.90,
       enCampo: false,
@@ -1138,7 +1138,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-308-01',
       nombre: 'Vicente Acosta',
-      viajeId: '308',
+      viajeId: 'TEP-01',
       status: 'OK',
       bateria: 1.0,
       enCampo: false,
@@ -1146,7 +1146,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-308-02',
       nombre: 'Wendy Pacheco',
-      viajeId: '308',
+      viajeId: 'TEP-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: false,
@@ -1154,7 +1154,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-308-03',
       nombre: 'Xavier Núñez',
-      viajeId: '308',
+      viajeId: 'TEP-01',
       status: 'OK',
       bateria: 0.91,
       enCampo: false,
@@ -1162,7 +1162,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-308-04',
       nombre: 'Yolanda Bravo',
-      viajeId: '308',
+      viajeId: 'TEP-01',
       status: 'OK',
       bateria: 0.87,
       enCampo: false,
@@ -1170,7 +1170,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-308-05',
       nombre: 'Zacarías León',
-      viajeId: '308',
+      viajeId: 'TEP-01',
       status: 'OK',
       bateria: 0.93,
       enCampo: false,
@@ -1178,7 +1178,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-308-06',
       nombre: 'Adriana Ponce',
-      viajeId: '308',
+      viajeId: 'TEP-01',
       status: 'OK',
       bateria: 0.89,
       enCampo: false,
@@ -1186,7 +1186,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-308-07',
       nombre: 'Bruno Valdez',
-      viajeId: '308',
+      viajeId: 'TEP-01',
       status: 'OK',
       bateria: 0.92,
       enCampo: false,
@@ -1194,7 +1194,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-308-08',
       nombre: 'Claudia Soto',
-      viajeId: '308',
+      viajeId: 'TEP-01',
       status: 'OK',
       bateria: 0.88,
       enCampo: false,
@@ -1202,7 +1202,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-308-09',
       nombre: 'Damián Lara',
-      viajeId: '308',
+      viajeId: 'TEP-01',
       status: 'OK',
       bateria: 0.90,
       enCampo: false,
@@ -1210,7 +1210,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-308-10',
       nombre: 'Elisa Cabrera',
-      viajeId: '308',
+      viajeId: 'TEP-01',
       status: 'OK',
       bateria: 0.94,
       enCampo: false,
@@ -1220,7 +1220,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-01',
       nombre: 'Fabián Guerrero',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 1.0,
       enCampo: false,
@@ -1228,7 +1228,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-02',
       nombre: 'Gloria Sandoval',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.96,
       enCampo: false,
@@ -1236,7 +1236,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-03',
       nombre: 'Hugo Cervantes',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.92,
       enCampo: false,
@@ -1244,7 +1244,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-04',
       nombre: 'Irene Maldonado',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.88,
       enCampo: false,
@@ -1252,7 +1252,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-05',
       nombre: 'Jorge Espinoza',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.90,
       enCampo: false,
@@ -1260,7 +1260,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-06',
       nombre: 'Karina Velázquez',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.94,
       enCampo: false,
@@ -1268,7 +1268,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-07',
       nombre: 'Leonardo Ávila',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.87,
       enCampo: false,
@@ -1276,7 +1276,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-08',
       nombre: 'Mónica Gallegos',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.91,
       enCampo: false,
@@ -1284,7 +1284,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-09',
       nombre: 'Nicolás Zamora',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.85,
       enCampo: false,
@@ -1292,7 +1292,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-10',
       nombre: 'Olivia Carrillo',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.89,
       enCampo: false,
@@ -1300,7 +1300,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-11',
       nombre: 'Pedro Alvarado',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.93,
       enCampo: false,
@@ -1308,7 +1308,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-12',
       nombre: 'Quintana Barrios',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.86,
       enCampo: false,
@@ -1316,7 +1316,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-13',
       nombre: 'Rodrigo Cárdenas',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.90,
       enCampo: false,
@@ -1324,7 +1324,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-14',
       nombre: 'Susana Ochoa',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.95,
       enCampo: false,
@@ -1332,7 +1332,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-309-15',
       nombre: 'Teodoro Marín',
-      viajeId: '309',
+      viajeId: 'TAX-01',
       status: 'OK',
       bateria: 0.88,
       enCampo: false,
@@ -1342,7 +1342,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-01',
       nombre: 'Ulises Mendoza',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.75,
       enCampo: false,
@@ -1355,7 +1355,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-02',
       nombre: 'Vanessa Robles',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.68,
       enCampo: false,
@@ -1369,7 +1369,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-03',
       nombre: 'Walter Figueroa',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.72,
       enCampo: false,
@@ -1382,7 +1382,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-04',
       nombre: 'Ximena Padilla',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.65,
       enCampo: false,
@@ -1390,7 +1390,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-05',
       nombre: 'Yair Contreras',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.70,
       enCampo: false,
@@ -1398,7 +1398,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-06',
       nombre: 'Zoe Santana',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.78,
       enCampo: false,
@@ -1406,7 +1406,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-07',
       nombre: 'Aarón Villegas',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.63,
       enCampo: false,
@@ -1414,7 +1414,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-08',
       nombre: 'Brenda Osorio',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.69,
       enCampo: false,
@@ -1422,7 +1422,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-09',
       nombre: 'Cristian Mejía',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.74,
       enCampo: false,
@@ -1430,7 +1430,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-10',
       nombre: 'Dulce Arellano',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.67,
       enCampo: false,
@@ -1438,7 +1438,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-11',
       nombre: 'Emilio Becerra',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.71,
       enCampo: false,
@@ -1446,7 +1446,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-12',
       nombre: 'Fátima Solís',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.76,
       enCampo: false,
@@ -1454,7 +1454,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-13',
       nombre: 'Germán Trejo',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.64,
       enCampo: false,
@@ -1462,7 +1462,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-14',
       nombre: 'Hilda Quintero',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.70,
       enCampo: false,
@@ -1470,7 +1470,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-15',
       nombre: 'Iván Camacho',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.73,
       enCampo: false,
@@ -1478,7 +1478,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-16',
       nombre: 'Jazmín Duarte',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.66,
       enCampo: false,
@@ -1486,7 +1486,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-17',
       nombre: 'Kaleb Serrano',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.69,
       enCampo: false,
@@ -1494,7 +1494,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-18',
       nombre: 'Lorena Valdés',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.75,
       enCampo: false,
@@ -1502,7 +1502,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-19',
       nombre: 'Mateo Rangel',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.62,
       enCampo: false,
@@ -1510,7 +1510,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-20',
       nombre: 'Nora Esquivel',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.68,
       enCampo: false,
@@ -1518,7 +1518,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-21',
       nombre: 'Omar Galván',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.71,
       enCampo: false,
@@ -1526,7 +1526,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-22',
       nombre: 'Perla Salinas',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.77,
       enCampo: false,
@@ -1534,7 +1534,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-23',
       nombre: 'Quetzal Ibáñez',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.65,
       enCampo: false,
@@ -1542,7 +1542,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-24',
       nombre: 'Ramiro Cordero',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.70,
       enCampo: false,
@@ -1550,7 +1550,7 @@ class MockAgenciaDataSource {
     const Turista(
       id: 'T-401-25',
       nombre: 'Sarai Montoya',
-      viajeId: '401',
+      viajeId: 'SUM-01',
       status: 'OK',
       bateria: 0.74,
       enCampo: false,
@@ -1561,7 +1561,7 @@ class MockAgenciaDataSource {
   final List<Alerta> _alertas = [
     Alerta(
       id: 'A-01',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       nombreTurista: 'Ana G.',
       turistaId: 'T-01', // ← NUEVO: ID del turista
       tipo: 'PANICO',
@@ -1571,7 +1571,7 @@ class MockAgenciaDataSource {
     ),
     Alerta(
       id: 'A-02',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       nombreTurista: 'Luis P.',
       turistaId: 'T-110-01', // ← CORREGIDO: ID real de Luis P.
       tipo: 'LEJANIA',
@@ -1581,7 +1581,7 @@ class MockAgenciaDataSource {
     ),
     Alerta(
       id: 'A-03',
-      viajeId: '205',
+      viajeId: 'MEX-02',
       nombreTurista: 'Sofía Morales',
       turistaId: 'T-205-08', // ← CORREGIDO: ID real de Sofía Morales
       tipo: 'BATERIA',
@@ -1591,7 +1591,7 @@ class MockAgenciaDataSource {
     ),
     Alerta(
       id: 'A-04',
-      viajeId: '205',
+      viajeId: 'MEX-02',
       nombreTurista: 'Guía: Pedro S.',
       turistaId: null, // ← NUEVO: null porque es alerta del guía, no turista
       tipo: 'CONECTIVIDAD',
@@ -1602,7 +1602,7 @@ class MockAgenciaDataSource {
     // Alerta INFO - Sincronización automática
     Alerta(
       id: 'A-05',
-      viajeId: '110',
+      viajeId: 'MEX-03',
       nombreTurista: 'Sistema',
       turistaId: null, // ← NUEVO: null porque es alerta de sistema
       tipo: 'SINCRONIZACION',
@@ -1613,13 +1613,13 @@ class MockAgenciaDataSource {
     // Alerta INFO - Modificación de geocerca
     Alerta(
       id: 'A-06',
-      viajeId: '204',
+      viajeId: 'MEX-01',
       nombreTurista: 'Admin Juan',
       turistaId: null, // ← NUEVO: null porque es alerta de sistema
       tipo: 'MODIFICACION',
       hora: DateTime.now().subtract(const Duration(hours: 2)),
       esCritica: false,
-      mensaje: 'Modificación de Geocerca en Viaje #204',
+      mensaje: 'Modificación de Geocerca en Viaje #MEX-01',
     ),
   ];
 
@@ -1810,7 +1810,7 @@ class MockAgenciaDataSource {
       fecha: DateTime.now().subtract(const Duration(hours: 1)),
       nivel: 'INFO',
       actor: 'Admin: Juan',
-      accion: 'Modificación de Geocerca en Viaje #204',
+      accion: 'Modificación de Geocerca en Viaje #MEX-01',
       ip: '10.0.0.5',
       metadata: {
         'previous_value': '50m',
