@@ -28,13 +28,29 @@ import 'routes_turista.dart';
 import 'transitions.dart';
 
 class EnrutadorAppTurista {
-  static GoRouter createRouter(String initialLocation, AuthBloc authBloc) {
+  static GoRouter createRouter(
+    String initialLocation,
+    AuthBloc authBloc, {
+    bool hasAccount = false,
+  }) {
+    // Mutable closure variable — becomes true as soon as the user authenticates
+    // in this session, so post-logout redirects go to /login, not /folio.
+    var _hasAccount = hasAccount;
+
     return GoRouter(
       initialLocation: initialLocation,
       refreshListenable: GoRouterRefreshStream(authBloc.stream),
       redirect: (context, state) {
         final authState = authBloc.state;
+
+        // While the auth check is still running, don't redirect.
+        if (authState.status == AuthStatus.unknown) return null;
+
         final isAuth = authState.status == AuthStatus.authenticated;
+
+        // Once authenticated (registration OR login), remember it for this session.
+        if (isAuth) _hasAccount = true;
+
         final isLoggingIn =
             state.matchedLocation == RoutesTurista.login ||
             state.matchedLocation == RoutesTurista.register ||
@@ -46,7 +62,9 @@ class EnrutadorAppTurista {
             state.matchedLocation == RoutesTurista.onboarding;
 
         if (!isAuth && !isLoggingIn) {
-          return RoutesTurista.folio;
+          // Returning user (has account) → go to login.
+          // Brand-new user → go through folio first.
+          return _hasAccount ? RoutesTurista.login : RoutesTurista.folio;
         }
 
         if (isAuth && isLoggingIn) {
