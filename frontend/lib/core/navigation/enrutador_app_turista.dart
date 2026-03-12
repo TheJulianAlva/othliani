@@ -35,7 +35,7 @@ class EnrutadorAppTurista {
   }) {
     // Mutable closure variable — becomes true as soon as the user authenticates
     // in this session, so post-logout redirects go to /login, not /folio.
-    var _hasAccount = hasAccount;
+    var localHasAccount = hasAccount;
 
     return GoRouter(
       initialLocation: initialLocation,
@@ -49,7 +49,7 @@ class EnrutadorAppTurista {
         final isAuth = authState.status == AuthStatus.authenticated;
 
         // Once authenticated (registration OR login), remember it for this session.
-        if (isAuth) _hasAccount = true;
+        if (isAuth) localHasAccount = true;
 
         final isLoggingIn =
             state.matchedLocation == RoutesTurista.login ||
@@ -64,7 +64,7 @@ class EnrutadorAppTurista {
         if (!isAuth && !isLoggingIn) {
           // Returning user (has account) → go to login.
           // Brand-new user → go through folio first.
-          return _hasAccount ? RoutesTurista.login : RoutesTurista.folio;
+          return localHasAccount ? RoutesTurista.login : RoutesTurista.folio;
         }
 
         if (isAuth && isLoggingIn) {

@@ -410,6 +410,48 @@ abstract class AppLocalizations {
   /// **'Moneda'**
   String get currency;
 
+  /// No description provided for @tools.
+  ///
+  /// In es, this message translates to:
+  /// **'Herramientas'**
+  String get tools;
+
+  /// No description provided for @travelerTools.
+  ///
+  /// In es, this message translates to:
+  /// **'Herramientas del Viajero'**
+  String get travelerTools;
+
+  /// No description provided for @currencyConverterDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipos de cambio actualizados para que sepas cuánto gastas.'**
+  String get currencyConverterDesc;
+
+  /// No description provided for @translatorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Traductor'**
+  String get translatorTitle;
+
+  /// No description provided for @translatorDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Traduce por texto, voz o escanea con tu cámara.'**
+  String get translatorDesc;
+
+  /// No description provided for @expenseSplitterTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Divisor de Gastos'**
+  String get expenseSplitterTitle;
+
+  /// No description provided for @expenseSplitterDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Registra quién pagó qué y divide la cuenta fácilmente.'**
+  String get expenseSplitterDesc;
+
   /// No description provided for @config.
   ///
   /// In es, this message translates to:

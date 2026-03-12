@@ -165,6 +165,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currency => 'Currency';
 
   @override
+  String get tools => 'Tools';
+
+  @override
+  String get travelerTools => 'Traveler Tools';
+
+  @override
+  String get currencyConverterDesc =>
+      'Up-to-date exchange rates so you always know what you spend.';
+
+  @override
+  String get translatorTitle => 'Translator';
+
+  @override
+  String get translatorDesc =>
+      'Translate by text, voice, or scan signs with your camera.';
+
+  @override
+  String get expenseSplitterTitle => 'Expense Splitter';
+
+  @override
+  String get expenseSplitterDesc =>
+      'Track who paid what and split the bill effortlessly.';
+
+  @override
   String get config => 'Config';
 
   @override
