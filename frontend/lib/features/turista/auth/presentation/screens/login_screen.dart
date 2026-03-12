@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
+import 'package:frontend/features/turista/auth/presentation/bloc/auth_event.dart';
 import 'package:frontend/features/turista/auth/presentation/cubit/login_cubit.dart';
 import 'package:frontend/features/turista/auth/presentation/cubit/login_state.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -50,7 +53,12 @@ class _LoginViewState extends State<_LoginView> {
     return BlocListener<LoginCubit, LoginState>(
       listener: (context, state) {
         if (state is LoginSuccess) {
-          context.go(RoutesTurista.home);
+          // Ensure the flag is set even if the user reinstalled the app.
+          SharedPreferences.getInstance().then(
+            (p) => p.setBool('TURISTA_HAS_ACCOUNT', true),
+          );
+          // Notify the AuthBloc so the router redirect sends the user to /home.
+          context.read<AuthBloc>().add(AuthLoggedIn(state.user));
         } else if (state is LoginFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),

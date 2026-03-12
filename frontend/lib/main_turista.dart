@@ -5,44 +5,51 @@ import 'package:frontend/core/di/turista_locator.dart' as di_turista;
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:frontend/core/navigation/enrutador_app_turista.dart';
+import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_event.dart';
 import 'package:frontend/features/turista/settings/presentation/cubit/accessibility_cubit.dart';
 import 'package:frontend/features/turista/settings/presentation/cubit/locale_cubit.dart';
 import 'package:frontend/features/turista/settings/presentation/cubit/theme_cubit.dart';
-// Providers legacy
-// import 'package:provider/provider.dart'; // Removing Provider dependency for settings
+import 'package:shared_preferences/shared_preferences.dart';
+
+const _kHasAccount = 'TURISTA_HAS_ACCOUNT';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await di_shared.initSharedDependencies();
   await di_turista.initTuristaDependencies();
 
-  runApp(const MyApp());
+  final prefs = await SharedPreferences.getInstance();
+  final hasAccount = prefs.getBool(_kHasAccount) ?? false;
+
+  runApp(MyApp(hasAccount: hasAccount));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.hasAccount});
+
+  final bool hasAccount;
 
   @override
   Widget build(BuildContext context) {
-    // We replace MultiProvider with MultiBlocProvider
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => sl<AuthBloc>()..add(AuthCheckRequested())),
-        // Settings Cubits
         BlocProvider(create: (_) => sl<ThemeCubit>()),
         BlocProvider(create: (_) => sl<LocaleCubit>()),
         BlocProvider(create: (_) => sl<AccessibilityCubit>()),
       ],
-      child: const _AppView(),
+      child: _AppView(hasAccount: hasAccount),
     );
   }
 }
 
 class _AppView extends StatelessWidget {
-  const _AppView();
+  const _AppView({required this.hasAccount});
+
+  final bool hasAccount;
 
   @override
   Widget build(BuildContext context) {
@@ -53,13 +60,14 @@ class _AppView extends StatelessWidget {
       (AccessibilityCubit cubit) => cubit.state,
     );
 
-    // Apply accessibility (simple text scale for now, assuming AppTheme uses it or we wrap MaterialApp)
-    // Note: To fully apply accessibility settings like high contrast, we might need to modify AppTheme.
-    // For now we just pass themeMode and locale.
-
-    // Create Router with AuthBloc
+    // Create Router with AuthBloc — pass hasAccount so returning users go to
+    // /login instead of /folio after logout.
     final authBloc = context.read<AuthBloc>();
-    final router = EnrutadorAppTurista.createRouter('/', authBloc);
+    final router = EnrutadorAppTurista.createRouter(
+      hasAccount ? RoutesTurista.login : RoutesTurista.folio,
+      authBloc,
+      hasAccount: hasAccount,
+    );
 
     return MaterialApp.router(
       title: 'Turista App',

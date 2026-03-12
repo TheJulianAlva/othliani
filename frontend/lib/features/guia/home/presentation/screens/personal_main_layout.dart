@@ -505,7 +505,12 @@ class _ModoExploradorCard extends StatelessWidget {
             value: activo,
             onChanged:
                 (_) => context.read<PersonalHomeCubit>().toggleModoExplorador(),
-            activeThumbColor: _naranjaSecundario,
+            thumbColor: WidgetStateProperty.resolveWith(
+              (states) =>
+                  states.contains(WidgetState.selected)
+                      ? _naranjaSecundario
+                      : null,
+            ),
           ),
         ],
       ),
@@ -533,7 +538,12 @@ class _ModoExploradorSwitch extends StatelessWidget {
           value: activo,
           onChanged:
               (_) => context.read<PersonalHomeCubit>().toggleModoExplorador(),
-          activeThumbColor: Colors.orange.shade200,
+          thumbColor: WidgetStateProperty.resolveWith(
+            (states) =>
+                states.contains(WidgetState.selected)
+                    ? Colors.orange.shade200
+                    : null,
+          ),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ],
