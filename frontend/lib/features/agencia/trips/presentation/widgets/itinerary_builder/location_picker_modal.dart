@@ -228,7 +228,7 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.othliani.app',
+                userAgentPackageName: 'com.veltur.app',
               ),
               // Marker del punto seleccionado
               if (_pickedLocation != null)

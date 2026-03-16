@@ -141,7 +141,7 @@ class _DayRouteMapState extends State<DayRouteMap> {
               children: [
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.othliani.app',
+                  userAgentPackageName: 'com.veltur.app',
                 ),
                 // Polilínea de ruta en orden cronológico
                 if (points.length >= 2)

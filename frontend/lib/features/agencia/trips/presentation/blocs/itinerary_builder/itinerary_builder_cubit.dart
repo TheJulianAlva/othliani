@@ -518,7 +518,7 @@ class ItineraryBuilderCubit extends Cubit<ItineraryBuilderState> {
 
     try {
       final actividadesNuevas = await _importService.parseCsv(csvContent);
-      // Si reemplazar=true, vaciamos TODO el mapa antes de insertar
+      // Si reemplazar=true, vaciamos el mapa antes de insertar las nuevas actividades.
       final nuevoMapa =
           reemplazar
               ? <int, List<ActividadItinerario>>{}
