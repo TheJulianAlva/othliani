@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:frontend/core/tools/presentation/screens/currency_converter_screen.dart';
 import 'traductor_screen.dart';
+import 'traductor_voz_screen.dart';
 import 'divisor_gastos_screen.dart';
 
 class HerramientasScreen extends StatelessWidget {
@@ -27,9 +28,17 @@ class HerramientasScreen extends StatelessWidget {
           _ToolCard(
             title: l10n.translatorTitle,
             description: l10n.translatorDesc,
-            icon: Icons.translate_rounded,
+            icon: Icons.camera_alt_rounded, // Se cambió el icono
             color: Colors.blueAccent,
             destination: const TraductorScreen(),
+          ),
+          const SizedBox(height: 16),
+          _ToolCard(
+            title: l10n.voiceTranslatorTitle,
+            description: l10n.voiceTranslatorDesc,
+            icon: Icons.record_voice_over_rounded,
+            color: Colors.deepPurple,
+            destination: const TraductorVozScreen(),
           ),
           const SizedBox(height: 16),
           _ToolCard(

@@ -121,7 +121,7 @@ class _GuiaMockPaymentViewState extends State<_GuiaMockPaymentView> {
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            'OhtliAni Guía Independiente',
+                            'Veltur Guía Independiente',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -223,7 +223,7 @@ class _GuiaMockPaymentViewState extends State<_GuiaMockPaymentView> {
                     return ElevatedButton.icon(
                       onPressed: () => _onActivar(context),
                       icon: const Icon(Icons.shield_outlined),
-                      label: const Text('Activar Protección OhtliAni'),
+                      label: const Text('Activar Protección Veltur'),
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
                         textStyle: const TextStyle(

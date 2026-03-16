@@ -1,6 +1,6 @@
-# Release v0.1.0-alpha - OthliAni App Turista (Mockup/Demo) 🚀
+# Release v0.1.0-alpha - Veltur App Turista (Mockup/Demo) 🚀
 
-¡Bienvenidos a la primera versión Alpha de la aplicación **OthliAni para Turistas**! Esta entrega representa una **maqueta interactiva (Mockup)** diseñada para demostrar la interfaz de usuario (UI) y el flujo de experiencia (UX) que tendrá el producto final.
+¡Bienvenidos a la primera versión Alpha de la aplicación **Veltur para Turistas**! Esta entrega representa una **maqueta interactiva (Mockup)** diseñada para demostrar la interfaz de usuario (UI) y el flujo de experiencia (UX) que tendrá el producto final.
 
 > ⚠️ **IMPORTANTE:** En esta fase alpha, todas las funcionalidades operan con **datos simulados** y la mayoría de las integraciones (API, GPS real, Chat en vivo) están deshabilitadas o representadas mediante prototipos visuales.
 
@@ -36,4 +36,4 @@ En esta versión puedes navegar y explorar el diseño de las siguientes seccione
 *   Habilitación de mensajería real en el chat.
 
 ---
-*OthliAni - Visualizando el futuro del turismo.*
+*Veltur - Visualizando el futuro del turismo.*

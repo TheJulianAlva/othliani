@@ -19,7 +19,7 @@ class AuthRepositoryImpl implements AuthRepository {
     return const Right(
       AuthUser(
         id: '1',
-        email: 'admin@othliani.com',
+        email: 'admin@veltur.com',
         name: 'Admin Agencia',
         role: 'AGENCY_ADMIN',
       ),

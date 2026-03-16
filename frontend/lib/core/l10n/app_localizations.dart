@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In es, this message translates to:
-  /// **'OthliAni - Turista'**
+  /// **'Veltur - Turista'**
   String get appTitle;
 
   /// No description provided for @save.
@@ -410,48 +410,6 @@ abstract class AppLocalizations {
   /// **'Moneda'**
   String get currency;
 
-  /// No description provided for @tools.
-  ///
-  /// In es, this message translates to:
-  /// **'Herramientas'**
-  String get tools;
-
-  /// No description provided for @travelerTools.
-  ///
-  /// In es, this message translates to:
-  /// **'Herramientas del Viajero'**
-  String get travelerTools;
-
-  /// No description provided for @currencyConverterDesc.
-  ///
-  /// In es, this message translates to:
-  /// **'Tipos de cambio actualizados para que sepas cuánto gastas.'**
-  String get currencyConverterDesc;
-
-  /// No description provided for @translatorTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Traductor'**
-  String get translatorTitle;
-
-  /// No description provided for @translatorDesc.
-  ///
-  /// In es, this message translates to:
-  /// **'Traduce por texto, voz o escanea con tu cámara.'**
-  String get translatorDesc;
-
-  /// No description provided for @expenseSplitterTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Divisor de Gastos'**
-  String get expenseSplitterTitle;
-
-  /// No description provided for @expenseSplitterDesc.
-  ///
-  /// In es, this message translates to:
-  /// **'Registra quién pagó qué y divide la cuenta fácilmente.'**
-  String get expenseSplitterDesc;
-
   /// No description provided for @config.
   ///
   /// In es, this message translates to:
@@ -461,7 +419,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingTitle1.
   ///
   /// In es, this message translates to:
-  /// **'Bienvenido a OthliAni'**
+  /// **'Bienvenido a Veltur'**
   String get onboardingTitle1;
 
   /// No description provided for @onboardingDesc1.
@@ -913,6 +871,66 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Escribe un mensaje...'**
   String get writeMessage;
+
+  /// No description provided for @tools.
+  ///
+  /// In es, this message translates to:
+  /// **'Herramientas'**
+  String get tools;
+
+  /// No description provided for @travelerTools.
+  ///
+  /// In es, this message translates to:
+  /// **'Herramientas del Viajero'**
+  String get travelerTools;
+
+  /// No description provided for @currencyConverterTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Conversor de Moneda'**
+  String get currencyConverterTitle;
+
+  /// No description provided for @currencyConverterDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Calcula el valor de tus gastos al instante'**
+  String get currencyConverterDesc;
+
+  /// No description provided for @translatorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Traductor Inteligente'**
+  String get translatorTitle;
+
+  /// No description provided for @translatorDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Traduce textos con tu cámara al instante'**
+  String get translatorDesc;
+
+  /// No description provided for @voiceTranslatorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Traductor de Voz'**
+  String get voiceTranslatorTitle;
+
+  /// No description provided for @voiceTranslatorDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Habla y traduce en tiempo real'**
+  String get voiceTranslatorDesc;
+
+  /// No description provided for @expenseSplitterTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Divisor de Gastos'**
+  String get expenseSplitterTitle;
+
+  /// No description provided for @expenseSplitterDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Divide la cuenta del restaurante o viaje fácilmente'**
+  String get expenseSplitterDesc;
 }
 
 class _AppLocalizationsDelegate

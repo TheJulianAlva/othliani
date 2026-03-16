@@ -267,7 +267,7 @@ class _ContactosConfianzaWidgetState extends State<ContactosConfianzaWidget> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'El viaje se guardó localmente. OhtliAni monitoreará tu seguridad '
+                  'El viaje se guardó localmente. Veltur monitoreará tu seguridad '
                   'incluso sin internet y alertará a tu red de confianza si activas el SOS.',
                   textAlign: TextAlign.center,
                   style: TextStyle(

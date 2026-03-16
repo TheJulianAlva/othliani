@@ -1746,7 +1746,7 @@ class _TripCreationForm extends StatelessWidget {
       final response = await http.get(
         url,
         headers: {
-          'User-Agent': 'com.othliani.app', // CRUCIAL para Nominatim
+          'User-Agent': 'com.veltur.app', // CRUCIAL para Nominatim
         },
       );
 
@@ -1807,7 +1807,7 @@ class _TripCreationForm extends StatelessWidget {
                               );
                               final response = await http.get(
                                 url,
-                                headers: {'User-Agent': 'com.othliani.app'},
+                                headers: {'User-Agent': 'com.veltur.app'},
                               );
                               if (response.statusCode == 200) {
                                 final data = json.decode(response.body);
@@ -1842,7 +1842,7 @@ class _TripCreationForm extends StatelessWidget {
                           TileLayer(
                             urlTemplate:
                                 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.othliani.app',
+                            userAgentPackageName: 'com.veltur.app',
                           ),
                         ],
                       ),

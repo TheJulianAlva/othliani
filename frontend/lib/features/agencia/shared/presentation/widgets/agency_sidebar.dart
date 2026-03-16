@@ -98,7 +98,7 @@ class AgencySidebar extends StatelessWidget {
                 isCollapsed
                     ? const Icon(Icons.business, color: Colors.white)
                     : const Text(
-                      'OTHLIANI',
+                      'VELTUR',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,

@@ -167,7 +167,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
   // ── 🌿 Sección Eco (B2C exclusivo) ────────────────────────────────────────
   List<Widget> _buildSeccionEco() {
     return [
-      _SeccionTitulo('Mis Logros OhtliAni'),
+      _SeccionTitulo('Mis Logros Veltur'),
       const SizedBox(height: 8),
       if (_cargandoEco)
         const Padding(
@@ -567,7 +567,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
             // ── Versión ────────────────────────────────────────────────
             Center(
               child: Text(
-                'OhtliAni Guía v1.0.0 (mock)',
+                'Veltur Guía v1.0.0 (mock)',
                 style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
               ),
             ),
