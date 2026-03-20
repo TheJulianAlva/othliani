@@ -3,10 +3,41 @@ import 'package:flutter/material.dart';
 /// Widget de clima compartido entre el layout B2B y B2C.
 /// En el mock muestra datos estáticos; en producción se conectará a una API.
 class WeatherWidget extends StatelessWidget {
-  const WeatherWidget({super.key});
+  final bool isCompact;
+
+  const WeatherWidget({
+    super.key,
+    this.isCompact = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (isCompact) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(40),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withAlpha(50)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.wb_sunny_rounded, color: Colors.yellowAccent, size: 14),
+            SizedBox(width: 6),
+            Text(
+              '24°C · Soleado',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(

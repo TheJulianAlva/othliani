@@ -43,9 +43,6 @@ class _Actividad {
     completada: completada,
   );
 }
-
-// ── Pantalla principal: Itinerario del guía ───────────────────────────────────
-
 class GuiaItineraryScreen extends StatefulWidget {
   const GuiaItineraryScreen({super.key});
 

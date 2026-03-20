@@ -1,4 +1,8 @@
 import 'package:equatable/equatable.dart';
+import '../../../trips/domain/entities/actividad_itinerario.dart';
+import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
+export '../../../trips/domain/entities/actividad_itinerario.dart';
+export 'package:frontend/features/agencia/users/domain/entities/turista.dart';
 
 class ContactoEmergencia extends Equatable {
   final String nombre;
@@ -15,28 +19,11 @@ class ContactoEmergencia extends Equatable {
   List<Object?> get props => [nombre, telefono];
 }
 
-class ActividadItinerario extends Equatable {
-  final String nombre;
-  final String horaInicio;
-  final String horaFin;
-  final bool completada;
-
-  const ActividadItinerario({
-    required this.nombre,
-    required this.horaInicio,
-    required this.horaFin,
-    required this.completada,
-  });
-
-  @override
-  List<Object?> get props => [nombre, horaInicio, completada];
-}
-
 class PersonalHomeData extends Equatable {
   final String nombreGuia;
   final String nombreViaje;
   final String destino;
-  final String horaInicio;
+  final DateTime horaInicio;
   final int participantes;
   final bool viajeActivo;
   final int geocercaMetros;
@@ -46,6 +33,7 @@ class PersonalHomeData extends Equatable {
   final double huellaCarbono;
   final List<ContactoEmergencia> contactos;
   final List<ActividadItinerario> actividades;
+  final List<Turista> listaTuristas;
 
   const PersonalHomeData({
     required this.nombreGuia,
@@ -61,7 +49,42 @@ class PersonalHomeData extends Equatable {
     this.huellaCarbono = 0,
     required this.contactos,
     required this.actividades,
+    this.listaTuristas = const [],
   });
+
+  PersonalHomeData copyWith({
+    String? nombreGuia,
+    String? nombreViaje,
+    String? destino,
+    DateTime? horaInicio,
+    int? participantes,
+    bool? viajeActivo,
+    int? geocercaMetros,
+    double? kmRecorridos,
+    int? minActivos,
+    double? altitudActualM,
+    double? huellaCarbono,
+    List<ContactoEmergencia>? contactos,
+    List<ActividadItinerario>? actividades,
+    List<Turista>? listaTuristas,
+  }) {
+    return PersonalHomeData(
+      nombreGuia: nombreGuia ?? this.nombreGuia,
+      nombreViaje: nombreViaje ?? this.nombreViaje,
+      destino: destino ?? this.destino,
+      horaInicio: horaInicio ?? this.horaInicio,
+      participantes: participantes ?? this.participantes,
+      viajeActivo: viajeActivo ?? this.viajeActivo,
+      geocercaMetros: geocercaMetros ?? this.geocercaMetros,
+      kmRecorridos: kmRecorridos ?? this.kmRecorridos,
+      minActivos: minActivos ?? this.minActivos,
+      altitudActualM: altitudActualM ?? this.altitudActualM,
+      huellaCarbono: huellaCarbono ?? this.huellaCarbono,
+      contactos: contactos ?? this.contactos,
+      actividades: actividades ?? this.actividades,
+      listaTuristas: listaTuristas ?? this.listaTuristas,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -70,5 +93,6 @@ class PersonalHomeData extends Equatable {
     destino,
     geocercaMetros,
     viajeActivo,
+    listaTuristas,
   ];
 }

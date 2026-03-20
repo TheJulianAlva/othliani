@@ -1,9 +1,12 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/personal_home_data.dart';
+
 import '../../../domain/usecases/get_personal_home_data_usecase.dart';
 
 // ── Estados ───────────────────────────────────────────────────────────────────
+
+enum FiltroEstado { todas, pendientes, completadas }
 
 abstract class PersonalHomeState extends Equatable {
   const PersonalHomeState();
@@ -13,67 +16,39 @@ abstract class PersonalHomeState extends Equatable {
 
 class PersonalHomeLoading extends PersonalHomeState {}
 
+class PersonalHomeError extends PersonalHomeState {
+  final String message;
+  const PersonalHomeError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
 class PersonalHomeLoaded extends PersonalHomeState {
-  final String nombreGuia;
-  final String nombreViaje;
-  final String destino;
-  final String horaInicio;
-  final int participantes;
-  final bool viajeActivo;
+  final PersonalHomeData data;
   final bool modoExplorador;
-  final int geocercaMetros; // 50, 200 o 500
-  // Estadísticas
-  final double kmRecorridos;
-  final int minActivos;
-  final double altitudActualM;
-  final double huellaCarbono; // kg CO₂ estimado
-  // Contactos y actividades
-  final List<ContactoEmergencia> contactos;
-  final List<ActividadItinerario> actividades;
+  final FiltroEstado filtroActivo;
 
   const PersonalHomeLoaded({
-    required this.nombreGuia,
-    required this.nombreViaje,
-    required this.destino,
-    required this.horaInicio,
-    required this.participantes,
-    this.viajeActivo = true,
+    required this.data,
     this.modoExplorador = false,
-    this.geocercaMetros = 200,
-    this.kmRecorridos = 0,
-    this.minActivos = 0,
-    this.altitudActualM = 0,
-    this.huellaCarbono = 0,
-    required this.contactos,
-    required this.actividades,
+    this.filtroActivo = FiltroEstado.todas,
   });
 
-  PersonalHomeLoaded copyWith({bool? modoExplorador, int? geocercaMetros}) {
+  PersonalHomeLoaded copyWith({
+    PersonalHomeData? data,
+    bool? modoExplorador,
+    FiltroEstado? filtroActivo,
+  }) {
     return PersonalHomeLoaded(
-      nombreGuia: nombreGuia,
-      nombreViaje: nombreViaje,
-      destino: destino,
-      horaInicio: horaInicio,
-      participantes: participantes,
-      viajeActivo: viajeActivo,
+      data: data ?? this.data,
       modoExplorador: modoExplorador ?? this.modoExplorador,
-      geocercaMetros: geocercaMetros ?? this.geocercaMetros,
-      kmRecorridos: kmRecorridos,
-      minActivos: minActivos,
-      altitudActualM: altitudActualM,
-      huellaCarbono: huellaCarbono,
-      contactos: contactos,
-      actividades: actividades,
+      filtroActivo: filtroActivo ?? this.filtroActivo,
     );
   }
 
   @override
-  List<Object?> get props => [
-    nombreGuia,
-    nombreViaje,
-    modoExplorador,
-    geocercaMetros,
-  ];
+  List<Object?> get props => [data, modoExplorador, filtroActivo];
 }
 
 // ── Cubit ─────────────────────────────────────────────────────────────────────
@@ -88,24 +63,9 @@ class PersonalHomeCubit extends Cubit<PersonalHomeState> {
     try {
       emit(PersonalHomeLoading());
       final data = await getPersonalHomeDataUseCase(nombre);
-      emit(
-        PersonalHomeLoaded(
-          nombreGuia: data.nombreGuia,
-          nombreViaje: data.nombreViaje,
-          destino: data.destino,
-          horaInicio: data.horaInicio,
-          participantes: data.participantes,
-          kmRecorridos: data.kmRecorridos,
-          minActivos: data.minActivos,
-          altitudActualM: data.altitudActualM,
-          huellaCarbono: data.huellaCarbono,
-          geocercaMetros: data.geocercaMetros,
-          contactos: data.contactos,
-          actividades: data.actividades,
-        ),
-      );
+      emit(PersonalHomeLoaded(data: data));
     } catch (e) {
-      // Manejo error
+      emit(PersonalHomeError(e.toString()));
     }
   }
 
@@ -119,7 +79,14 @@ class PersonalHomeCubit extends Cubit<PersonalHomeState> {
   void cambiarGeocerca(int metros) {
     final s = state;
     if (s is PersonalHomeLoaded) {
-      emit(s.copyWith(geocercaMetros: metros));
+      emit(s.copyWith(data: s.data.copyWith(geocercaMetros: metros)));
+    }
+  }
+
+  void cambiarFiltro(FiltroEstado nuevoFiltro) {
+    final s = state;
+    if (s is PersonalHomeLoaded) {
+      emit(s.copyWith(filtroActivo: nuevoFiltro));
     }
   }
 }

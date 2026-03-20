@@ -16,34 +16,51 @@ class MapPreviewCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push(RoutesGuia.map),
       child: Container(
-        height: 100,
+        height: 85,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1A237E), Color(0xFF3D5AF1)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: const Color(0xFF2C3E50),
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3D5AF1).withAlpha(80),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              color: Colors.black.withAlpha(20),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+            // Nueva sombra difuminada para efecto Neumórfico/Glassmórfico de "flote"
+            BoxShadow(
+              color: const Color(0xFF3D5AF1).withAlpha(40),
+              blurRadius: 20,
+              spreadRadius: -5,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
         child: Stack(
           children: [
-            // Decoración de fondo
-            Positioned(
-              right: -20,
-              top: -20,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withAlpha(15),
+            // Textura fotorrealista de mapa estático
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Opacity(
+                opacity: 0.40, // 20% como sugirió la recomendación
+                child: Image.network(
+                  'https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1000&auto=format&fit=crop', // Imagen de mapa genérica de alta calidad
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            // Capa oscura azulada (overlay)
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF1A237E).withAlpha(210), // ~0.82 opacity
+                    const Color(0xFF3D5AF1).withAlpha(180), // ~0.70 opacity
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
                 ),
               ),
             ),

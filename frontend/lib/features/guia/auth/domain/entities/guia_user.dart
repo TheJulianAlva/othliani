@@ -8,6 +8,8 @@ enum AuthStatus {
   active, // Cuenta completamente activa
 }
 
+enum GuiaRole { personal, agencia }
+
 class GuiaUser extends Equatable {
   final String id;
   final String email;
@@ -26,6 +28,10 @@ class GuiaUser extends Equatable {
     this.permissionLevel = 1,
     this.authStatus = AuthStatus.unauthenticated,
   });
+
+  /// Retorna el rol del guía basándose en su `permissionLevel` (Safety against Magic Numbers).
+  GuiaRole get role =>
+      permissionLevel == 2 ? GuiaRole.agencia : GuiaRole.personal;
 
   @override
   List<Object?> get props => [
