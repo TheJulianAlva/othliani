@@ -9,7 +9,7 @@ import 'package:frontend/features/turista/home/presentation/screens/trip_home_sc
 import 'package:frontend/features/turista/chat/presentation/screens/chat_screen.dart';
 import 'package:frontend/features/turista/settings/presentation/screens/config_screen.dart';
 import 'map_screen.dart';
-import 'package:frontend/core/tools/presentation/screens/currency_converter_screen.dart';
+import 'herramientas_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -25,7 +25,7 @@ class _MainShellScreenState extends State<MainShellScreen>
   final List<IconData> _iconList = [
     Icons.luggage,
     Icons.chat_bubble_outline,
-    Icons.currency_exchange,
+    Icons.handyman_outlined,
     Icons.settings_outlined,
     Icons.map_outlined,
   ];
@@ -33,7 +33,7 @@ class _MainShellScreenState extends State<MainShellScreen>
   final List<Widget> _screens = [
     const TripHomeScreen(),
     const ChatScreen(),
-    const CurrencyConverterScreen(),
+    const HerramientasScreen(),
     const ConfigScreen(),
     const MapScreen(),
   ];
@@ -44,7 +44,7 @@ class _MainShellScreenState extends State<MainShellScreen>
     final labelList = [
       l10n.itinerary,
       l10n.chat,
-      l10n.currency,
+      l10n.tools,
       l10n.config,
       l10n.map,
     ];
@@ -129,7 +129,7 @@ class _MainShellScreenState extends State<MainShellScreen>
       case 1:
         return l10n.chat;
       case 2:
-        return l10n.currencyConverter;
+        return l10n.travelerTools;
       case 3:
         return l10n.configuration;
       case 4:

@@ -167,7 +167,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
   // ── 🌿 Sección Eco (B2C exclusivo) ────────────────────────────────────────
   List<Widget> _buildSeccionEco() {
     return [
-      _SeccionTitulo('Mis Logros OhtliAni'),
+      _SeccionTitulo('Mis Logros Veltur'),
       const SizedBox(height: 8),
       if (_cargandoEco)
         const Padding(
@@ -472,7 +472,12 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                       style: TextStyle(fontSize: 13),
                     ),
                     value: _modoOscuro,
-                    activeThumbColor: _azulSecundario,
+                    thumbColor: WidgetStateProperty.resolveWith(
+                      (states) =>
+                          states.contains(WidgetState.selected)
+                              ? _azulSecundario
+                              : null,
+                    ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     onChanged: (v) => setState(() => _modoOscuro = v),
                   ),
@@ -490,7 +495,12 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                       style: TextStyle(fontSize: 13),
                     ),
                     value: _notificacionesActivas,
-                    activeThumbColor: _azulSecundario,
+                    thumbColor: WidgetStateProperty.resolveWith(
+                      (states) =>
+                          states.contains(WidgetState.selected)
+                              ? _azulSecundario
+                              : null,
+                    ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     onChanged:
                         (v) => setState(() => _notificacionesActivas = v),
@@ -557,7 +567,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
             // ── Versión ────────────────────────────────────────────────
             Center(
               child: Text(
-                'OhtliAni Guía v1.0.0 (mock)',
+                'Veltur Guía v1.0.0 (mock)',
                 style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
               ),
             ),

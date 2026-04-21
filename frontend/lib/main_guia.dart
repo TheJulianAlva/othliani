@@ -76,7 +76,7 @@ class _MainAppGuiaState extends State<MainAppGuia> {
           child,
         ) {
           return MaterialApp.router(
-            title: 'OthliAni - Guía',
+            title: 'Veltur - Guía',
             debugShowCheckedModeBanner: false,
 
             // Localization

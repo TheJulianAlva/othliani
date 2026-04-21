@@ -54,7 +54,7 @@ class ExpeditionLogScreen extends StatelessWidget {
                     Expanded(
                       child: Text(
                         esGuiaIndependiente
-                            ? "Este es tu respaldo legal. OhtliAni protege tu licencia de guía certificando tus acciones."
+                            ? "Este es tu respaldo legal. Veltur protege tu licencia de guía certificando tus acciones."
                             : "Estos registros están encriptados y serán enviados a la gerencia de tu agencia.",
                         style: TextStyle(
                           color:
@@ -175,7 +175,7 @@ class ExpeditionLogScreen extends StatelessWidget {
           onPressed: () async {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text("Respaldando viaje en Nube OhtliAni..."),
+                content: Text("Respaldando viaje en Nube Veltur..."),
               ),
             );
             await Future.delayed(const Duration(seconds: 2));
@@ -238,7 +238,7 @@ class ExpeditionLogScreen extends StatelessWidget {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                "Bitácora de Expedición Legal - OhtliAni",
+                "Bitácora de Expedición Legal - Veltur",
                 style: pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
@@ -291,7 +291,7 @@ class ExpeditionLogScreen extends StatelessWidget {
 
     await Printing.sharePdf(
       bytes: await pdf.save(),
-      filename: 'caja_negra_ohtliani.pdf',
+      filename: 'caja_negra_veltur.pdf',
     );
   }
 

@@ -244,7 +244,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           child: TripControlPanel(
             viaje: viaje,
             guideHasAlert:
-                viaje.id == '205', // Mock logic: Viaje 205 tiene alerta de Guía
+                viaje.id == 'MEX-02', // Mock logic: Viaje 205 tiene alerta de Guía
           ),
         ),
 

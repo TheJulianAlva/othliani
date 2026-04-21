@@ -94,11 +94,11 @@ class _EcoBadgeWidgetState extends State<EcoBadgeWidget>
   // ── Texto para compartir ───────────────────────────────────────────────────
 
   String get _textoCompartir =>
-      '🌿 Mi certificación OhtliAni:\n'
+      '🌿 Mi certificación Veltur:\n'
       '${widget.stats.nivelActual.etiqueta}\n'
       '${widget.stats.expedicionesLimpias} expediciones seguras · '
       '${widget.stats.kgCo2Ahorrado.toStringAsFixed(1)} kg CO2 compensado\n'
-      '#OhtliAni #TurismoSeguro #GuardianVerde';
+      '#Veltur #TurismoSeguro #GuardianVerde';
 
   void _compartir() {
     Clipboard.setData(ClipboardData(text: _textoCompartir));
@@ -165,7 +165,7 @@ class _EcoBadgeWidgetState extends State<EcoBadgeWidget>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'CERTIFICACIÓN OHTLIANI',
+                            'CERTIFICACIÓN VELTUR',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 9,

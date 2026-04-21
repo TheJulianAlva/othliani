@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:frontend/core/di/service_locator.dart';
-import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/widgets/info_modal.dart';
+import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
+import 'package:frontend/features/turista/auth/presentation/bloc/auth_event.dart';
 import 'package:frontend/features/turista/auth/presentation/cubit/register_cubit.dart';
 import 'package:frontend/features/turista/auth/presentation/cubit/register_state.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
@@ -107,7 +108,13 @@ class _RegisterViewState extends State<_RegisterView> {
     return BlocListener<RegisterCubit, RegisterState>(
       listener: (context, state) {
         if (state is RegisterSuccess) {
-          context.go(RoutesTurista.login);
+          // Mark that this device already has a turista account, so future
+          // launches (and post-logout) go to /login instead of /folio.
+          SharedPreferences.getInstance().then(
+            (p) => p.setBool('TURISTA_HAS_ACCOUNT', true),
+          );
+          // Notify the AuthBloc so the router redirect sends the user to /home.
+          context.read<AuthBloc>().add(AuthLoggedIn(state.user));
         } else if (state is RegisterFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),

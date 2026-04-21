@@ -44,7 +44,7 @@ class AgencyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [BlocProvider<SyncBloc>(create: (_) => sl<SyncBloc>())],
       child: MaterialApp.router(
-        title: 'OthliAni Agencia',
+        title: 'Veltur Agencia',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF1A237E), // Azul oscuro serio

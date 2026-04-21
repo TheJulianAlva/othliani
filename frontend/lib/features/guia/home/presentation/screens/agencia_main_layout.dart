@@ -14,7 +14,7 @@ import 'package:frontend/features/guia/home/presentation/screens/pantalla_alerta
 // ────────────────────────────────────────────────────────────────────────────
 // AGENCIA MAIN LAYOUT — Dashboard B2B
 // Prioridad: Lista de personas (Pase de lista) → Control del grupo → Geocerca
-// Acento: Azul corporativo OhtliAni  #1A237E / #3D5AF1
+// Acento: Azul corporativo Veltur  #1A237E / #3D5AF1
 // ────────────────────────────────────────────────────────────────────────────
 
 const _azulPrimario = Color(0xFF1A237E);
