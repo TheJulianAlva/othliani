@@ -35,8 +35,8 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
   bool _cargandoEco = false;
 
   // Configuración local (mock para el MVP)
-  final bool _notificacionesActivas = true;
-  final bool _modoOscuro = false;
+  bool _notificacionesActivas = true;
+  bool _modoOscuro = false;
   String _idiomaSeleccionado = 'Español';
 
   final _idiomas = ['Español', 'English', 'Français'];
