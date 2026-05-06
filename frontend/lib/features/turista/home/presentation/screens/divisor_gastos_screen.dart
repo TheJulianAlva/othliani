@@ -254,7 +254,7 @@ class _DivisorGastosScreenState extends State<DivisorGastosScreen> {
                   ),
                   const SizedBox(height: 20),
                   DropdownButtonFormField<Persona>(
-                    initialValue: _personaSeleccionada,
+                    value: _personaSeleccionada,
                     decoration: const InputDecoration(labelText: '¿Quién pagó?'),
                     items: _grupo.map((p) => DropdownMenuItem(value: p, child: Text(p.nombre))).toList(),
                     onChanged: (val) {
