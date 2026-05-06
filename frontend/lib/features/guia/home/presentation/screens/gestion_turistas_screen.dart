@@ -173,7 +173,7 @@ class _GestionTuristasScreenState extends State<GestionTuristasScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
+                    color: Colors.black.withValues(alpha: 0.02),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -213,7 +213,7 @@ class _GestionTuristasScreenState extends State<GestionTuristasScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00AE00).withOpacity(0.3),
+            color: const Color(0xFF00AE00).withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

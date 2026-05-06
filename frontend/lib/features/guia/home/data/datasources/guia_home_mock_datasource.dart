@@ -1,4 +1,4 @@
-import 'package:frontend/features/guia/trips/data/models/ActividadItinerarioModel.dart';
+import '../../../trips/data/models/actividad_itinerario_model.dart';
 import '../../domain/entities/agencia_home_data.dart';
 import '../../domain/entities/personal_home_data.dart';
 import 'guia_home_remote_datasource.dart';

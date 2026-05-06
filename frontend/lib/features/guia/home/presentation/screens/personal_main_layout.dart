@@ -216,7 +216,7 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15),
         ],
       ),
       child: Column(
@@ -253,7 +253,7 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout> {
                     color: Colors.blueGrey.shade50,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFF007BFF).withOpacity(0.5),
+                      color: const Color(0xFF007BFF).withValues(alpha: 0.5),
                       width: 1.5,
                     ),
                   ),
@@ -366,12 +366,12 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout> {
         esEnCurso ? const Color(0xFF006400) : Colors.orange.shade900;
     Color colorFondo =
         esEnCurso
-            ? const Color(0xFF00AE00).withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1);
+            ? const Color(0xFF00AE00).withValues(alpha: 0.1)
+            : Colors.orange.withValues(alpha: 0.1);
     Color colorBorde =
         esEnCurso
-            ? const Color(0xFF00AE00).withOpacity(0.3)
-            : Colors.orange.withOpacity(0.3);
+            ? const Color(0xFF00AE00).withValues(alpha: 0.3)
+            : Colors.orange.withValues(alpha: 0.3);
 
     return Container(
       padding: const EdgeInsets.all(16),

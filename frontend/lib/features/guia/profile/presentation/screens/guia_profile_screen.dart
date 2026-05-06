@@ -472,7 +472,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                       style: TextStyle(fontSize: 13),
                     ),
                     value: _modoOscuro,
-                    activeThumbColor: _azulSecundario,
+                    activeColor: _azulSecundario,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     onChanged: (v) => setState(() => _modoOscuro = v),
                   ),
@@ -490,7 +490,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                       style: TextStyle(fontSize: 13),
                     ),
                     value: _notificacionesActivas,
-                    activeThumbColor: _azulSecundario,
+                    activeColor: _azulSecundario,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     onChanged:
                         (v) => setState(() => _notificacionesActivas = v),

@@ -1,7 +1,7 @@
 import 'package:frontend/features/guia/trips/domain/entities/actividad_itinerario.dart';
 
 class ActividadItinerarioModel extends ActividadItinerario {
-  ActividadItinerarioModel({
+  const ActividadItinerarioModel({
     required super.nombre,
     required super.horaInicio,
     required super.horaFin,
