@@ -3,7 +3,7 @@ import 'dart:developer' as developer;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/incident_log.dart';
 
-const String _kCajaNegraKey = 'ohtliani_caja_negra_logs';
+const String _kCajaNegraKey = 'veltur_caja_negra_logs';
 
 class CajaNegraLocalDataSource {
   final SharedPreferences prefs;

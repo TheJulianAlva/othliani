@@ -111,7 +111,7 @@ class SucesionMandoLocalService implements SucesionMandoDataSource {
 
     final mapsLink = 'https://maps.google.com/?q=$lat,$lng';
     final mensajeSms =
-        'EMERGENCIA OHTLIANI 🆘\n'
+        'EMERGENCIA VELTUR 🆘\n'
         'El guía ha emitido un SOS.\n'
         'Última ubicación conocida:\n'
         '$mapsLink\n'

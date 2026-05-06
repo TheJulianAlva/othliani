@@ -54,10 +54,15 @@
 	<string>Esta aplicación necesita acceso a tu ubicación para enviarte alertas cuando te alejes del grupo.</string>
 	<!-- Camera and Photo Library Permissions -->
 	<key>NSCameraUsageDescription</key>
-	<string>Esta aplicación necesita acceso a la cámara para escanear precios y convertir monedas.</string>
+	<string>Veltur necesita acceso a la cámara para escanear y traducir textos, además de leer precios para conversión de monedas.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Esta aplicación necesita acceso a tus fotos para seleccionar imágenes con precios.</string>
+	<string>Veltur necesita acceso a la galería para traducir textos en imágenes guardadas y seleccionar fotos con precios.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Esta aplicación necesita guardar fotos de precios escaneados.</string>
+	<!-- Speech Recognition and Microphone Permissions -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Veltur necesita acceso al micrófono para el traductor de voz en tiempo real.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Veltur requiere reconocimiento de voz para convertir tus palabras en texto y traducirlas.</string>
 </dict>
 </plist>

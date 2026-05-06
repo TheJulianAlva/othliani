@@ -6,7 +6,7 @@ class DioClient {
   DioClient()
     : _dio = Dio(
         BaseOptions(
-          baseUrl: 'https://api.othliani.com/api/v1', // Placeholder URL
+          baseUrl: 'https://api.veltur.com/api/v1', // Placeholder URL
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 15),
           headers: {

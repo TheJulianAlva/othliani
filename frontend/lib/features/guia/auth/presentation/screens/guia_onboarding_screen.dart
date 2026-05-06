@@ -31,7 +31,7 @@ class _GuiaOnboardingViewState extends State<_GuiaOnboardingView> {
   static const List<_PaginaOnboarding> _paginas = [
     _PaginaOnboarding(
       icono: Icons.explore,
-      titulo: 'Bienvenido a OthliAni Guía',
+      titulo: 'Bienvenido a Veltur Guía',
       descripcion:
           'Tu compañero digital para gestionar y enriquecer cada experiencia turística que lideras.',
       colorIcono: Color(0xFF4355B9),

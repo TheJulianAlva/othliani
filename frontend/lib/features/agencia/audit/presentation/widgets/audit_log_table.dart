@@ -33,7 +33,7 @@ class _AuditLogTableState extends State<AuditLogTable> {
       level: 'INF',
       actor: 'Admin: Juan P.',
       actionTitle: 'Modificó Geocerca',
-      actionDetail: '> Viaje #2045: 50m->20m',
+      actionDetail: '> Viaje #MEX-015: 50m->20m',
       ip: '192.168.1.10',
       jsonMetadata: '''{
   "previous_value": "50m",

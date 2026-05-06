@@ -96,7 +96,7 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.othliani.app',
+                userAgentPackageName: 'com.veltur.app',
               ),
               MarkerLayer(
                 markers:

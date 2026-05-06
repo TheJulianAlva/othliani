@@ -220,7 +220,8 @@ class _TripsDatagridState extends State<TripsDatagrid> {
 
                 String formatHoraCorto(DateTime dt) =>
                     "${dt.hour}:${dt.minute.toString().padLeft(2, '0')}";
-                String formatFechaCorto(DateTime dt) => "${dt.day}/${dt.month}";
+                String formatFechaCorto(DateTime dt) =>
+                    "${dt.day}/${dt.month}/${dt.year.toString().substring(2)}";
 
                 final inicioCorto =
                     "${formatFechaCorto(inicio)} ${formatHoraCorto(inicio)}";

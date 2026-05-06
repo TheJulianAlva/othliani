@@ -1,7 +1,7 @@
 class RoutesAgencia {
   // Rutas de Autenticación (Fuera del Menú Principal)
   static const String login = '/login';
-  static const String recoverPassword = '/recover-password';
+  static const String recoverPassword = '/recover_password_screen';
 
   // Rutas Principales (Dentro del Shell/Sidebar)
   static const String root = '/'; // Redirige a dashboard

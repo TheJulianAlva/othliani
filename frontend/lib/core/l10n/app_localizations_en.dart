@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'OthliAni - Tourist';
+  String get appTitle => 'Veltur - Tourist';
 
   @override
   String get save => 'Save';
@@ -168,7 +168,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get config => 'Config';
 
   @override
-  String get onboardingTitle1 => 'Welcome to OthliAni';
+  String get onboardingTitle1 => 'Welcome to Veltur';
 
   @override
   String get onboardingDesc1 => 'Your perfect companion to explore Mexico';
@@ -396,4 +396,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get writeMessage => 'Type a message...';
+
+  @override
+  String get tools => 'Tools';
+
+  @override
+  String get travelerTools => 'Traveler Tools';
+
+  @override
+  String get currencyConverterTitle => 'Currency Converter';
+
+  @override
+  String get currencyConverterDesc => 'Calculate your expenses instantly';
+
+  @override
+  String get translatorTitle => 'Smart Translator';
+
+  @override
+  String get translatorDesc => 'Instantly translate with your camera';
+
+  @override
+  String get voiceTranslatorTitle => 'Voice Translator';
+
+  @override
+  String get voiceTranslatorDesc => 'Speak and translate in real-time';
+
+  @override
+  String get expenseSplitterTitle => 'Expense Splitter';
+
+  @override
+  String get expenseSplitterDesc => 'Easily split restaurant or trip bills';
 }

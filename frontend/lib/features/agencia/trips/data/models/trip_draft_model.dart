@@ -2,10 +2,13 @@ import '../../domain/entities/actividad_itinerario.dart';
 
 class TripDraftModel {
   // Datos Paso 1
+  final String? claveBase;
   final String? destino;
   final String? fechaInicio; // ISO String
   final String? fechaFin;
+  final bool isMultiDay;
   final String? guiaId;
+  final List<String> coGuiasIds; // Guías auxiliares
   final String? fotoPortadaUrl; // 📸 Persistencia de foto elegida
   final double? lat;
   final double? lng;
@@ -14,10 +17,13 @@ class TripDraftModel {
   final List<ActividadItinerario> actividades;
 
   TripDraftModel({
+    this.claveBase,
     this.destino,
     this.fechaInicio,
     this.fechaFin,
+    this.isMultiDay = false,
     this.guiaId,
+    this.coGuiasIds = const [],
     this.fotoPortadaUrl,
     this.lat,
     this.lng,
@@ -25,10 +31,13 @@ class TripDraftModel {
   });
 
   Map<String, dynamic> toJson() => {
+    'claveBase': claveBase,
     'destino': destino,
     'fechaInicio': fechaInicio,
     'fechaFin': fechaFin,
+    'isMultiDay': isMultiDay,
     'guiaId': guiaId,
+    'coGuiasIds': coGuiasIds,
     'fotoPortadaUrl': fotoPortadaUrl,
     'lat': lat,
     'lng': lng,
@@ -36,10 +45,16 @@ class TripDraftModel {
   };
 
   factory TripDraftModel.fromJson(Map<String, dynamic> json) => TripDraftModel(
+    claveBase: json['claveBase'],
     destino: json['destino'],
     fechaInicio: json['fechaInicio'],
     fechaFin: json['fechaFin'],
+    isMultiDay: json['isMultiDay'] as bool? ?? false,
     guiaId: json['guiaId'],
+    coGuiasIds:
+        json['coGuiasIds'] != null
+            ? List<String>.from(json['coGuiasIds'] as List)
+            : [],
     fotoPortadaUrl: json['fotoPortadaUrl'],
     lat: json['lat'],
     lng: json['lng'],

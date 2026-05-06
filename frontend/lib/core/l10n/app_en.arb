@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "OthliAni - Tourist",
+  "appTitle": "Veltur - Tourist",
   "save": "Save",
   "cancel": "Cancel",
   "close": "Close",
@@ -53,7 +53,7 @@
   "chat": "Chat",
   "currency": "Currency",
   "config": "Config",
-  "onboardingTitle1": "Welcome to OthliAni",
+  "onboardingTitle1": "Welcome to Veltur",
   "onboardingDesc1": "Your perfect companion to explore Mexico",
   "onboardingTitle2": "Discover amazing places",
   "onboardingDesc2": "Find the best tourist destinations",
@@ -128,5 +128,15 @@
   "incorrectDataContent": "Contact the company or person who registered you if you believe an error may have occurred when registering your data.",
   "supportChat": "Support Chat",
   "noMessages": "No messages",
-  "writeMessage": "Type a message..."
+  "writeMessage": "Type a message...",
+  "tools": "Tools",
+  "travelerTools": "Traveler Tools",
+  "currencyConverterTitle": "Currency Converter",
+  "currencyConverterDesc": "Calculate your expenses instantly",
+  "translatorTitle": "Smart Translator",
+  "translatorDesc": "Instantly translate with your camera",
+  "voiceTranslatorTitle": "Voice Translator",
+  "voiceTranslatorDesc": "Speak and translate in real-time",
+  "expenseSplitterTitle": "Expense Splitter",
+  "expenseSplitterDesc": "Easily split restaurant or trip bills"
 }

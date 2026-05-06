@@ -100,7 +100,7 @@ class _AuditToolbarState extends State<AuditToolbar> {
           TextField(
             decoration: InputDecoration(
               hintText:
-                  '🔍 Buscar por palabra clave (ej: Folio #2045, IP, "Error")',
+                  '🔍 Buscar por palabra clave (ej: Folio #MEX-015, IP, "Error")',
               prefixIcon: const Icon(Icons.search, color: Colors.grey),
               filled: true,
               fillColor: Colors.grey.shade50,

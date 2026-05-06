@@ -9,7 +9,7 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
-  String get appTitle => 'OthliAni - Turista';
+  String get appTitle => 'Veltur - Turista';
 
   @override
   String get save => 'Guardar';
@@ -168,7 +168,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get config => 'Config';
 
   @override
-  String get onboardingTitle1 => 'Bienvenido a OthliAni';
+  String get onboardingTitle1 => 'Bienvenido a Veltur';
 
   @override
   String get onboardingDesc1 => 'Tu compañero perfecto para explorar México';
@@ -397,4 +397,36 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get writeMessage => 'Escribe un mensaje...';
+
+  @override
+  String get tools => 'Herramientas';
+
+  @override
+  String get travelerTools => 'Herramientas del Viajero';
+
+  @override
+  String get currencyConverterTitle => 'Conversor de Moneda';
+
+  @override
+  String get currencyConverterDesc =>
+      'Calcula el valor de tus gastos al instante';
+
+  @override
+  String get translatorTitle => 'Traductor Inteligente';
+
+  @override
+  String get translatorDesc => 'Traduce textos con tu cámara al instante';
+
+  @override
+  String get voiceTranslatorTitle => 'Traductor de Voz';
+
+  @override
+  String get voiceTranslatorDesc => 'Habla y traduce en tiempo real';
+
+  @override
+  String get expenseSplitterTitle => 'Divisor de Gastos';
+
+  @override
+  String get expenseSplitterDesc =>
+      'Divide la cuenta del restaurante o viaje fácilmente';
 }

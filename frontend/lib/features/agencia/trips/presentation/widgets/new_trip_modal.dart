@@ -171,7 +171,7 @@ class _NewTripModalState extends State<NewTripModal> {
           const SizedBox(height: 16),
           _buildTextField(
             "Número de Folio (Automático)",
-            "#2055",
+            "#MEX-025",
             enabled: false,
           ),
         ],

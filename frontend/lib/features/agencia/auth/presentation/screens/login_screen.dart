@@ -253,7 +253,7 @@ class _LoginFormState extends State<_LoginForm> {
                     const Divider(),
                     const SizedBox(height: 16),
                     Text(
-                      '© 2026 Othliani Systems v1.0',
+                      '© 2026 Veltur Systems v1.0',
                       style: TextStyle(
                         color: Colors.grey.shade500,
                         fontSize: 12,
