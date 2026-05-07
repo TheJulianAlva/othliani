@@ -15,20 +15,32 @@ class MockAgenciaDataSource {
     const Guia(
       id: 'G-01',
       nombre: 'Marcos Ruiz',
-      status: 'EN_RUTA',
-      viajesAsignados: 1, // Viaje #MEX-01
+      status: 'EN_VIAJE',
+      rol: 'Guía Líder',
+      diasTrabajoMes: 15,
+      csat: 4.5,
+      totalReviews: 28,
+      proxViaje: 'Nevado de Toluca',
     ),
     const Guia(
       id: 'G-02',
       nombre: 'Pedro Sánchez',
-      status: 'EN_RUTA',
-      viajesAsignados: 1, // Viaje #MEX-02
+      status: 'EN_VIAJE',
+      rol: 'Guía Senior',
+      diasTrabajoMes: 12,
+      csat: 4.2,
+      totalReviews: 15,
+      proxViaje: 'Chignahuapan',
     ),
     const Guia(
       id: 'G-03',
       nombre: 'Ana Paula G.',
-      status: 'EN_RUTA',
-      viajesAsignados: 1, // Viaje #MEX-03
+      status: 'EN_VIAJE',
+      rol: 'Coordinadora',
+      diasTrabajoMes: 10,
+      csat: 4.9,
+      totalReviews: 42,
+      proxViaje: 'Taxco',
     ),
 
     // 📅 GUÍAS CON VIAJES PROGRAMADOS (4)
@@ -36,48 +48,48 @@ class MockAgenciaDataSource {
       id: 'G-04',
       nombre: 'Carlos Vega',
       status: 'ONLINE',
-      viajesAsignados: 1, // Viaje #TOL-01 PROGRAMADO
     ),
+
     const Guia(
       id: 'G-05',
       nombre: 'Luisa Lane',
       status: 'ONLINE',
-      viajesAsignados: 1, // Viaje #VBR-01 PROGRAMADO
     ),
+
     const Guia(
       id: 'G-06',
       nombre: 'Roberto Gómez',
       status: 'ONLINE',
-      viajesAsignados: 1, // Viaje #XOC-01 PROGRAMADO
     ),
+
     const Guia(
       id: 'G-07',
       nombre: 'María López',
       status: 'ONLINE',
-      viajesAsignados: 1, // Viaje #TEP-01 PROGRAMADO
     ),
+
 
     // ✅ GUÍAS DISPONIBLES (2) - ONLINE sin viajes
     const Guia(
       id: 'G-08',
       nombre: 'Jorge T.',
       status: 'ONLINE',
-      viajesAsignados: 0,
     ),
+
     const Guia(
       id: 'G-09',
       nombre: 'Elena M.',
       status: 'ONLINE',
-      viajesAsignados: 0,
     ),
+
 
     // ⚫ GUÍA OFFLINE (1)
     const Guia(
       id: 'G-10',
       nombre: 'Sofia R.',
       status: 'OFFLINE',
-      viajesAsignados: 0,
     ),
+
   ];
 
   // --- 2. LISTA DE VIAJES (Usando Entity Viaje con fechas dinámicas) ---
@@ -1698,7 +1710,7 @@ class MockAgenciaDataSource {
           guia.id.toLowerCase().contains(lowerQuery)) {
         // Determinar estado del viaje asignado
         String? viajeEstado;
-        if (guia.viajesAsignados > 0) {
+        if (guia.status == 'EN_VIAJE') {
           // Buscar el viaje asignado a este guía
           final viajeAsignado =
               _viajes.where((v) {
@@ -1713,7 +1725,7 @@ class MockAgenciaDataSource {
           'id': guia.id,
           'nombre': guia.nombre,
           'status': guia.status,
-          'viajesAsignados': guia.viajesAsignados,
+          'rol': guia.rol,
           'viajeEstado': viajeEstado, // Nuevo campo
         });
       }

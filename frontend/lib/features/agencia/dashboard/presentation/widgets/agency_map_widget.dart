@@ -36,13 +36,11 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
   @override
   void initState() {
     super.initState();
-    // viewportFraction: 0.85 hace que se vea un pedacito de la siguiente tarjeta
-    _pageController = PageController(viewportFraction: 0.85);
+    // No longer using PageView, we'll just show the selected item.
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
     super.dispose();
   }
 
@@ -111,49 +109,30 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
             ],
           ),
 
-          // --- CAPA 2: FILTROS SUPERIORES ---
-          Positioned(
-            top: 16,
-            left: 16,
-            right: 16,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildFilterChip(
-                    'En Curso',
-                    Colors.green,
-                    _showEnCurso,
-                    (v) => setState(() => _showEnCurso = v),
+          // --- CAPA 2: TARJETA DE VIAJE SELECCIONADO (TOP LEFT) ---
+          if (filteredViajes.isNotEmpty) ...[
+            Builder(
+              builder: (context) {
+                // Si no hay ninguno seleccionado, por defecto mostrar el primero o ninguno.
+                // En el mockup se ve una tarjeta flotante en el top-left.
+                final int idx = _selectedIndex == -1 ? 0 : _selectedIndex;
+                final Viaje viajeSeleccionado = filteredViajes[idx];
+
+                return Positioned(
+                  top: 16,
+                  left: 16,
+                  child: SizedBox(
+                    width: 320,
+                    child: _buildTripCard(viajeSeleccionado, idx),
                   ),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(
-                    'Programados',
-                    Colors.blue,
-                    _showProgramados,
-                    (v) => setState(() => _showProgramados = v),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(
-                    'Finalizados',
-                    Colors.grey,
-                    _showFinalizados,
-                    (v) => setState(() => _showFinalizados = v),
-                  ),
-                ],
-              ),
+                );
+              }
             ),
-          ),
+          ],
 
           // --- CAPA 3: BOTÓN RE-CENTRAR (Móvil) ---
-          // Se mueve hacia arriba si el carrusel está visible
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            bottom:
-                filteredViajes.isEmpty
-                    ? 16
-                    : 160, // 160 = altura carrusel + margen
+          Positioned(
+            bottom: 16,
             right: 16,
             child: FloatingActionButton.small(
               heroTag: 'recenter_map',
@@ -164,42 +143,6 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
               child: const Icon(Icons.center_focus_strong),
             ),
           ),
-
-          // --- CAPA 4: CARRUSEL DE TARJETAS (NUEVO) ---
-          if (filteredViajes.isNotEmpty)
-            Positioned(
-              bottom: 16,
-              left: 0,
-              right: 0,
-              height: 130, // Altura del carrusel
-              child: ScrollConfiguration(
-                // Habilita el scroll con mouse drag en Web/Desktop
-                behavior: ScrollConfiguration.of(context).copyWith(
-                  dragDevices: {
-                    PointerDeviceKind.touch,
-                    PointerDeviceKind.mouse, // ← Clave para arrastre con mouse
-                  },
-                ),
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: filteredViajes.length,
-                  onPageChanged: (index) {
-                    setState(() => _selectedIndex = index);
-                    _animateCameraTo(filteredViajes[index]);
-                  },
-                  itemBuilder: (context, index) {
-                    final viaje = filteredViajes[index];
-                    final isSelected = _selectedIndex == index;
-
-                    return AnimatedScale(
-                      scale: isSelected ? 1.0 : 0.9, // Efecto visual de foco
-                      duration: const Duration(milliseconds: 300),
-                      child: _buildTripCard(viaje, index),
-                    );
-                  },
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -209,195 +152,137 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
 
   Widget _buildTripCard(Viaje viaje, int pageIndex) {
     final bool hasAlerts = viaje.alertasActivas > 0;
-    final Color stateColor = _getColor(viaje.estado);
-
+    
+    // In mockup, the top-left card is white with subtle shadow and rounded corners.
+    // If it has alerts, there's a red pill at the top left "CON ALERTAS" and "V-102" at top right.
     return GestureDetector(
       onTap: () {
-        // Al tocar la tarjeta, navegamos al detalle del viaje
         context.go('/viajes/${viaje.id}?return_to=dashboard');
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 8,
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
-          // Borde izquierdo de color según estado (Identidad visual rápida)
-          border: Border(
-            left: BorderSide(color: stateColor, width: 4),
-            top: BorderSide(color: Colors.grey.shade100),
-            right: BorderSide(color: Colors.grey.shade100),
-            bottom: BorderSide(color: Colors.grey.shade100),
-          ),
-          // Nota: No podemos usar borderRadius con bordes de colores no uniformes
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // 1. CABECERA: Destino y Hora
+            // Row 1: Status Pill and ID
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Text(
-                    "Viaje #${viaje.id} - ${viaje.destino}",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                if (hasAlerts)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFEBEE),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    viaje.horaInicio,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey[800],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            // 2. CUERPO: Guía y Pasajeros
-            Row(
-              children: [
-                // Avatar del Guía (Simulado con iniciales)
-                CircleAvatar(
-                  radius: 10,
-                  backgroundColor: Colors.blue[50],
-                  child: Text(
-                    viaje.guiaNombre.isNotEmpty
-                        ? viaje.guiaNombre.substring(0, 1)
-                        : '?',
-                    style: TextStyle(fontSize: 10, color: Colors.blue[800]),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    viaje.guiaNombre,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Icon(Icons.group, size: 14, color: Colors.grey[400]),
-                Text(
-                  " ${viaje.turistas}",
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-
-            // 3. PIE: Estatus y Alertas
-            Row(
-              children: [
-                // Badge de Estado
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: stateColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    viaje.estado,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: stateColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 8),
-
-                // Indicador de Alertas (Solo si existen) - COLOR DINÁMICO
-                if (hasAlerts) ...[
-                  () {
-                    // Determinar severidad máxima de las alertas de este viaje
-                    final alertasDelViaje =
-                        widget.alertas
-                            .where((a) => a.viajeId == viaje.id)
-                            .toList();
-                    final maxSeverity = _getMaxSeverity(alertasDelViaje);
-                    final severityColor = _getSeverityColor(maxSeverity);
-                    final severityBgColor = _getSeverityBgColor(maxSeverity);
-
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: severityBgColor,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: severityColor.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.warning_amber,
-                            size: 12,
-                            color: severityColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            "${viaje.alertasActivas} ${viaje.alertasActivas == 1 ? 'Alerta' : 'Alertas'}",
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: severityColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }(),
-                ],
-
-                const Spacer(),
-
-                // Botón "Ver detalle" - SIEMPRE visible con cursor pointer
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap:
-                        () => context.go(
-                          '/viajes/${viaje.id}?return_to=dashboard',
-                        ),
-                    child: Text(
-                      "Ver detalle →",
+                    child: const Text(
+                      "CON ALERTAS",
                       style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.blue[900],
-                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                        color: Color(0xFFC62828),
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      "EN CURSO",
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF2E7D32),
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                Text(
+                  "V-${viaje.id}",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade500,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Row 2: Titulo Viaje
+            Text(
+              viaje.destino,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                color: Color(0xFF2C3E50),
+              ),
+            ),
+            const SizedBox(height: 4),
+            
+            // Location sub
+            Row(
+              children: [
+                Icon(Icons.location_on_outlined, size: 14, color: Colors.blue.shade600),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    "Ruta Activa", // Replace with real string if available
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // Row 3: Staff & Pax
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "GUÍA",
+                        style: TextStyle(fontSize: 10, color: Colors.grey.shade500, fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        viaje.guiaNombre,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF2C3E50)),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "TURISTAS",
+                        style: TextStyle(fontSize: 10, color: Colors.grey.shade500, fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        "${viaje.turistas} pax",
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF2C3E50)),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -407,6 +292,7 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
       ),
     );
   }
+
 
   Marker _buildMarker(Viaje viaje, int index, List<Viaje> filteredList) {
     final isSelected = _selectedIndex == index;
@@ -418,14 +304,8 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
       height: isSelected ? 50 : 40,
       child: GestureDetector(
         onTap: () {
-          // Al tocar el marker, movemos el carrusel a esa posición
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-          // Y seleccionamos visualmente
           setState(() => _selectedIndex = index);
+          _animateCameraTo(viaje);
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),

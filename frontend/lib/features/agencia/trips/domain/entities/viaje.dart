@@ -102,6 +102,13 @@ class Viaje extends Equatable {
   /// Contactos de confianza remotos (B2C — familia/amigos).
   final List<ContactoConfianza> contactosConfianza;
 
+  // ── Operaciones (Transporte y PAX) ──────────────────────────────────────────
+  final String transporteLogistica;
+  final String operadorNombre;
+  final String placasVehiculo;
+  final int paxOk;
+  final int paxBaja;
+
   // ── Itinerario ──────────────────────────────────────────────────────────────
   final List<ActividadItinerario> itinerario;
 
@@ -122,6 +129,11 @@ class Viaje extends Equatable {
     this.horaInicio = '--:--',
     this.alertasActivas = 0,
     this.itinerario = const [],
+    this.transporteLogistica = 'Vehículo Asignado',
+    this.operadorNombre = 'Operador',
+    this.placasVehiculo = 'XXX-000',
+    this.paxOk = 0,
+    this.paxBaja = 0,
   });
 
   // Helper para saber la duración (Ej: "4 horas" o "3 días")
@@ -151,6 +163,11 @@ class Viaje extends Equatable {
     String? horaInicio,
     int? alertasActivas,
     List<ActividadItinerario>? itinerario,
+    String? transporteLogistica,
+    String? operadorNombre,
+    String? placasVehiculo,
+    int? paxOk,
+    int? paxBaja,
   }) {
     return Viaje(
       id: id ?? this.id,
@@ -169,6 +186,11 @@ class Viaje extends Equatable {
       horaInicio: horaInicio ?? this.horaInicio,
       alertasActivas: alertasActivas ?? this.alertasActivas,
       itinerario: itinerario ?? this.itinerario,
+      transporteLogistica: transporteLogistica ?? this.transporteLogistica,
+      operadorNombre: operadorNombre ?? this.operadorNombre,
+      placasVehiculo: placasVehiculo ?? this.placasVehiculo,
+      paxOk: paxOk ?? this.paxOk,
+      paxBaja: paxBaja ?? this.paxBaja,
     );
   }
 
@@ -191,5 +213,10 @@ class Viaje extends Equatable {
     horaInicio,
     alertasActivas,
     itinerario,
+    transporteLogistica,
+    operadorNombre,
+    placasVehiculo,
+    paxOk,
+    paxBaja,
   ];
 }

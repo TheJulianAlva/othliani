@@ -13,6 +13,7 @@ import '../../features/agencia/trips/presentation/screens/trips_screen.dart';
 import '../../features/agencia/trips/presentation/screens/trip_detail_screen.dart';
 import '../../features/agencia/trips/presentation/screens/trip_creation_screen.dart';
 import '../../features/agencia/trips/presentation/screens/itinerary_builder_screen.dart';
+import '../../features/agencia/trips/presentation/screens/itinerary_operative_screen.dart';
 import '../../features/agencia/users/presentation/screens/users_screen.dart';
 import '../../features/agencia/audit/presentation/screens/audit_screen.dart';
 import '../../features/agencia/settings/presentation/screens/settings_screen.dart';
@@ -144,6 +145,15 @@ class AppRouterAgencia {
                         ),
                       );
                     },
+                    routes: [
+                      GoRoute(
+                        path: RoutesAgencia.itineraryOperative,
+                        builder: (context, state) {
+                          Viaje viaje = state.extra as Viaje;
+                          return ItineraryOperativeScreen(viaje: viaje);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

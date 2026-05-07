@@ -34,65 +34,69 @@ class DashboardScreen extends StatelessWidget {
                       'Resumen Operativo',
                       style: TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F4C75),
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF004A75), // Azul oscuro exacto del mockup
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Visión global de las operaciones en tiempo real.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600, // Gris claro del mockup
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
                     // --- 1. TARJETAS KPI (Con Navegación) ---
                     Row(
                       children: [
                         Expanded(
                           child: KPICard(
-                            title: 'VIAJES',
+                            title: 'VIAJES EN ACTIVIDAD',
                             value: '${data.viajesActivos}',
-                            subtitle: '${data.viajesProgramados} Programados',
-                            icon: Icons.directions_bus,
-                            onTap:
-                                () => context.go(
-                                  '${RoutesAgencia.viajes}?filter=en_curso',
-                                ),
+                            subtitle: 'Visitando sitio',
+                            icon: Icons.calendar_today_rounded,
+                            customIconColor: const Color(0xFF1B3B6F),
+                            customIconBgColor: const Color(0xFFE8EEFF),
+                            onTap: () => context.go('${RoutesAgencia.viajes}?filter=en_curso'),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: KPICard(
-                            title: 'EN RUTA',
+                            title: 'VIAJES EN RUTA',
+                            value: '${data.viajesActivos}', // Using viajesActivos for now
+                            subtitle: 'En traslado',
+                            icon: Icons.directions_bus_rounded,
+                            customIconColor: const Color(0xFF6A1B9A),
+                            customIconBgColor: const Color(0xFFF3E5F5),
+                            onTap: () => context.go('${RoutesAgencia.viajes}?filter=en_curso'),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: KPICard(
+                            title: 'TURISTAS EN VIAJE',
                             value: '${data.turistasEnCampo}',
-                            subtitle: '${data.turistasSinRed} Sin Red',
-                            icon: Icons.hiking,
-                            onTap:
-                                () => context.go(
-                                  '${RoutesAgencia.usuarios}?tab=clientes',
-                                ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: KPICard(
-                            title: 'ALERTAS',
-                            value: '${data.alertasCriticas}'.padLeft(2, '0'),
-                            subtitle: 'Críticas',
-                            icon: Icons.warning_amber_rounded,
-                            isAlert: data.alertasCriticas > 0,
-                            onTap:
-                                () => context.go(
-                                  '${RoutesAgencia.auditoria}?nivel=critico',
-                                ),
+                            subtitle: 'Pasajeros a bordo',
+                            icon: Icons.hiking_rounded,
+                            customIconColor: const Color(0xFF2E7D32),
+                            customIconBgColor: const Color(0xFFE8F5E9),
+                            isAlert: false, // The mockup shows this as a normal green card
+                            onTap: () => context.go('${RoutesAgencia.usuarios}?tab=clientes'),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: KPICard(
                             title: 'GUÍAS',
-                            value: '${data.guiasTotal}',
-                            subtitle: '${data.guiasOffline} Offline',
-                            icon: Icons.map,
-                            onTap:
-                                () => context.go(
-                                  '${RoutesAgencia.usuarios}?tab=guias',
-                                ),
+                            value: '${data.guiasTotal}', // Maybe this should be '10 / 14' but keeping dynamic
+                            subtitle: 'Ocupados / Disp.',
+                            icon: Icons.badge_rounded,
+                            customIconColor: const Color(0xFFE65100),
+                            customIconBgColor: const Color(0xFFFFF3E0),
+                            onTap: () => context.go('${RoutesAgencia.usuarios}?tab=guias'),
                           ),
                         ),
                       ],
@@ -102,13 +106,13 @@ class DashboardScreen extends StatelessWidget {
 
                     // --- 2. SECCIÓN CENTRAL (Mapa y Alertas) ---
                     SizedBox(
-                      height: 500, // Fixed height for map/sidebar area
+                      height: 550, // Expanded height for map
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // MAPA INTERACTIVO
                           Expanded(
-                            flex: 2,
+                            flex: 7,
                             child: AgencyMapWidget(
                               viajes: data.viajesEnMapa,
                               alertas: data.alertasRecientes,
@@ -117,10 +121,11 @@ class DashboardScreen extends StatelessWidget {
 
                           const SizedBox(width: 24),
 
-                          // PANEL DE INCIDENTES
+                          // PANEL DE TRIAGE / ESTADO DE OPERACIONES
                           Expanded(
-                            flex: 1,
+                            flex: 3,
                             child: IncidentPanel(
+                              viajes: data.viajesEnMapa,
                               incidentes: data.alertasRecientes,
                             ),
                           ),

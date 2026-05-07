@@ -699,7 +699,7 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 decoration: InputDecoration(
-                  hintText: 'Buscar guía, turista o destino...',
+                  hintText: 'Búsqueda rápida (Ctrl+K): Viajes, guías, turistas...',
                   prefixIcon: const Icon(
                     Icons.search,
                     size: 20,
@@ -729,6 +729,14 @@ class _AgencyHeaderState extends State<AgencyHeader> {
           ),
 
           const SizedBox(width: 24),
+
+          // --- ICONO DE CHAT ---
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline, color: Colors.black87),
+            onPressed: () {},
+            tooltip: 'Chat',
+          ),
+          const SizedBox(width: 8),
 
           // --- CAMPANITA DE NOTIFICACIONES ---
           PopupMenuButton<void>(
@@ -851,6 +859,39 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                     ),
                   ),
                 ],
+          ),
+          
+          const SizedBox(width: 24),
+
+          // --- BOTÓN DINÁMICO (NUEVO VIAJE / NUEVO GUÍA) ---
+          ElevatedButton.icon(
+            onPressed: () async {
+              if (!await _checkUnsavedChanges()) return;
+              if (mounted) {
+                if (currentPath.contains('/usuarios')) {
+                  // Acción para nuevo guía (simulada)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Funcionalidad de Nuevo Guía en desarrollo")),
+                  );
+                } else {
+                  context.go('/viajes/nuevo');
+                }
+              }
+            },
+            icon: Icon(currentPath.contains('/usuarios') ? Icons.person_add : Icons.add, size: 18),
+            label: Text(
+              currentPath.contains('/usuarios') ? 'Nuevo Guía' : 'Nuevo Viaje',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1B3B6F), // Azul marino para coherencia
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+            ),
           ),
         ],
       ),

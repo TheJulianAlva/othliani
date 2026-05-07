@@ -1,10 +1,12 @@
-import 'dart:async'; // Para el Timer
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/agencia/trips/presentation/blocs/viajes/viajes_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:frontend/core/navigation/routes_agencia.dart';
-import '../widgets/trips_datagrid.dart'; // Tu tabla existente
+import '../../domain/entities/viaje.dart';
+
+import '../widgets/master_trip_list.dart';
+import '../widgets/quick_detail_card.dart';
+import '../widgets/full_detail_grid.dart';
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});
@@ -14,17 +16,19 @@ class TripsScreen extends StatefulWidget {
 }
 
 class _TripsScreenState extends State<TripsScreen> {
+  final ScrollController _scrollController = ScrollController();
+  
   String _searchQuery = '';
-  Set<String> _selectedStatuses = {
-    'TODOS',
-  }; // <--- CAMBIO: Permite selección múltiple
-  String _searchField = 'TODO'; // 'TODO', 'GUIA', 'DESTINO', 'ID'
-  DateTimeRange? _selectedDateRange; // <--- CAMBIO: Rango de fechas
-  Timer? _debounce; // Para esperar a que el usuario termine de escribir
+  Set<String> _selectedStatuses = {'TODOS'};
+  DateTimeRange? _selectedDateRange;
+  Timer? _debounce;
+  
+  Viaje? _selectedViaje; // Viaje seleccionado en la master list
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -32,23 +36,26 @@ class _TripsScreenState extends State<TripsScreen> {
     context.read<ViajesBloc>().add(
       LoadViajesEvent(
         query: _searchQuery,
-        filterStatuses: _selectedStatuses.toList(), // <--- ENVÍO DE LISTA
-        field: _searchField,
+        filterStatuses: _selectedStatuses.toList(),
+        field: 'TODO', // General search
         filterDateRange: _selectedDateRange,
       ),
     );
   }
+  
+  void _onViajeSelected(Viaje viaje) {
+    setState(() {
+      _selectedViaje = viaje;
+    });
+  }
 
-  String _getSearchHint() {
-    switch (_searchField) {
-      case 'GUIA':
-        return 'Buscar por nombre de guía...';
-      case 'DESTINO':
-        return 'Buscar por destino...';
-      case 'ID':
-        return 'Buscar por folio...';
-      default:
-        return 'Buscar por destino, ID o guía...';
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
@@ -56,91 +63,109 @@ class _TripsScreenState extends State<TripsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F8),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
+      body: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- 1. BARRA DE HERRAMIENTAS ---
-            _buildToolbar(),
-
-            const SizedBox(height: 16),
-
-            // INDICADOR DE RANGO ACTIVO 📅
-            if (_selectedDateRange != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16, left: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
-                        border: Border.all(
-                          color: Colors.blue.withValues(alpha: 0.3),
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.date_range,
-                            size: 16,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            "Resultados del periodo: ${_formatRange(_selectedDateRange!)}",
-                            style: const TextStyle(
-                              color: Colors.blue,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () {
-                              setState(() => _selectedDateRange = null);
-                              _applyFilters();
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.all(4.0),
-                              child: Icon(
-                                Icons.close,
-                                size: 16,
-                                color: Colors.blue,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+            // --- PARTE SUPERIOR: Header y Master-Detail ---
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // TÍTULO
+                  const Text(
+                    "Viajes y Operaciones",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF004A75),
                     ),
-                  ],
-                ),
-              ),
-
-            // --- 2. TABLA DE RESULTADOS ---
-            Expanded(
-              child: BlocBuilder<ViajesBloc, ViajesState>(
-                builder: (context, state) {
-                  if (state is ViajesLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is ViajesLoaded) {
-                    if (state.viajes.isEmpty) {
-                      return _buildEmptyState();
-                    }
-                    // Pasamos la lista filtrada a tu widget de tabla
-                    return TripsDatagrid(viajes: state.viajes);
-                  } else if (state is ViajesError) {
-                    return Center(child: Text(state.message));
-                  }
-                  return const SizedBox.shrink();
-                },
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Gestión rápida mediante Master-Detail View. Clic en un viaje sin salir de la lista.",
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // TOOLBAR (Filtros visualmente fieles a la maqueta)
+                  _buildToolbar(),
+                  const SizedBox(height: 24),
+                  
+                  // MASTER - DETAIL LAYOUT
+                  SizedBox(
+                    height: 550, // Altura fija para no explotar el scroll
+                    child: BlocBuilder<ViajesBloc, ViajesState>(
+                      builder: (context, state) {
+                        if (state is ViajesLoading) {
+                          return const Center(child: CircularProgressIndicator());
+                        } else if (state is ViajesLoaded) {
+                          if (state.viajes.isEmpty) {
+                            return const Center(child: Text("No se encontraron viajes."));
+                          }
+                          
+                          // Autoseleccionar el primero si no hay selección
+                          if (_selectedViaje == null || !state.viajes.any((v) => v.id == _selectedViaje!.id)) {
+                            // Usamos Future.microtask para evitar llamar setState durante el build
+                            Future.microtask(() => setState(() {
+                              _selectedViaje = state.viajes.first;
+                            }));
+                          }
+                          
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // LISTA MASTER (Izquierda)
+                              Expanded(
+                                flex: 6,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: MasterTripList(
+                                    viajes: state.viajes,
+                                    selectedViajeId: _selectedViaje?.id,
+                                    onViajeSelected: _onViajeSelected,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              // QUICK DETAIL (Derecha)
+                              Expanded(
+                                flex: 4,
+                                child: _selectedViaje != null
+                                  ? QuickDetailCard(
+                                      viaje: _selectedViaje!,
+                                      onAbrirPantallaCompleta: _scrollToBottom,
+                                    )
+                                  : const Center(child: Text("Seleccione un viaje")),
+                              ),
+                            ],
+                          );
+                        } else if (state is ViajesError) {
+                          return Center(child: Text(state.message));
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
+            
+            // Separador visual
+            Container(height: 8, color: Colors.grey.shade300),
+            
+            // --- PARTE INFERIOR: Pantalla Completa del Detalle ---
+            if (_selectedViaje != null)
+              FullDetailGrid(viaje: _selectedViaje!),
+              
+            const SizedBox(height: 48), // Padding inferior
           ],
         ),
       ),
@@ -149,354 +174,113 @@ class _TripsScreenState extends State<TripsScreen> {
 
   Widget _buildToolbar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: Colors.grey.shade300),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          // FILA SUPERIOR: CRITERIO + BUSCADOR + FECHA + CREAR
-          Row(
-            children: [
-              // 1. Selector Criterio + Buscador (Expanded)
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      // Dropdown Criterio (Integrado visualmente)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            right: BorderSide(color: Colors.grey.shade300),
-                          ),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _searchField,
-                            icon: const Icon(
-                              Icons.arrow_drop_down,
-                              size: 20,
-                              color: Colors.grey,
-                            ),
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'TODO',
-                                child: Text('General'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'GUIA',
-                                child: Text('Guía'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'DESTINO',
-                                child: Text('Destino'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'ID',
-                                child: Text('Folio'),
-                              ),
-                            ],
-                            onChanged: (val) {
-                              if (val != null) {
-                                setState(() => _searchField = val);
-                                _applyFilters();
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-
-                      // Input Texto
-                      Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(
-                              Icons.search,
-                              color: Colors.grey,
-                            ),
-                            hintText: _getSearchHint(),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                            ),
-                            isDense: true,
-                          ),
-                          onChanged: (value) {
-                            if (_debounce?.isActive ?? false) {
-                              _debounce!.cancel();
-                            }
-                            _debounce = Timer(
-                              const Duration(milliseconds: 500),
-                              () {
-                                _searchQuery = value;
-                                _applyFilters();
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+          Text("ESTATUS:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey.shade600)),
+          const SizedBox(width: 12),
+          _buildPill("Todos", true, null),
+          const SizedBox(width: 8),
+          _buildPill("En Curso", false, 4),
+          const SizedBox(width: 8),
+          _buildPill("Programados", false, null),
+          
+          const Spacer(),
+          
+          // Search box
+          Container(
+            width: 250,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: TextField(
+              decoration: InputDecoration(
+                icon: const Icon(Icons.search, size: 18, color: Colors.grey),
+                hintText: "Buscar folio, destino o guía...",
+                hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
-
-              const SizedBox(width: 16),
-
-              // 2. BOTÓN DE FECHA MEJORADO
-              // 2. BOTÓN DE FECHA MEJORADO (RANGO + Localización ES 🇪🇸)
-              OutlinedButton.icon(
-                icon: Icon(
-                  Icons.date_range, // Icono de rango
-                  size: 18,
-                  color: _selectedDateRange != null ? Colors.blue : Colors.grey,
-                ),
-                label: Text(
-                  _selectedDateRange == null
-                      ? "Filtrar Fechas"
-                      : _formatRange(
-                        _selectedDateRange!,
-                      ), // Formato inteligente
-                  style: TextStyle(
-                    color:
-                        _selectedDateRange != null
-                            ? Colors.blue
-                            : Colors.grey[700],
-                    fontWeight:
-                        _selectedDateRange != null
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  side:
-                      _selectedDateRange != null
-                          ? const BorderSide(color: Colors.blue, width: 2)
-                          : BorderSide(color: Colors.grey.shade300),
-                ),
-                onPressed: () async {
-                  // Si ya hay rango, permitir limpiar haciendo clic
-                  if (_selectedDateRange != null) {
-                    setState(() => _selectedDateRange = null);
-                    _applyFilters();
-                    return;
-                  }
-
-                  // Abrir Selector de Rango 📅🇪🇸 (Modal centrado, no fullscreen)
-                  final DateTimeRange? picked = await showDateRangePicker(
-                    context: context,
-                    locale: const Locale('es', 'ES'), // <--- ESPAÑOL
-                    firstDate: DateTime(2025),
-                    lastDate: DateTime(2030),
-                    initialDateRange: _selectedDateRange,
-                    saveText: 'FILTRAR',
-                    helpText: 'SELECCIONA FECHA O PERIODO', // Texto más claro
-                    fieldStartHintText: 'Inicio',
-                    fieldEndHintText: 'Fin',
-                    builder: (context, child) {
-                      return Theme(
-                        data: ThemeData.light().copyWith(
-                          colorScheme: const ColorScheme.light(
-                            primary: Colors.indigo, // Azul corporativo
-                            onPrimary: Colors.white,
-                            onSurface: Colors.black,
-                          ),
-                        ),
-                        // Evitar pantalla completa: Centrar y limitar tamaño
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxWidth:
-                                  500, // Ancho controlado (estilo diálogo)
-                              maxHeight: 650,
-                            ),
-                            child: child!,
-                          ),
-                        ),
-                      );
-                    },
-                  );
-
-                  if (picked != null) {
-                    setState(() => _selectedDateRange = picked);
-                    _applyFilters();
-                  }
-                },
-              ),
-
-              const SizedBox(width: 16),
-
-              // 3. Botón Crear Viaje
-              FilledButton.icon(
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text("Nuevo Viaje"),
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFFE96E50),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () {
-                  context.go(
-                    '${RoutesAgencia.viajes}/${RoutesAgencia.nuevoViaje}',
-                  );
-                },
-              ),
-            ],
+              onChanged: (val) {
+                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                _debounce = Timer(const Duration(milliseconds: 500), () {
+                  _searchQuery = val;
+                  _applyFilters();
+                });
+              },
+            ),
           ),
-
-          const SizedBox(height: 16),
-          Divider(height: 1, color: Colors.grey.shade200),
-          const SizedBox(height: 16),
-
-          // FILA INFERIOR: CHIPS DE ESTATUS
-          Row(
-            children: [
-              const Text(
-                "Estatus:",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(width: 12),
-              _buildFilterChip('Todos', Colors.grey[800]!, 'TODOS'),
-              const SizedBox(width: 8),
-              _buildFilterChip('En Curso', Colors.green, 'EN_CURSO'),
-              const SizedBox(width: 8),
-              _buildFilterChip('Programados', Colors.blue, 'PROGRAMADO'),
-              const SizedBox(width: 8),
-              _buildFilterChip('Finalizados', Colors.grey, 'FINALIZADO'),
-
-              const Spacer(),
-
-              // Botón Reset (Solo visible si hay filtros activos)
-              if (!_selectedStatuses.contains('TODOS') ||
-                  _selectedStatuses.length > 1 ||
-                  _searchQuery.isNotEmpty ||
-                  _searchField != 'TODO' ||
-                  _selectedDateRange != null) // <--- Check rango
-                TextButton.icon(
-                  icon: const Icon(Icons.clear, size: 16),
-                  label: const Text("Limpiar Filtros"),
-                  style: TextButton.styleFrom(foregroundColor: Colors.grey),
-                  onPressed: () {
-                    setState(() {
-                      _searchQuery = '';
-                      _selectedStatuses = {'TODOS'};
-                      _searchField = 'TODO';
-                      _selectedDateRange = null; // <--- Limpiar rango
-                    });
-                    _applyFilters();
-                  },
-                ),
-            ],
-          ),
+          
+          const SizedBox(width: 16),
+          Container(height: 24, width: 1, color: Colors.grey.shade300),
+          const SizedBox(width: 16),
+          
+          // Date Range
+          InkWell(
+            onTap: () async {
+              final picked = await showDateRangePicker(
+                context: context,
+                firstDate: DateTime(2025),
+                lastDate: DateTime(2030),
+              );
+              if (picked != null) {
+                setState(() => _selectedDateRange = picked);
+                _applyFilters();
+              }
+            },
+            child: Row(
+              children: [
+                Icon(Icons.calendar_today, size: 16, color: Colors.blue.shade800),
+                const SizedBox(width: 8),
+                Text(
+                  _selectedDateRange == null ? "01/Mar - 15/Mar" : "${_selectedDateRange!.start.day}/${_selectedDateRange!.start.month} - ${_selectedDateRange!.end.day}/${_selectedDateRange!.end.month}",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900, fontSize: 13),
+                )
+              ],
+            ),
+          )
         ],
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, Color color, String value) {
-    final bool isSelected = _selectedStatuses.contains(value);
-    return FilterChip(
-      label: Text(label),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : color,
-        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-        fontSize: 12,
+  Widget _buildPill(String label, bool isSelected, int? count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: isSelected ? const Color(0xFF1B3B6F) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isSelected ? Colors.transparent : Colors.grey.shade300),
       ),
-      selected: isSelected,
-      onSelected: (bool selected) {
-        setState(() {
-          if (value == 'TODOS') {
-            // Si eligen "Todos", se limpian los demás filtros
-            if (selected) {
-              _selectedStatuses.clear();
-              _selectedStatuses.add('TODOS');
-            }
-          } else {
-            // Si eligen otro filtro, quitamos "Todos"
-            _selectedStatuses.remove('TODOS');
-            if (selected) {
-              _selectedStatuses.add(value);
-            } else {
-              _selectedStatuses.remove(value);
-            }
-            // Si quedó vacío después de deseleccionar, volvemos a "Todos"
-            if (_selectedStatuses.isEmpty) {
-              _selectedStatuses.add('TODOS');
-            }
-          }
-        });
-        _applyFilters();
-      },
-      backgroundColor: Colors.white,
-      selectedColor: color,
-      checkmarkColor: Colors.white,
-      side: BorderSide(
-        color: isSelected ? Colors.transparent : color.withValues(alpha: 0.3),
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
         children: [
-          Icon(Icons.search_off, size: 64, color: Colors.grey[300]),
-          const SizedBox(height: 16),
           Text(
-            "No se encontraron viajes con esos filtros.",
-            style: TextStyle(color: Colors.grey[600], fontSize: 16),
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.grey.shade700,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
+          if (count != null) ...[
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(color: Colors.green.shade100, borderRadius: BorderRadius.circular(4)),
+              child: Text(count.toString(), style: TextStyle(color: Colors.green.shade800, fontSize: 10, fontWeight: FontWeight.bold)),
+            )
+          ]
         ],
       ),
     );
-  }
-
-  String _formatRange(DateTimeRange range) {
-    final start = range.start;
-    final end = range.end;
-    if (start.day == end.day &&
-        start.month == end.month &&
-        start.year == end.year) {
-      return "${start.day}/${start.month}/${start.year}";
-    }
-    return "${start.day}/${start.month} - ${end.day}/${end.month}";
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../core/navigation/routes_agencia.dart'; // Mantener Rutas constants si se usan
+import '../../../../../core/navigation/routes_agencia.dart';
 import 'package:frontend/core/widgets/saving_overlay.dart';
 
 class AgencySidebar extends StatelessWidget {
@@ -21,7 +21,6 @@ class AgencySidebar extends StatelessWidget {
   }
 
   Future<void> _handleLogout(BuildContext context) async {
-    // 1. Pedir confirmación antes de hacer cualquier cosa
     final confirmar = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -61,10 +60,8 @@ class AgencySidebar extends StatelessWidget {
           ),
     );
 
-    // 2. Si rechazó, no hacer nada
     if (confirmar != true || !context.mounted) return;
 
-    // 3. Mostrar animación de cierre de sesión y navegar al login
     await SavingOverlay.showAndWait(
       context,
       mensaje: 'Cerrando sesión...',
@@ -79,143 +76,231 @@ class AgencySidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int currentIndex = navigationShell.currentIndex;
+    const primaryDark = Color(0xFF1B3B6F);
+    const textGray = Color(0xFF5A6B7C);
+    const borderGray = Color(0xFFE0E5EC);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      width: isCollapsed ? 70 : 250,
-      color: const Color(0xFF0D1B2A), // Dark Sidebar Background
+      width: isCollapsed ? 80 : 250,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(right: BorderSide(color: borderGray, width: 1)),
+      ),
       child: Column(
         children: [
           // 1. Brand Area (Logo)
           Container(
-            height: 64,
+            height: 80,
             width: double.infinity,
             alignment: Alignment.center,
+            padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 0 : 20),
             decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.white10)),
+              border: Border(bottom: BorderSide(color: borderGray, width: 1)),
             ),
-            child:
-                isCollapsed
-                    ? const Icon(Icons.business, color: Colors.white)
-                    : const Text(
-                      'VELTUR',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
+            child: Row(
+              mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: primaryDark,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'V',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
                     ),
+                  ),
+                ),
+                if (!isCollapsed) ...[
+                  const SizedBox(width: 12),
+                  const Text(
+                    'VELTUR',
+                    style: TextStyle(
+                      color: primaryDark,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'App',
+                    style: TextStyle(
+                      color: textGray,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
 
-          // Scrollable Content
+          const SizedBox(height: 16),
+
+          // 2. Navigation Menu
           Expanded(
             child: CustomScrollView(
               slivers: [
-                // 2. User Widget
-                if (!isCollapsed)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const NeverScrollableScrollPhysics(),
-                        child: Row(
-                          children: [
-                            const CircleAvatar(
-                              backgroundColor: Colors.grey,
-                              radius: 20,
-                              child: Icon(Icons.person, color: Colors.white),
-                            ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
-                                  'Julian XD',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  'Super Admin',
-                                  style: TextStyle(
-                                    color: Colors.white54,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                if (isCollapsed)
-                  const SliverToBoxAdapter(child: SizedBox(height: 10)),
-
-                // 3. Navigation Menu
                 SliverList(
                   delegate: SliverChildListDelegate([
                     _buildNavItem(
                       context,
-                      icon: Icons.dashboard,
-                      label: 'Dashboard',
+                      icon: Icons.explore_rounded,
+                      label: 'Radar Operativo',
                       isActive: currentIndex == 0,
                       onTap: () => _onNavigate(context, 0),
                     ),
                     _buildNavItem(
                       context,
-                      icon: Icons.flight,
-                      label: 'Gestión Viajes',
+                      icon: Icons.directions_bus_rounded,
+                      label: 'Op. de Viajes',
                       isActive: currentIndex == 1,
                       onTap: () => _onNavigate(context, 1),
                     ),
                     _buildNavItem(
                       context,
-                      icon: Icons.people,
-                      label: 'Usuarios',
+                      icon: Icons.badge_rounded,
+                      label: 'Staff / Guías',
                       isActive: currentIndex == 2,
                       onTap: () => _onNavigate(context, 2),
                     ),
                     _buildNavItem(
                       context,
-                      icon: Icons.assignment,
-                      label: 'Auditoría/Logs',
+                      icon: Icons.history_rounded,
+                      label: 'Historial PAX',
                       isActive: currentIndex == 3,
                       onTap: () => _onNavigate(context, 3),
                     ),
+                    const SizedBox(height: 20),
+                    if (!isCollapsed)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        child: Text(
+                          'SISTEMA',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: textGray,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
                     _buildNavItem(
                       context,
-                      icon: Icons.settings,
+                      icon: Icons.settings_rounded,
                       label: 'Configuración',
                       isActive: currentIndex == 4,
                       onTap: () => _onNavigate(context, 4),
                     ),
                   ]),
                 ),
+              ],
+            ),
+          ),
 
-                // 4. Sticky Footer (Logout)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: _buildSimpleItem(
-                          icon: Icons.logout,
-                          label: 'Cerrar Sesión',
-                          onTap: () => _handleLogout(context),
-                          color: Colors.redAccent,
+          // 3. Sticky Footer (Profile & Logout)
+          Container(
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: borderGray, width: 1)),
+            ),
+            child: Column(
+              children: [
+                // Profile Widget
+                InkWell(
+                  onTap: () {},
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isCollapsed ? 0 : 20,
+                      vertical: 16,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: const Color(0xFFE8EEFF),
+                          radius: 18,
+                          child: const Text(
+                            'AD',
+                            style: TextStyle(
+                              color: primaryDark,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                        if (!isCollapsed) ...[
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Admin Juan',
+                                  style: TextStyle(
+                                    color: primaryDark,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  'Agencia Central',
+                                  style: TextStyle(
+                                    color: textGray,
+                                    fontSize: 11,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
+                // Logout Widget
+                if (!isCollapsed)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
+                    child: InkWell(
+                      onTap: () => _handleLogout(context),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                            SizedBox(width: 12),
+                            Text(
+                              'Cerrar Sesión',
+                              style: TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: IconButton(
+                      icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                      onPressed: () => _handleLogout(context),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -231,79 +316,47 @@ class AgencySidebar extends StatelessWidget {
     required bool isActive,
     required VoidCallback onTap,
   }) {
+    const primaryDark = Color(0xFF1B3B6F);
+    const textGray = Color(0xFF5A6B7C);
+    const activeBg = Color(0xFFE8EEFF);
+
     return Material(
-      color:
-          isActive
-              ? const Color(0xFF1B263B)
-              : Colors.transparent, // Active Check
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        hoverColor: const Color(0xFF415A77).withValues(alpha: 0.3),
+        hoverColor: activeBg.withValues(alpha: 0.5),
         child: Container(
-          height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration:
-              isActive
-                  ? const BoxDecoration(
-                    border: Border(
-                      left: BorderSide(color: Colors.blueAccent, width: 4),
-                    ),
-                  )
-                  : null,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const NeverScrollableScrollPhysics(),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: isActive ? Colors.blueAccent : Colors.white70,
-                  size: 24,
-                ),
-                if (!isCollapsed) ...[
-                  const SizedBox(width: 16),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: isActive ? Colors.white : Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ],
+          height: 48,
+          margin: const EdgeInsets.only(bottom: 4),
+          decoration: BoxDecoration(
+            color: isActive ? activeBg : Colors.transparent,
+            border: Border(
+              left: BorderSide(
+                color: isActive ? primaryDark : Colors.transparent,
+                width: 4,
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSimpleItem({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: 50,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 0,
-        ), // Already inside padding
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 0 : 20),
+          alignment: isCollapsed ? Alignment.center : Alignment.centerLeft,
           child: Row(
+            mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
             children: [
-              Icon(icon, color: color ?? Colors.white70, size: 24),
+              Icon(
+                icon,
+                color: isActive ? primaryDark : textGray,
+                size: 20,
+              ),
               if (!isCollapsed) ...[
                 const SizedBox(width: 16),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: color ?? Colors.white70,
-                    fontSize: 14,
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isActive ? primaryDark : textGray,
+                      fontSize: 13,
+                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
