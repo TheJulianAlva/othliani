@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_colors.dart';
-import 'package:frontend/features/guia/home/presentation/widgets/mapa_monitoreo_widget.dart';
+import 'package:flutter/material.dart'; // Mantener si hay otros usos, pero preferiremos GuiaColors
+import 'package:frontend/features/guia/shared/theme/guia_theme.dart';
+import 'package:frontend/features/guia/shared/widgets/guia_custom_app_bar.dart';
+import 'package:frontend/features/guia/shared/widgets/mapa_monitoreo_widget.dart';
 
 // ────────────────────────────────────────────────────────────────────────────
 // PANTALLA DE GESTIÓN DE CAMBIOS DE ITINERARIO
@@ -66,13 +67,13 @@ class _PantallaGestionCambiosState extends State<PantallaGestionCambios> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withAlpha(20),
+                    color: GuiaColors.primary.withAlpha(20),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.sync_rounded,
                     size: 40,
-                    color: AppColors.primary,
+                    color: GuiaColors.primary,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -127,7 +128,7 @@ class _PantallaGestionCambiosState extends State<PantallaGestionCambios> {
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(ctx).pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: GuiaColors.primary,
                     foregroundColor: Colors.white,
                   ),
                   child: const Text('Entendido'),
@@ -142,13 +143,14 @@ class _PantallaGestionCambiosState extends State<PantallaGestionCambios> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F3FF),
-      appBar: AppBar(
-        title: const Text('Ajustar Itinerario'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+      appBar: GuiaCustomAppBar(
+        title: 'Ajustar Itinerario',
+        subtitle: 'Gestión de Cambios',
+        icon: Icons.edit_calendar_rounded,
+        onBackPressed: () => Navigator.of(context).pop(),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history_rounded),
+            icon: const Icon(Icons.history_rounded, color: Colors.white),
             tooltip: 'Historial de cambios',
             onPressed:
                 () => ScaffoldMessenger.of(context).showSnackBar(
@@ -218,7 +220,7 @@ class _PantallaGestionCambiosState extends State<PantallaGestionCambios> {
                       Container(
                         width: 4,
                         height: 36,
-                        color: AppColors.primary,
+                        color: GuiaColors.primary,
                         margin: const EdgeInsets.only(right: 10),
                       ),
                       const Expanded(
@@ -283,9 +285,9 @@ class _PantallaGestionCambiosState extends State<PantallaGestionCambios> {
                   ),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: AppColors.primary,
-                      thumbColor: AppColors.primary,
-                      overlayColor: AppColors.primary.withAlpha(30),
+                      activeTrackColor: GuiaColors.primary,
+                      thumbColor: GuiaColors.primary,
+                      overlayColor: GuiaColors.primary.withAlpha(30),
                     ),
                     child: Slider(
                       value: _radioGeocerca,
@@ -447,7 +449,7 @@ class _FilaSincronizacionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icono, size: 15, color: AppColors.primary),
+        Icon(icono, size: 15, color: GuiaColors.primary),
         const SizedBox(width: 8),
         Expanded(child: Text(texto, style: const TextStyle(fontSize: 12))),
       ],

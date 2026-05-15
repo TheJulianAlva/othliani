@@ -16,20 +16,20 @@ import 'package:frontend/features/guia/auth/domain/entities/guia_user.dart';
 
 import 'package:frontend/features/guia/home/presentation/blocs/agencia_home_bloc/agencia_home_cubit.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/personal_home_bloc/personal_home_cubit.dart';
-import 'package:frontend/features/guia/home/presentation/blocs/sos/sos_cubit.dart';
+import 'package:frontend/features/guia/sos/presentation/blocs/sos_cubit.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/eco_mode/eco_mode_cubit.dart';
 
 import 'package:frontend/features/guia/home/presentation/screens/agencia_main_layout.dart';
 import 'package:frontend/features/guia/home/presentation/screens/personal_main_layout.dart';
-import 'package:frontend/features/guia/home/presentation/widgets/sos_pre_aviso_overlay.dart';
-import 'package:frontend/features/guia/home/presentation/widgets/eco_mode_overlay.dart';
+import 'package:frontend/features/guia/sos/presentation/widgets/sos_pre_aviso_overlay.dart';
+import 'package:frontend/features/guia/shared/widgets/eco_mode_overlay.dart';
 import 'package:frontend/core/di/service_locator.dart';
 
 // Importaciones de las demás pestañas del guía
 import 'package:frontend/features/guia/shared/screens/guia_map_screen.dart';
 import 'package:frontend/features/guia/chat/presentation/screens/guia_chat_screen.dart';
 import 'package:frontend/features/guia/profile/presentation/screens/guia_profile_screen.dart';
-import 'package:frontend/core/tools/presentation/screens/currency_converter_screen.dart';
+import 'package:frontend/features/guia/tools/presentation/screens/guia_herramientas_screen.dart';
 
 /// Punto de entrada único para el home del guía.
 ///
@@ -143,7 +143,7 @@ class _HomeTabs extends StatefulWidget {
 }
 
 class _HomeTabsState extends State<_HomeTabs> {
-  int _currentIndex = 0;
+  final ValueNotifier<int> _currentIndexNotifier = ValueNotifier<int>(0);
   late final List<Widget> _screens;
 
   @override
@@ -153,17 +153,29 @@ class _HomeTabsState extends State<_HomeTabs> {
       widget.gestionScreen, // 0: Gestión (B2B o B2C)
       const GuiaMapScreen(), // 1: Mapa
       const GuiaChatScreen(), // 2: Chat
-      const CurrencyConverterScreen(), // 3: Conversor
+      const GuiaHerramientasScreen(), // 3: Herramientas
       const GuiaProfileScreen(), // 4: Perfil
     ];
   }
 
   @override
+  void dispose() {
+    _currentIndexNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _screens),
+      body: ValueListenableBuilder<int>(
+        valueListenable: _currentIndexNotifier,
+        builder: (context, currentIndex, _) {
+          return IndexedStack(index: currentIndex, children: _screens);
+        },
+      ),
       // Floating Action Button de SOS sugerido globalmente
       floatingActionButton: FloatingActionButton(
+        heroTag: 'home_sos_fab',
         onPressed: () {
           // Lanza la pantalla base de SOS
           context.push(RoutesGuia.sos);
@@ -172,55 +184,60 @@ class _HomeTabsState extends State<_HomeTabs> {
         elevation: 4,
         child: const Icon(Icons.sos_rounded, color: Colors.white, size: 32),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF00AE00),
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
-        unselectedLabelStyle: const TextStyle(fontSize: 12),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business_center_outlined),
-            activeIcon: Icon(Icons.business_center),
-            label: 'Gestión',
-            tooltip:
-                'Centro de control: Iniciar/Finalizar viaje, verificar participantes, ver itinerario detallado y estadísticas de viaje (distancia, tiempo, CO2).',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map_outlined),
-            activeIcon: Icon(Icons.map),
-            label: 'Mapa',
-            tooltip:
-                'Monitoreo en vivo de turistas, configuración de radio de geocerca (50m, 200m, 500m), marcar puntos de reunión y activar "Modo Explorador".',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: Icon(Icons.chat_bubble),
-            label: 'Chat',
-            tooltip:
-                'Comunicación grupal, función "Walkie-Talkie" (envío rápido de audio) y lanzamiento de alertas personalizadas para los turistas.',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.paid_outlined),
-            activeIcon: Icon(Icons.paid),
-            label: 'Conversor',
-            tooltip:
-                'Herramienta de apoyo: Conversor de divisas instantáneo para asistir a turistas en compras y acceso a la "Caja Negra" de eventos.',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded),
-            activeIcon: Icon(Icons.person_rounded),
-            label: 'Perfil',
-            tooltip:
-                'Gestión de cuenta: Configurar contactos de emergencia (Esposa, Hermano, Autoridad), cambio de idioma/tema y cierre de sesión.',
-          ),
-        ],
+      bottomNavigationBar: ValueListenableBuilder<int>(
+        valueListenable: _currentIndexNotifier,
+        builder: (context, currentIndex, _) {
+          return BottomNavigationBar(
+            currentIndex: currentIndex,
+            onTap: (index) => _currentIndexNotifier.value = index,
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: const Color(0xFF00AE00),
+            unselectedItemColor: Colors.grey,
+            showUnselectedLabels: true,
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+            unselectedLabelStyle: const TextStyle(fontSize: 12),
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.business_center_outlined),
+                activeIcon: Icon(Icons.business_center),
+                label: 'Gestión',
+                tooltip:
+                    'Centro de control: Iniciar/Finalizar viaje, verificar participantes, ver itinerario detallado y estadísticas de viaje (distancia, tiempo, CO2).',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.map_outlined),
+                activeIcon: Icon(Icons.map),
+                label: 'Mapa',
+                tooltip:
+                    'Monitoreo en vivo de turistas, configuración de radio de geocerca (50m, 200m, 500m), marcar puntos de reunión y activar "Modo Explorador".',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.chat_bubble_outline),
+                activeIcon: Icon(Icons.chat_bubble),
+                label: 'Chat',
+                tooltip:
+                    'Comunicación grupal, función "Walkie-Talkie" (envío rápido de audio) y lanzamiento de alertas personalizadas para los turistas.',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.build_outlined),
+                activeIcon: Icon(Icons.build),
+                label: 'Herramientas',
+                tooltip:
+                    'Herramientas de apoyo: Conversor de divisas y más utilidades para el guía.',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline_rounded),
+                activeIcon: Icon(Icons.person_rounded),
+                label: 'Perfil',
+                tooltip:
+                    'Gestión de cuenta: Configurar contactos de emergencia (Esposa, Hermano, Autoridad), cambio de idioma/tema y cierre de sesión.',
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -267,17 +284,21 @@ class _WrappedHome extends StatelessWidget {
                     child: EcoModeOverlay(turistasActivos: numTuristas),
                   ),
 
-                // Overlay SOS General (Renderizado condicional para optimizar el árbol)
-                BlocBuilder<SosCubit, SosState>(
-                  buildWhen:
-                      (prev, curr) =>
-                          (prev is SosWarning) != (curr is SosWarning),
-                  builder: (context, sosState) {
-                    if (sosState is SosWarning) {
-                      return const Positioned.fill(child: SosPreAvisoOverlay());
-                    }
-                    return const SizedBox.shrink();
-                  },
+                // Overlay SOS General — Positioned.fill debe ser hijo directo del Stack.
+                // BlocBuilder vive DENTRO del Positioned para evitar el error
+                // "Incorrect use of ParentDataWidget".
+                Positioned.fill(
+                  child: BlocBuilder<SosCubit, SosState>(
+                    buildWhen:
+                        (prev, curr) =>
+                            (prev is SosWarning) != (curr is SosWarning),
+                    builder: (context, sosState) {
+                      if (sosState is SosWarning) {
+                        return const SosPreAvisoOverlay();
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
                 ),
               ],
             );

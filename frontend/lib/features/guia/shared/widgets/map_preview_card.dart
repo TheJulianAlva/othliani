@@ -37,17 +37,13 @@ class MapPreviewCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Textura fotorrealista de mapa estático
+            // Textura de fondo estática (sin red)
             ClipRRect(
               borderRadius: BorderRadius.circular(14),
-              child: Opacity(
-                opacity: 0.40, // 20% como sugirió la recomendación
-                child: Image.network(
-                  'https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1000&auto=format&fit=crop', // Imagen de mapa genérica de alta calidad
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+              child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                color: const Color(0xFF1A237E).withAlpha(60),
               ),
             ),
             // Capa oscura azulada (overlay)

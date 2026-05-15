@@ -1,8 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:frontend/core/navigation/routes_guia.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart';
 import 'package:frontend/features/guia/home/presentation/screens/sos_alarm_screen.dart';
@@ -184,21 +182,22 @@ class _MapaMonitoreoWidgetState extends State<MapaMonitoreoWidget> {
   void _lanzarAlertaProactiva(TuristaEnMapa turista) {
     _alertasDisparadas.add(turista.id); // Marca como notificado
 
-    final esCritico = turista.vulnerabilidad == PrioridadAlerta.critica;
-    final alerta = AlertaSOS(
-      prioridad: turista.vulnerabilidad,
-      mensaje:
-          esCritico
-              ? '¡ATENCIÓN! ${turista.nombre} se ha alejado del grupo'
-              : '${turista.nombre} está fuera de la zona segura',
-      nombreTurista: turista.nombre,
-      autoDetectada: true,
-    );
-
-    // Post-frame para evitar push durante build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.push(RoutesGuia.sos, extra: alerta);
-    });
+    // PROTOTIPO: La navegación automática al SOS está desactivada para evitar
+    // condiciones de carrera al construir el árbol de widgets en initState.
+    // En producción, descomentar y conectar al sistema de alertas real.
+    //
+    // final esCritico = turista.vulnerabilidad == PrioridadAlerta.critica;
+    // final alerta = AlertaSOS(
+    //   prioridad: turista.vulnerabilidad,
+    //   mensaje: esCritico
+    //       ? '¡ATENCIÓN! ${turista.nombre} se ha alejado del grupo'
+    //       : '${turista.nombre} está fuera de la zona segura',
+    //   nombreTurista: turista.nombre,
+    //   autoDetectada: true,
+    // );
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   if (mounted) context.push(RoutesGuia.sos, extra: alerta);
+    // });
   }
 
   // ── Construye marcadores con hue dinámico ─────────────────────────────────

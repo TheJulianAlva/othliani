@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:frontend/features/guia/trips/domain/entities/actividad_itinerario.dart';
+import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
 
 enum EstadoParticipante { sincronizado, offline, alerta }
 
@@ -30,6 +32,8 @@ class AgenciaHomeData extends Equatable {
   final List<Participante> participantes;
   final List<AlertaHistorial> historialAlertas;
   final String geocercaRadio;
+  final List<ActividadItinerario> actividades;
+  final List<Turista> listaTuristas;
 
   const AgenciaHomeData({
     required this.nombreViaje,
@@ -39,6 +43,8 @@ class AgenciaHomeData extends Equatable {
     required this.participantes,
     required this.historialAlertas,
     required this.geocercaRadio,
+    this.actividades = const [],
+    this.listaTuristas = const [],
   });
 
   @override
@@ -50,5 +56,7 @@ class AgenciaHomeData extends Equatable {
     participantes,
     historialAlertas,
     geocercaRadio,
+    actividades,
+    listaTuristas,
   ];
 }

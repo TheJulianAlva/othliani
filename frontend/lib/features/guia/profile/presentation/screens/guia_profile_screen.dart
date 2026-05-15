@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/features/guia/auth/data/models/guia_user_model.dart';
@@ -7,17 +8,17 @@ import 'package:frontend/features/guia/auth/domain/usecases/logout_guia_usecase.
 import 'package:frontend/core/usecase/usecase.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
-import 'package:frontend/features/guia/profile/domain/entities/eco_stats.dart';
-import 'package:frontend/features/guia/profile/data/eco_stats_service.dart';
-import 'package:frontend/features/guia/profile/presentation/widgets/eco_badge_widget.dart';
+
+import 'package:frontend/features/guia/settings/presentation/cubit/guia_theme_cubit.dart';
+import 'package:frontend/features/guia/settings/presentation/cubit/guia_locale_cubit.dart';
 
 // ────────────────────────────────────────────────────────────────────────────
 // PANTALLA DE PERFIL Y CONFIGURACIÓN DEL GUÍA
 // Espejo de la ProfileScreen del turista, adaptada al dominio del guía.
 // ────────────────────────────────────────────────────────────────────────────
 
-const _azulPrimario = Color(0xFF1A237E);
-const _azulSecundario = Color(0xFF3D5AF1);
+import 'package:frontend/features/guia/shared/theme/guia_theme.dart';
+import 'package:frontend/features/guia/shared/widgets/guia_custom_app_bar.dart';
 
 class GuiaProfileScreen extends StatefulWidget {
   const GuiaProfileScreen({super.key});
@@ -30,16 +31,19 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
   GuiaUserModel? _user;
   bool _cargando = true;
 
-  // ── Eco Gamificación (solo B2C) ────────────────────────────────────────────
-  EcoStats? _ecoStats;
-  bool _cargandoEco = false;
 
   // Configuración local (mock para el MVP)
-  final bool _notificacionesActivas = true;
-  final bool _modoOscuro = false;
-  String _idiomaSeleccionado = 'Español';
+  bool _notificacionesActivas = true;
 
-  final _idiomas = ['Español', 'English', 'Français'];
+  // Mapeo de idiomas para el dropdown ↔ Locale
+  static const _idiomaToLocale = {
+    'Español': Locale('es'),
+    'English': Locale('en'),
+  };
+  static const _localeToIdioma = {
+    'es': 'Español',
+    'en': 'English',
+  };
 
   @override
   void initState() {
@@ -47,17 +51,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
     _cargarUsuario();
   }
 
-  Future<void> _cargarEcoStats() async {
-    if (_cargandoEco) return;
-    setState(() => _cargandoEco = true);
-    final stats = await EcoStatsService().obtenerStats();
-    if (mounted) {
-      setState(() {
-        _ecoStats = stats;
-        _cargandoEco = false;
-      });
-    }
-  }
+
 
   Future<void> _cargarUsuario() async {
     final prefs = await SharedPreferences.getInstance();
@@ -69,9 +63,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
           _user = model;
           _cargando = false;
         });
-        // Cargar EcoStats solo si es guía independiente (B2C)
-        final esAgencia = (model.permissionLevel) == 2;
-        if (!esAgencia) _cargarEcoStats();
+
       }
     } else {
       if (mounted) {
@@ -115,7 +107,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _azulSecundario,
+                  backgroundColor: GuiaColors.secondary,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Guardar'),
@@ -164,93 +156,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
     );
   }
 
-  // ── 🌿 Sección Eco (B2C exclusivo) ────────────────────────────────────────
-  List<Widget> _buildSeccionEco() {
-    return [
-      _SeccionTitulo('Mis Logros Veltur'),
-      const SizedBox(height: 8),
-      if (_cargandoEco)
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 24),
-          child: Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3D5AF1)),
-              strokeWidth: 2.5,
-            ),
-          ),
-        )
-      else if (_ecoStats != null)
-        EcoBadgeWidget(stats: _ecoStats!)
-      else
-        const SizedBox.shrink(),
-      const Padding(
-        padding: EdgeInsets.only(bottom: 20),
-        child: Text(
-          'Comparte tu insignia con clientes para demostrar tu compromiso'
-          ' con la seguridad y el medio ambiente. ¡Eres tu mejor marketing!',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 12,
-            fontStyle: FontStyle.italic,
-            height: 1.5,
-          ),
-        ),
-      ),
-    ];
-  }
 
-  // ── Banner informativo para guías de Agencia (B2B) ────────────────────────
-  List<Widget> _buildBannerAgencia() {
-    return [
-      Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8ECFF),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF3D5AF1).withAlpha(40)),
-        ),
-        child: const Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.corporate_fare_rounded,
-              color: Color(0xFF3D5AF1),
-              size: 22,
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Métricas de impacto empresarial',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: Color(0xFF1A237E),
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Tu agencia consolida estos datos en su panel web para '
-                    'obtener certificaciones como "Agencia Carbono Neutral". '
-                    'Consulta el dashboard de tu agencia para más detalles.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -271,10 +177,10 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F3FF),
-      appBar: AppBar(
-        title: const Text('Mi perfil'),
-        backgroundColor: _azulPrimario,
-        foregroundColor: Colors.white,
+      appBar: GuiaCustomAppBar(
+        title: 'Mi perfil',
+        subtitle: 'Configuración de cuenta',
+        icon: Icons.person_rounded,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(18),
@@ -292,7 +198,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                         radius: 44,
                         backgroundColor:
                             esAgencia
-                                ? _azulSecundario
+                                ? GuiaColors.secondary
                                 : const Color(0xFFE65100),
                         child: Text(
                           iniciales,
@@ -316,7 +222,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                             size: 16,
                             color:
                                 esAgencia
-                                    ? _azulSecundario
+                                    ? GuiaColors.secondary
                                     : const Color(0xFFE65100),
                           ),
                         ),
@@ -344,7 +250,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: (esAgencia
-                              ? _azulSecundario
+                              ? GuiaColors.secondary
                               : const Color(0xFFE65100))
                           .withAlpha(20),
                       borderRadius: BorderRadius.circular(20),
@@ -358,7 +264,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                         fontWeight: FontWeight.w700,
                         color:
                             esAgencia
-                                ? _azulSecundario
+                                ? GuiaColors.secondary
                                 : const Color(0xFFE65100),
                       ),
                     ),
@@ -368,8 +274,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
             ),
             const SizedBox(height: 24),
 
-            // ── 🌿 SELLO VERDE: exclusivo Guía Independiente (B2C) ────────
-            if (!esAgencia) ..._buildSeccionEco() else ..._buildBannerAgencia(),
+
 
             // ── Sección: Cuenta ────────────────────────────────────────
             _SeccionTitulo('Cuenta'),
@@ -416,70 +321,84 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
               ),
               child: Column(
                 children: [
-                  // Idioma
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.language,
-                          color: Colors.grey,
-                          size: 20,
+                  // Idioma (conectado a GuiaLocaleCubit)
+                  BlocBuilder<GuiaLocaleCubit, Locale>(
+                    builder: (context, currentLocale) {
+                      final idiomaActual =
+                          _localeToIdioma[currentLocale.languageCode] ?? 'Español';
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
                         ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Text('Idioma', style: TextStyle(fontSize: 13)),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.language,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 14),
+                            const Expanded(
+                              child: Text('Idioma', style: TextStyle(fontSize: 13)),
+                            ),
+                            DropdownButton<String>(
+                              value: idiomaActual,
+                              underline: const SizedBox(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF1A1A2E),
+                              ),
+                              items:
+                                  _idiomaToLocale.keys
+                                      .map(
+                                        (i) => DropdownMenuItem(
+                                          value: i,
+                                          child: Text(i),
+                                        ),
+                                      )
+                                      .toList(),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  final locale = _idiomaToLocale[v]!;
+                                  context.read<GuiaLocaleCubit>().setLocale(locale);
+                                }
+                              },
+                            ),
+                          ],
                         ),
-                        DropdownButton<String>(
-                          value: _idiomaSeleccionado,
-                          underline: const SizedBox(),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF1A1A2E),
-                          ),
-                          items:
-                              _idiomas
-                                  .map(
-                                    (i) => DropdownMenuItem(
-                                      value: i,
-                                      child: Text(i),
-                                    ),
-                                  )
-                                  .toList(),
-                          onChanged: (v) {
-                            if (v != null) {
-                              setState(() => _idiomaSeleccionado = v);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                   Divider(height: 1, color: Colors.grey.shade100),
 
-                  // Tema
-                  SwitchListTile.adaptive(
-                    secondary: const Icon(
-                      Icons.dark_mode_outlined,
-                      color: Colors.grey,
-                      size: 20,
-                    ),
-                    title: const Text(
-                      'Tema oscuro',
-                      style: TextStyle(fontSize: 13),
-                    ),
-                    value: _modoOscuro,
-                    thumbColor: WidgetStateProperty.resolveWith(
-                      (states) =>
-                          states.contains(WidgetState.selected)
-                              ? _azulSecundario
-                              : null,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    onChanged: (v) => setState(() => _modoOscuro = v),
+                  // Tema (conectado a GuiaThemeCubit)
+                  BlocBuilder<GuiaThemeCubit, ThemeMode>(
+                    builder: (context, themeMode) {
+                      final isDark = themeMode == ThemeMode.dark;
+                      return SwitchListTile.adaptive(
+                        secondary: const Icon(
+                          Icons.dark_mode_outlined,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        title: const Text(
+                          'Tema oscuro',
+                          style: TextStyle(fontSize: 13),
+                        ),
+                        value: isDark,
+                        thumbColor: WidgetStateProperty.resolveWith(
+                          (states) =>
+                              states.contains(WidgetState.selected)
+                                  ? GuiaColors.secondary
+                                  : null,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                        onChanged: (v) {
+                          context.read<GuiaThemeCubit>().setTheme(v);
+                        },
+                      );
+                    },
                   ),
                   Divider(height: 1, color: Colors.grey.shade100),
 
@@ -498,7 +417,7 @@ class _GuiaProfileScreenState extends State<GuiaProfileScreen> {
                     thumbColor: WidgetStateProperty.resolveWith(
                       (states) =>
                           states.contains(WidgetState.selected)
-                              ? _azulSecundario
+                              ? GuiaColors.secondary
                               : null,
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),

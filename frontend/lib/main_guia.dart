@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -11,9 +11,9 @@ import 'core/navigation/enrutador_app_guia.dart';
 import 'core/navigation/routes_guia.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/dark_theme.dart';
-import 'core/providers/locale_provider.dart';
-import 'core/providers/theme_provider.dart';
-import 'core/providers/accessibility_provider.dart';
+import 'features/guia/settings/presentation/cubit/guia_theme_cubit.dart';
+import 'features/guia/settings/presentation/cubit/guia_locale_cubit.dart';
+import 'features/guia/settings/presentation/cubit/guia_accessibility_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,56 +61,66 @@ class _MainAppGuiaState extends State<MainAppGuia> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    // Los cubits se crean directamente aquí en vez de usar guia_locator.
+    // TODO: Mover al guia_locator.dart cuando se coordine con el equipo.
+    return MultiBlocProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => LocaleProvider()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AccessibilityProvider()),
+        BlocProvider(create: (_) => GuiaThemeCubit(sharedPreferences: sl())),
+        BlocProvider(create: (_) => GuiaLocaleCubit(sharedPreferences: sl())),
+        BlocProvider(
+          create: (_) => GuiaAccessibilityCubit(sharedPreferences: sl()),
+        ),
       ],
-      child: Consumer3<LocaleProvider, ThemeProvider, AccessibilityProvider>(
-        builder: (
-          context,
-          localeProvider,
-          themeProvider,
-          accessibilityProvider,
-          child,
-        ) {
-          return MaterialApp.router(
-            title: 'Veltur - Guía',
-            debugShowCheckedModeBanner: false,
+      child: _GuiaAppView(router: _router),
+    );
+  }
+}
 
-            // Localization
-            locale: localeProvider.locale,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [Locale('es'), Locale('en')],
+/// Vista interna que escucha los cambios de los Cubits y reconstruye
+/// el MaterialApp cuando el tema, idioma o accesibilidad cambian.
+class _GuiaAppView extends StatelessWidget {
+  final GoRouter router;
+  
+  const _GuiaAppView({required this.router});
 
-            // Theme
-            theme: AppTheme.lightTheme,
-            darkTheme: DarkTheme.theme,
-            themeMode: themeProvider.themeMode,
+  @override
+  Widget build(BuildContext context) {
+    // context.watch escucha cambios y reconstruye automáticamente
+    final themeMode = context.watch<GuiaThemeCubit>().state;
+    final locale = context.watch<GuiaLocaleCubit>().state;
+    final accessibilityState = context.watch<GuiaAccessibilityCubit>().state;
 
-            // Router
-            routerConfig: _router,
+    return MaterialApp.router(
+      title: 'Veltur - Guía',
+      debugShowCheckedModeBanner: false,
 
-            // Accessibility
-            builder: (context, child) {
-              return MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.linear(
-                    accessibilityProvider.fontScale,
-                  ),
-                ),
-                child: child!,
-              );
-            },
-          );
-        },
-      ),
+      // Localization
+      locale: locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('es'), Locale('en')],
+
+      // Theme
+      theme: AppTheme.lightTheme,
+      darkTheme: DarkTheme.theme,
+      themeMode: themeMode,
+
+      // Router
+      routerConfig: router,
+
+      // Accessibility
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(accessibilityState.fontScale),
+          ),
+          child: child!,
+        );
+      },
     );
   }
 }

@@ -60,6 +60,139 @@ class GuiaHomeMockDataSource implements GuiaHomeRemoteDataSource {
           hora: '11:03',
         ),
       ],
+      // ── Actividades mock (Teotihuacán) ──────────────────────────────────
+      actividades: [
+        // DÍA 1 (Hoy)
+        ActividadItinerarioModel(
+          nombre: 'Salida del hotel hacia Teotihuacán',
+          horaInicio: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 7, 0,
+          ),
+          horaFin: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 30,
+          ),
+          completada: true,
+          descripcion: 'Traslado en autobús institucional. Pase de lista obligatorio antes de abordar.',
+          puntoReunion: 'Lobby del Hotel Fiesta Inn Perinorte',
+        ),
+        ActividadItinerarioModel(
+          nombre: 'Recorrido Pirámide del Sol',
+          horaInicio: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 9, 0,
+          ),
+          horaFin: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 11, 0,
+          ),
+          completada: true,
+          descripcion: 'Visita guiada con explicación histórica. Subida opcional a la cima (248 escalones).',
+          puntoReunion: 'Puerta 1 de la Zona Arqueológica',
+        ),
+        ActividadItinerarioModel(
+          nombre: 'Almuerzo en La Gruta',
+          horaInicio: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 12, 0,
+          ),
+          horaFin: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 13, 30,
+          ),
+          completada: false,
+          descripcion: 'Restaurante dentro de una cueva natural. Menú regional incluido.',
+          puntoReunion: 'Restaurante La Gruta (300m de Puerta 5)',
+        ),
+        ActividadItinerarioModel(
+          nombre: 'Calzada de los Muertos + Pirámide de la Luna',
+          horaInicio: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 14, 0,
+          ),
+          horaFin: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 16, 0,
+          ),
+          completada: false,
+          descripcion: 'Caminata por la avenida principal y visita a la segunda pirámide más grande.',
+          puntoReunion: 'Plaza de la Luna',
+        ),
+        ActividadItinerarioModel(
+          nombre: 'Taller de obsidiana',
+          horaInicio: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 16, 30,
+          ),
+          horaFin: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 17, 30,
+          ),
+          completada: false,
+          descripcion: 'Demostración artesanal de tallado de obsidiana y tiempo para compras.',
+          puntoReunion: 'Centro Artesanal San Martín',
+        ),
+        ActividadItinerarioModel(
+          nombre: 'Regreso al hotel',
+          horaInicio: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 18, 0,
+          ),
+          horaFin: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day, 19, 30,
+          ),
+          completada: false,
+          descripcion: 'Traslado de vuelta. Pase de lista antes de abordar.',
+          puntoReunion: 'Estacionamiento Puerta 1',
+        ),
+        // DÍA 2 (Mañana)
+        ActividadItinerarioModel(
+          nombre: 'Museo de Sitio de Teotihuacán',
+          horaInicio: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day + 1, 9, 0,
+          ),
+          horaFin: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day + 1, 11, 0,
+          ),
+          completada: false,
+          descripcion: 'Visita al museo con piezas originales y maquetas a escala.',
+          puntoReunion: 'Entrada del Museo de Sitio',
+        ),
+        ActividadItinerarioModel(
+          nombre: 'Globo aerostático',
+          horaInicio: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day + 1, 6, 30,
+          ),
+          horaFin: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day + 1, 8, 0,
+          ),
+          completada: false,
+          descripcion: 'Vuelo en globo al amanecer sobre las pirámides. Incluye brindis.',
+          puntoReunion: 'Campo de despegue (km 23.5 carretera)',
+        ),
+      ],
+      // ── Turistas mock ──────────────────────────────────────────────────
+      listaTuristas: const [
+        Turista(
+          id: 'ta_001', nombre: 'María García', viajeId: 'v_teo',
+          status: 'OK', bateria: 0.92, enCampo: true,
+        ),
+        Turista(
+          id: 'ta_002', nombre: 'Carlos López', viajeId: 'v_teo',
+          status: 'OK', bateria: 0.85, enCampo: true,
+        ),
+        Turista(
+          id: 'ta_003', nombre: 'Ana Martínez', viajeId: 'v_teo',
+          status: 'OFFLINE', bateria: 0.15, enCampo: false,
+        ),
+        Turista(
+          id: 'ta_004', nombre: 'Roberto Silva', viajeId: 'v_teo',
+          status: 'OK', bateria: 0.78, enCampo: true,
+        ),
+        Turista(
+          id: 'ta_005', nombre: 'Sofía Ramírez', viajeId: 'v_teo',
+          status: 'ADVERTENCIA', bateria: 0.08, enCampo: true,
+          vulnerabilidad: NivelVulnerabilidad.critica,
+        ),
+        Turista(
+          id: 'ta_006', nombre: 'Luis Hernández', viajeId: 'v_teo',
+          status: 'OK', bateria: 0.95, enCampo: true,
+        ),
+        Turista(
+          id: 'ta_007', nombre: 'Paola Torres', viajeId: 'v_teo',
+          status: 'OFFLINE', bateria: 0.0, enCampo: false,
+        ),
+      ],
     );
   }
 
