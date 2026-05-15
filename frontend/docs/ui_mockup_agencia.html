@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mockups OhtliAni Agencia - Desktop UI</title>
+    <!-- Incluimos Tailwind CSS vía CDN para prototipado rápido y limpio de estructura -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos de Material Icons (Google) -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #F4F6F8;
+            overflow: hidden;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background-color: rgba(15, 76, 117, 0.1);
+            color: #0F4C75;
+            border-right: 3px solid #0F4C75;
+        }
+
+        .sidebar-item {
+            color: #64748b;
+            border-right: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Contenedores para intercambiar pantallas con JS simple */
+        .screen-mockup {
+            display: none;
+            height: 100%;
+        }
+
+        .screen-mockup.active {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body class="h-screen w-screen flex text-slate-800">
+
+    <!-- BARRA LATERAL (SIDEBAR) - PROPUESTA DE REDUCCIÓN DE FRICCIÓN -->
+    <!-- Siempre visible en desktop para salto rápido sin perder contexto -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0">
+        <div>
+            <div class="h-16 flex items-center px-6 border-b border-slate-200">
+                <div class="w-8 h-8 rounded bg-[#0F4C75] text-white flex items-center justify-center font-bold mr-3">O
+                </div>
+                <span class="text-lg font-bold text-[#0F4C75] tracking-tight">OhtliAni<span
+                        class="text-sm rounded bg-slate-100 text-slate-500 px-1 ml-2">App</span></span>
+            </div>
+
+            <nav class="mt-4 flex flex-col gap-1">
+                <a href="#" onclick="switchScreen('dashboard')"
+                    class="sidebar-item active flex items-center px-6 py-3 font-medium text-sm" id="nav-dashboard">
+                    <span class="material-icons-outlined mr-3 text-[20px]">explore</span> Radar Operativo
+                </a>
+                <a href="#" onclick="switchScreen('trips')"
+                    class="sidebar-item flex items-center px-6 py-3 font-medium text-sm" id="nav-trips">
+                    <span class="material-icons-outlined mr-3 text-[20px]">directions_bus</span> Op. de Viajes
+                </a>
+                <a href="ui_mockup_staff.html" class="sidebar-item flex items-center px-6 py-3 font-medium text-sm">
+                    <span class="material-icons-outlined mr-3 text-[20px]">badge</span> Staff / Guías
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-6 py-3 font-medium text-sm">
+                    <span class="material-icons-outlined mr-3 text-[20px]">groups</span> Historial PAX
+                </a>
+            </nav>
+        </div>
+
+        <div class="mb-4">
+            <a href="#" class="sidebar-item flex items-center px-6 py-3 font-medium text-sm">
+                <span class="material-icons-outlined mr-3 text-[20px]">settings</span> Configuración
+            </a>
+            <div class="mx-6 mt-4 pt-4 border-t border-slate-200 flex items-center cursor-pointer">
+                <div
+                    class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold mr-3 text-[#0F4C75]">
+                    AD</div>
+                <div>
+                    <p class="text-xs font-bold text-slate-700">Admin Juan</p>
+                    <p class="text-[10px] text-slate-500">Agencia Central</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="flex-1 flex flex-col h-full bg-[#F4F6F8]">
+
+        <!-- TOP BAR (HEADER GOBAL) - PROPUESTA -->
+        <!-- Resuelve el problema de buscar datos o ver alertas desde CUALQUIER pantalla -->
+        <header
+            class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
+            <!-- Buscador Global -->
+            <div
+                class="w-[400px] h-[38px] bg-slate-100 rounded-lg flex items-center px-3 border border-transparent focus-within:border-blue-400 focus-within:bg-white transition-all">
+                <span class="material-icons-outlined text-slate-400 text-sm mr-2">search</span>
+                <input type="text" placeholder="Búsqueda rápida (Ctrl+K): Viajes, guías, turistas..."
+                    class="bg-transparent border-none outline-none text-sm w-full text-slate-600">
+            </div>
+
+            <!-- Acciones Rápidas y Alertas Persistentes -->
+            <div class="flex items-center gap-4">
+
+                <!-- Global Chat Button -->
+                <button onclick="toggleChat()"
+                    class="w-8 h-8 rounded-full hover:bg-blue-50 flex items-center justify-center relative text-slate-500 hover:text-blue-600 transition-colors">
+                    <span class="material-icons-outlined text-[20px]">chat</span>
+                    <span class="absolute top-1 right-1 flex h-2.5 w-2.5">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span
+                            class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500 border-2 border-white"></span>
+                    </span>
+                </button>
+                <!-- Notifications Button -->
+                <button onclick="toggleNotifications()"
+                    class="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center relative text-slate-500 hover:text-red-600 transition-colors">
+                    <span class="material-icons-outlined text-[20px]">notifications</span>
+                    <span class="absolute top-1 right-1 flex h-2.5 w-2.5">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span
+                            class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border-2 border-white"></span>
+                    </span>
+                </button>
+                <button
+                    class="bg-[#E96E50] hover:bg-[#d65f42] text-white text-sm font-medium h-9 px-4 rounded-md shadow-sm transition-colors flex items-center gap-2">
+                    <span class="material-icons-outlined text-[18px]">add</span> Nuevo Viaje
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENEDOR DE PANTALLAS (Views) -->
+        <div class="flex-1 overflow-auto relative p-6">
+
+            <!-- PANTALLA 1: DASHBOARD MEJORADO (Grid Táctico) -->
+            <div id="screen-dashboard" class="screen-mockup active gap-6">
+                <!-- Header de Sección -->
+                <div>
+                    <h1 class="text-2xl font-bold text-[#0F4C75]">Resumen Operativo</h1>
+                    <p class="text-slate-500 text-sm mt-1">Visión global de las operaciones en tiempo real.</p>
+                </div>
+
+                <!-- KPIs Compactos -->
+                <div class="grid grid-cols-4 gap-4">
+                    <div
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-start gap-4 cursor-pointer hover:border-blue-300">
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-lg"><span
+                                class="material-icons-outlined">calendar_today</span></div>
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Viajes en Actividad
+                            </p>
+                            <h3 class="text-2xl font-bold text-slate-800">6</h3>
+                            <p class="text-xs text-slate-400 mt-1">Visitando sitio</p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-start gap-4 cursor-pointer hover:border-blue-300">
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><span
+                                class="material-icons-outlined">directions_bus</span></div>
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Viajes en Ruta</p>
+                            <h3 class="text-2xl font-bold text-slate-800">4</h3>
+                            <p class="text-xs text-slate-400 mt-1">En traslado</p>
+                        </div>
+                    </div>
+                    <!-- Esta tarjeta resalta porque hay flujo vivo de personas -->
+                    <div
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-start gap-4 cursor-pointer hover:border-blue-300">
+                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg"><span
+                                class="material-icons-outlined">hiking</span></div>
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Turistas en Viaje</p>
+                            <h3 class="text-2xl font-bold text-slate-800">252</h3>
+                            <p class="text-xs text-slate-400 mt-1">Pasajeros a bordo</p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-start gap-4 cursor-pointer hover:border-blue-300">
+                        <div class="p-3 bg-orange-50 text-orange-600 rounded-lg"><span
+                                class="material-icons-outlined">badge</span></div>
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Guías</p>
+                            <h3 class="text-2xl font-bold text-slate-800">10 <span
+                                    class="text-sm text-slate-500 font-normal">/ 14</span></h3>
+                            <p class="text-xs text-slate-400 mt-1">Ocupados / Disp.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zona de Mapa y Panel Anclado (Resolviendo el height limitado actual) -->
+                <!-- Se usa flex-1 para ocupar el resto de la pantalla en lugar de fixed heights -->
+                <div class="flex gap-6 flex-1 min-h-[400px]">
+                    <!-- MAPA -->
+                    <div
+                        class="flex-[7] bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
+                        <!-- Placeholder de mapa interactivo -->
+                        <div class="absolute inset-0 bg-[#E5E3DF] flex items-center justify-center">
+                            <span
+                                class="text-slate-400 font-medium text-lg border-2 border-dashed border-slate-300 p-8 rounded-lg">
+                                Área del Mapa Interactivo Mapbox
+                                <br><span class="text-sm font-normal">Pins mostrando 4 viajes y 2 alertas</span>
+                            </span>
+                        </div>
+
+                        <!-- Panel Resumen de Viaje Seleccionado en Mapa -->
+                        <div
+                            class="absolute top-4 left-4 bg-white/95 backdrop-blur px-4 py-3 rounded-xl shadow-lg border border-slate-200 w-80 animate-in fade-in slide-in-from-top-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded">CON
+                                    ALERTAS</span>
+                                <span class="text-[10px] text-slate-500 font-mono">V-102</span>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-1">Ruta de los Volcanes</h3>
+                            <div class="flex items-center gap-1.5 text-xs text-slate-600 mb-2">
+                                <span class="material-icons-outlined text-[14px] text-blue-500">pin_drop</span>
+                                <span class="truncate">Amecameca, Edo. de México</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 uppercase font-bold">Guía</p>
+                                    <p class="text-xs font-medium text-slate-700 truncate">Carlos R.</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-slate-400 uppercase font-bold">Turistas</p>
+                                    <p class="text-xs font-medium text-slate-700">24 / 25 pax</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL DE ESTADO OPERATIVO -->
+                    <div class="flex-[4] bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                        <div
+                            class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-xl">
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><span
+                                    class="material-icons-outlined text-blue-500 text-[18px]">monitor_heart</span>
+                                Estado de Operaciones Activas</h3>
+                            <span
+                                class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold uppercase">10
+                                EN CURSO</span>
+                        </div>
+                        <div class="p-3 flex-1 overflow-y-auto flex flex-col gap-3 bg-slate-50/50">
+
+                            <!-- Viaje 1 (Crítico) -->
+                            <div
+                                class="bg-white rounded-lg border border-red-200 p-3 shadow-sm ring-1 ring-red-50 flex flex-col gap-2 cursor-pointer hover:shadow-md transition-all">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">Ruta de los Volcanes</h4>
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-sm shadow-red-200"></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <span class="material-icons-outlined text-[14px]">badge</span> Carlos R. |
+                                    <span class="font-medium text-red-600 flex items-center gap-1"><span
+                                            class="material-icons-outlined text-[12px]">warning</span> Robo</span>
+                                </div>
+                            </div>
+                            <!-- Viaje 2 -->
+                            <div
+                                class="bg-white rounded-lg border border-slate-200 p-3 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-blue-200 transition-all">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">Pirámides de Teotihuacán
+                                    </h4>
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200"></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <span class="material-icons-outlined text-[14px]">badge</span> Ana M. | <span
+                                        class="text-green-600 font-medium">Actividad en curso</span>
+                                </div>
+                                <div
+                                    class="bg-slate-50 p-2 rounded text-[10px] text-slate-600 border border-slate-100 flex items-center justify-between">
+                                    <span class="truncate">Recorrido por Pirámide de la Luna</span>
+                                    <div
+                                        class="flex items-center gap-1 shrink-0 bg-white px-1 py-0.5 rounded border border-slate-200">
+                                        <span class="material-icons-outlined text-[10px]">schedule</span> 21:23
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Viaje 3 -->
+                            <div
+                                class="bg-white rounded-lg border border-orange-200 p-3 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-orange-300 transition-all">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">Tour CDMX Histórico</h4>
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full bg-orange-400 shadow-sm shadow-orange-200"></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <span class="material-icons-outlined text-[14px]">badge</span> Roberto S. | <span
+                                        class="text-orange-600 font-medium">En ruta a Palacio (+20m)</span>
+                                </div>
+                                <div
+                                    class="bg-orange-50 p-2 rounded text-[10px] text-orange-800 border border-orange-100 flex items-center justify-between">
+                                    <span class="truncate italic">"Tráfico pesado, grupo okay."</span>
+                                    <div
+                                        class="flex items-center gap-1 shrink-0 bg-white/60 px-1 py-0.5 rounded text-orange-900 border border-orange-200">
+                                        <span class="material-icons-outlined text-[10px]">schedule</span> 21:23
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Viaje 4 -->
+                            <div
+                                class="bg-white rounded-lg border border-slate-200 p-3 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-blue-200 transition-all">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">Santuario Monarca</h4>
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200"></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <span class="material-icons-outlined text-[14px]">badge</span> Luis C. | <span
+                                        class="text-green-600 font-medium">En ruta a base</span>
+                                </div>
+                                <div
+                                    class="bg-slate-50 p-2 rounded text-[10px] text-slate-600 border border-slate-100 flex items-center justify-between">
+                                    <span class="truncate">Regresando del Santuario...</span>
+                                    <div
+                                        class="flex items-center gap-1 shrink-0 bg-white px-1 py-0.5 rounded border border-slate-200">
+                                        <span class="material-icons-outlined text-[10px]">schedule</span> 21:23
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Viaje 5 -->
+                            <div
+                                class="bg-white rounded-lg border border-slate-200 p-3 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-blue-200 transition-all">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">Pueblos Mágicos: Taxco
+                                    </h4>
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200"></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <span class="material-icons-outlined text-[14px]">badge</span> Elena R. | <span
+                                        class="text-green-600 font-medium">Actividad libre</span>
+                                </div>
+                                <div
+                                    class="bg-slate-50 p-2 rounded text-[10px] text-slate-600 border border-slate-100 flex items-center justify-between">
+                                    <span class="truncate">Cena libre en centro de Taxco.</span>
+                                    <div
+                                        class="flex items-center gap-1 shrink-0 bg-white px-1 py-0.5 rounded border border-slate-200">
+                                        <span class="material-icons-outlined text-[10px]">schedule</span> 21:23
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Viaje 6 -->
+                            <div
+                                class="bg-white rounded-lg border border-slate-200 p-3 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-blue-200 transition-all">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">Grutas de Tolantongo</h4>
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200"></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <span class="material-icons-outlined text-[14px]">badge</span> Diego P. | <span
+                                        class="text-green-600 font-medium">En ruta a hotel</span>
+                                </div>
+                                <div
+                                    class="bg-slate-50 p-2 rounded text-[10px] text-slate-600 border border-slate-100 flex items-center justify-between">
+                                    <span class="truncate">Traslado desde las Grutas.</span>
+                                    <div
+                                        class="flex items-center gap-1 shrink-0 bg-white px-1 py-0.5 rounded border border-slate-200">
+                                        <span class="material-icons-outlined text-[10px]">schedule</span> 21:23
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Viaje 7 -->
+                            <div
+                                class="bg-white rounded-lg border border-slate-200 p-3 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-blue-200 transition-all">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">Xochimilco Oculto</h4>
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200"></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <span class="material-icons-outlined text-[14px]">badge</span> Valeria T. | <span
+                                        class="text-green-600 font-medium">Actividad en curso</span>
+                                </div>
+                                <div
+                                    class="bg-slate-50 p-2 rounded text-[10px] text-slate-600 border border-slate-100 flex items-center justify-between">
+                                    <span class="truncate">Recorrido en Trajinera. 100% pax.</span>
+                                    <div
+                                        class="flex items-center gap-1 shrink-0 bg-white px-1 py-0.5 rounded border border-slate-200">
+                                        <span class="material-icons-outlined text-[10px]">schedule</span> 21:23
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Viaje 8 -->
+                            <div
+                                class="bg-white rounded-lg border border-slate-200 p-3 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-blue-200 transition-all">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">Basílica Cultural</h4>
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200"></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <span class="material-icons-outlined text-[14px]">badge</span> Mónica L. | <span
+                                        class="text-green-600 font-medium">Actividad en curso</span>
+                                </div>
+                                <div
+                                    class="bg-slate-50 p-2 rounded text-[10px] text-slate-600 border border-slate-100 flex items-center justify-between">
+                                    <span class="truncate">Guianza en Plaza. Todo OK.</span>
+                                    <div
+                                        class="flex items-center gap-1 shrink-0 bg-white px-1 py-0.5 rounded border border-slate-200">
+                                        <span class="material-icons-outlined text-[10px]">schedule</span> 21:23
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Viaje 9 -->
+                            <div
+                                class="bg-white rounded-lg border border-orange-200 p-3 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-orange-300 transition-all">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">Nevado de Toluca</h4>
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full bg-orange-400 shadow-sm shadow-orange-200"></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <span class="material-icons-outlined text-[14px]">badge</span> Héctor F. | <span
+                                        class="text-orange-600 font-medium">Lluvia en zona</span>
+                                </div>
+                                <div
+                                    class="bg-orange-50 p-2 rounded text-[10px] text-orange-800 border border-orange-100 flex items-center justify-between">
+                                    <span class="truncate">Resguardados en albergue, todo en orden.</span>
+                                    <div
+                                        class="flex items-center gap-1 shrink-0 bg-white px-1 py-0.5 rounded text-orange-900 border border-orange-200">
+                                        <span class="material-icons-outlined text-[10px]">schedule</span> 21:23
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Viaje 10 -->
+                            <div
+                                class="bg-white rounded-lg border border-slate-200 p-3 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-blue-200 transition-all">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">Valle de Bravo</h4>
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200"></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11px] text-slate-600">
+                                    <span class="material-icons-outlined text-[14px]">badge</span> Fátima G. | <span
+                                        class="text-green-600 font-medium">Actividad en curso</span>
+                                </div>
+                                <div
+                                    class="bg-slate-50 p-2 rounded text-[10px] text-slate-600 border border-slate-100 flex items-center justify-between">
+                                    <span class="truncate">Visita a Cascada Velo de Novia.</span>
+                                    <div
+                                        class="flex items-center gap-1 shrink-0 bg-white px-1 py-0.5 rounded border border-slate-200">
+                                        <span class="material-icons-outlined text-[10px]">schedule</span> 21:23
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANTALLA 2: VIAJES LEYOUT MASTER-DETAIL -->
+            <div id="screen-trips" class="screen-mockup h-full flex flex-col">
+                <div>
+                    <h1 class="text-2xl font-bold text-[#0F4C75]">Viajes y Operaciones</h1>
+                    <p class="text-slate-500 text-sm mt-1">Gestión rápida mediante Master-Detail View. Clic en un viaje
+                        sin salir de la lista.</p>
+                </div>
+
+                <!-- Toolbar Compacto de Viajes -->
+                <div
+                    class="mt-4 bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-3">
+                        <!-- Filtro Chips Reducidos -->
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide mr-2">Estatus:</span>
+                        <button
+                            class="px-4 py-1.5 text-xs font-bold rounded-full bg-slate-800 text-white shadow-sm">Todos</button>
+                        <button
+                            class="px-3 py-1.5 text-xs font-medium rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm transition-colors">
+                            En Curso <span
+                                class="ml-1 bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold">4</span>
+                        </button>
+                        <button
+                            class="px-3 py-1.5 text-xs font-medium rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm transition-colors">Programados</button>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <!-- Buscador específico de viajes -->
+                        <div
+                            class="bg-slate-50 rounded-lg flex items-center px-4 py-2 border border-slate-200 w-72 focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-300 transition-all overflow-hidden shadow-inner">
+                            <span class="material-icons-outlined text-slate-400 text-[18px] mr-2">search</span>
+                            <input type="text" placeholder="Buscar folio, destino o guía..."
+                                class="bg-transparent border-none outline-none text-xs w-full text-slate-700 placeholder-slate-400 font-medium">
+                        </div>
+
+                        <div class="h-6 w-px bg-slate-200"></div> <!-- Divisor -->
+
+                        <button
+                            class="flex items-center gap-2 text-sm text-[#0F4C75] font-bold hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors border border-transparent hover:border-slate-200">
+                            <span class="material-icons-outlined text-[18px]">calendar_month</span> 01/Mar - 15/Mar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Master Detail View Container (REDUCE FRICCIÓN AL NO ABRIR PANTALLA NUEVA) -->
+                <div class="mt-4 flex-1 flex gap-4 min-h-0">
+
+                    <!-- IZQUIERDA: DataGrid / Lista (Master) -->
+                    <div
+                        class="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+                        <!-- headers de tabla -->
+                        <div
+                            class="grid grid-cols-12 gap-2 bg-slate-50 border-b border-slate-200 px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            <div class="col-span-6">Destino y Horario</div>
+                            <div class="col-span-4">Staff Principal</div>
+                            <div class="col-span-2">Estado</div>
+                        </div>
+
+                        <!-- Lista scrollable -->
+                        <div class="overflow-y-auto flex-1 p-2">
+                            <!-- Fila Activa (Seleccionada) -->
+                            <div
+                                class="grid grid-cols-12 gap-2 px-3 py-3 border-b border-slate-100 items-center cursor-pointer bg-blue-50/50 border-l-4 border-l-[#0F4C75] rounded-r-md">
+                                <div class="col-span-6 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-800 truncate">Ruta de los Volcanes</span>
+                                    <span class="text-[10px] text-slate-500 font-medium mt-0.5">08 Mar 06:00 AM - 18:30
+                                        PM</span>
+                                </div>
+                                <div class="col-span-4 flex items-center gap-2">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                        CR</div>
+                                    <span class="text-xs text-slate-600 truncate font-medium">Carlos R.</span>
+                                </div>
+                                <div class="col-span-2 flex items-center">
+                                    <span
+                                        class="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold shadow-sm">CON
+                                        ALERTAS</span>
+                                </div>
+                            </div>
+
+                            <!-- Viaje 2 -->
+                            <div
+                                class="grid grid-cols-12 gap-2 px-3 py-3 border-b border-slate-100 items-center cursor-pointer hover:bg-slate-50 border-l-4 border-l-transparent">
+                                <div class="col-span-6 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-700 truncate">Pirámides de
+                                        Teotihuacán</span>
+                                    <span class="text-[10px] text-slate-500 font-medium mt-0.5">08 Mar 08:30 AM - 16:00
+                                        PM</span>
+                                </div>
+                                <div class="col-span-4 flex items-center gap-2">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                        AM</div>
+                                    <span class="text-xs text-slate-600 truncate font-medium">Ana M.</span>
+                                </div>
+                                <div class="col-span-2 flex items-center">
+                                    <span
+                                        class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold shadow-sm border border-emerald-200">EN
+                                        ACTIVIDAD</span>
+                                </div>
+                            </div>
+
+                            <!-- Viaje 3 -->
+                            <div
+                                class="grid grid-cols-12 gap-2 px-3 py-3 border-b border-slate-100 items-center cursor-pointer hover:bg-slate-50 border-l-4 border-l-transparent">
+                                <div class="col-span-6 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-700 truncate">Tour CDMX Histórico <span
+                                            class="text-[10px] text-orange-600 font-bold ml-1 bg-orange-100 px-1 rounded inline-block">+20m
+                                            retraso</span></span>
+                                    <span class="text-[10px] text-slate-500 font-medium mt-0.5">08 Mar 09:00 AM - 14:00
+                                        PM</span>
+                                </div>
+                                <div class="col-span-4 flex items-center gap-2">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                        RS</div>
+                                    <span class="text-xs text-slate-600 truncate font-medium">Roberto S.</span>
+                                </div>
+                                <div class="col-span-2 flex items-center">
+                                    <span
+                                        class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold shadow-sm">EN
+                                        RUTA</span>
+                                </div>
+                            </div>
+
+                            <!-- Viaje 4 -->
+                            <div
+                                class="grid grid-cols-12 gap-2 px-3 py-3 border-b border-slate-100 items-center cursor-pointer hover:bg-slate-50 border-l-4 border-l-transparent">
+                                <div class="col-span-6 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-700 truncate">Santuario Monarca</span>
+                                    <span class="text-[10px] text-slate-500 font-medium mt-0.5">08 Mar 07:00 AM - 20:00
+                                        PM</span>
+                                </div>
+                                <div class="col-span-4 flex items-center gap-2">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                        LC</div>
+                                    <span class="text-xs text-slate-600 truncate font-medium">Luis C.</span>
+                                </div>
+                                <div class="col-span-2 flex items-center">
+                                    <span
+                                        class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold shadow-sm">EN
+                                        RUTA</span>
+                                </div>
+                            </div>
+
+                            <!-- Viaje 5 -->
+                            <div
+                                class="grid grid-cols-12 gap-2 px-3 py-3 border-b border-slate-100 items-center cursor-pointer hover:bg-slate-50 border-l-4 border-l-transparent">
+                                <div class="col-span-6 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-700 truncate">Pueblos Mágicos:
+                                        Taxco</span>
+                                    <span class="text-[10px] text-slate-500 font-medium mt-0.5">08 Mar 07:30 AM - 19:00
+                                        PM</span>
+                                </div>
+                                <div class="col-span-4 flex items-center gap-2">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                        ER</div>
+                                    <span class="text-xs text-slate-600 truncate font-medium">Elena R.</span>
+                                </div>
+                                <div class="col-span-2 flex items-center">
+                                    <span
+                                        class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold shadow-sm border border-emerald-200">EN
+                                        ACTIVIDAD</span>
+                                </div>
+                            </div>
+
+                            <!-- Viaje 6 -->
+                            <div
+                                class="grid grid-cols-12 gap-2 px-3 py-3 border-b border-slate-100 items-center cursor-pointer hover:bg-slate-50 border-l-4 border-l-transparent">
+                                <div class="col-span-6 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-700 truncate">Grutas de Tolantongo</span>
+                                    <span class="text-[10px] text-slate-500 font-medium mt-0.5">08 Mar 05:00 AM - 22:00
+                                        PM</span>
+                                </div>
+                                <div class="col-span-4 flex items-center gap-2">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                        DP</div>
+                                    <span class="text-xs text-slate-600 truncate font-medium">Diego P.</span>
+                                </div>
+                                <div class="col-span-2 flex items-center">
+                                    <span
+                                        class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold shadow-sm">EN
+                                        RUTA</span>
+                                </div>
+                            </div>
+
+                            <!-- Viaje 7 -->
+                            <div
+                                class="grid grid-cols-12 gap-2 px-3 py-3 border-b border-slate-100 items-center cursor-pointer hover:bg-slate-50 border-l-4 border-l-transparent">
+                                <div class="col-span-6 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-700 truncate">Xochimilco Oculto</span>
+                                    <span class="text-[10px] text-slate-500 font-medium mt-0.5">08 Mar 11:00 AM - 16:00
+                                        PM</span>
+                                </div>
+                                <div class="col-span-4 flex items-center gap-2">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                        VT</div>
+                                    <span class="text-xs text-slate-600 truncate font-medium">Valeria T.</span>
+                                </div>
+                                <div class="col-span-2 flex items-center">
+                                    <span
+                                        class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold shadow-sm border border-emerald-200">EN
+                                        ACTIVIDAD</span>
+                                </div>
+                            </div>
+
+                            <!-- Viaje 8 -->
+                            <div
+                                class="grid grid-cols-12 gap-2 px-3 py-3 border-b border-slate-100 items-center cursor-pointer hover:bg-slate-50 border-l-4 border-l-transparent">
+                                <div class="col-span-6 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-700 truncate">Basílica Cultural</span>
+                                    <span class="text-[10px] text-slate-500 font-medium mt-0.5">08 Mar 09:30 AM - 13:30
+                                        PM</span>
+                                </div>
+                                <div class="col-span-4 flex items-center gap-2">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                        ML</div>
+                                    <span class="text-xs text-slate-600 truncate font-medium">Mónica L.</span>
+                                </div>
+                                <div class="col-span-2 flex items-center">
+                                    <span
+                                        class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold shadow-sm border border-emerald-200">EN
+                                        ACTIVIDAD</span>
+                                </div>
+                            </div>
+
+                            <!-- Viaje 9 -->
+                            <div
+                                class="grid grid-cols-12 gap-2 px-3 py-3 border-b border-slate-100 items-center cursor-pointer hover:bg-slate-50 border-l-4 border-l-transparent">
+                                <div class="col-span-6 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-700 truncate">Nevado de Toluca</span>
+                                    <span class="text-[10px] text-slate-500 font-medium mt-0.5">08 Mar 06:00 AM - 10 Mar
+                                        19:00 PM</span>
+                                </div>
+                                <div class="col-span-4 flex items-center gap-2">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                        HF</div>
+                                    <span class="text-xs text-slate-600 truncate font-medium">Héctor F.</span>
+                                </div>
+                                <div class="col-span-2 flex items-center">
+                                    <div class="flex items-center gap-1.5 ml-2">
+                                        <span
+                                            class="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold shadow-sm">CON
+                                            ALERTAS</span>
+                                        <div class="relative group cursor-help text-blue-500 hover:text-blue-700"
+                                            title="1 Nuevo Mensaje de Héctor" onclick="toggleChat()">
+                                            <span class="material-icons-outlined text-[16px]">chat</span>
+                                            <span
+                                                class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-blue-500 border border-white"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Viaje 10 -->
+                            <div
+                                class="grid grid-cols-12 gap-2 px-3 py-3 border-b border-slate-100 items-center cursor-pointer hover:bg-slate-50 border-l-4 border-l-transparent">
+                                <div class="col-span-6 flex flex-col">
+                                    <span class="text-sm font-bold text-slate-700 truncate">Valle de Bravo</span>
+                                    <span class="text-[10px] text-slate-500 font-medium mt-0.5">08 Mar 08:00 AM - 20:00
+                                        PM</span>
+                                </div>
+                                <div class="col-span-4 flex items-center gap-2">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                        FG</div>
+                                    <span class="text-xs text-slate-600 truncate font-medium">Fátima G.</span>
+                                </div>
+                                <div class="col-span-2 flex items-center">
+                                    <span
+                                        class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold shadow-sm border border-emerald-200">EN
+                                        ACTIVIDAD</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- DERECHA: Details View (Panel Previo, se actualiza al clickear) -->
+                    <div
+                        class="w-[450px] bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col shrink-0 animate-in fade-in slide-in-from-right-4">
+                        <!-- Header del Viaje -->
+                        <div class="relative h-32 bg-slate-800 rounded-t-xl overflow-hidden shrink-0">
+                            <!-- Imagen simulada -->
+                            <img src="https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&q=80&w=1000"
+                                class="w-full h-full object-cover opacity-50 absolute inset-0">
+
+                            <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                                <span
+                                    class="bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase font-mono shadow">EN
+                                    RUTA</span>
+                                <h2 class="text-xl font-bold text-white mt-1">Ruta de los Volcanes (Nevado)</h2>
+                                <p class="text-sm text-slate-300">Folio: V-102</p>
+                            </div>
+
+                            <!-- Acciones en la imagen -->
+                            <div class="absolute top-3 right-3 flex gap-2">
+                                <button
+                                    class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur flex items-center justify-center text-white"><span
+                                        class="material-icons-outlined text-sm">edit</span></button>
+                                <button
+                                    class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur flex items-center justify-center text-white"><span
+                                        class="material-icons-outlined text-sm">more_vert</span></button>
+                            </div>
+                        </div>
+
+                        <!-- Contenido Detalle (Scrollable) -->
+                        <div class="flex-1 overflow-y-auto p-5">
+                            <!-- Metadatos rápidos -->
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <p class="text-[10px] uppercase font-bold text-slate-400">Guía Asignado</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <div
+                                            class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">
+                                            CR</div>
+                                        <span class="text-sm font-medium text-slate-800">Carlos R.</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] uppercase font-bold text-slate-400">Turistas (Pax)</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="material-icons-outlined text-slate-400 text-[18px]">groups</span>
+                                        <span class="text-sm font-medium text-slate-800">24 / 25 Personas</span>
+                                    </div>
+                                </div>
+                                <div
+                                    class="col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center group hover:border-blue-200 transition-colors cursor-default">
+                                    <div>
+                                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">Ubicación del
+                                            Viaje</p>
+                                        <div class="flex items-start gap-2">
+                                            <span
+                                                class="material-icons-outlined text-blue-500 text-[16px] mt-0.5">pin_drop</span>
+                                            <div>
+                                                <p class="text-sm font-bold text-slate-700">Amecameca, Estado de México
+                                                </p>
+                                                <p class="text-[10px] text-slate-500 mt-0.5">Tramo: Paso de Cortés</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-end">
+                                        <div
+                                            class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded border border-slate-200 shadow-sm ring-1 ring-black/5">
+                                            <span
+                                                class="material-icons-outlined text-slate-500 text-[14px]">schedule</span>
+                                            <span
+                                                class="text-base font-bold text-slate-800 tracking-tight font-mono">21:29</span>
+                                        </div>
+                                        <span
+                                            class="text-[9px] font-bold mt-1 text-slate-400 uppercase tracking-wider">Hora
+                                            Local</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="border-slate-100 mb-6">
+
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-800 text-sm">Resumen de Actividad</h3>
+                                <button
+                                    class="text-[10px] font-bold text-[#0F4C75] hover:text-[#0c3e60] flex items-center gap-1 bg-blue-50 hover:bg-blue-100 transition-colors px-2 py-1 rounded border border-blue-200 shadow-sm">
+                                    <span class="material-icons-outlined text-[12px]">view_timeline</span> Ver
+                                    Itinerario
+                                </button>
+                            </div>
+
+                            <div class="flex flex-col gap-3">
+                                <!-- Actividad (Incidente) -->
+                                <div
+                                    class="bg-red-50/80 p-3 rounded-lg border border-red-200 relative overflow-hidden flex gap-3 items-start group hover:bg-red-50 cursor-pointer">
+                                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                                        <span class="material-icons-outlined text-red-600 text-[14px]">warning</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <h4
+                                                class="font-bold text-[12px] text-red-800 group-hover:underline decoration-red-300">
+                                                Retraso por robo a Pax</h4>
+                                            <span
+                                                class="text-[9px] text-red-500 font-bold bg-white px-1.5 py-0.5 rounded border border-red-100">Hace
+                                                1 h</span>
+                                        </div>
+                                        <div class="bg-white p-2 rounded border border-red-50 mt-1.5 shadow-sm">
+                                            <p class="text-[10px] text-slate-700 italic border-l-2 border-red-300 pl-2">
+                                                "Policía notificada. Juan P. estable. Continuamos ruta 30 min retraso."
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Actividad Próxima -->
+                                <div
+                                    class="bg-white p-3 rounded-lg border border-blue-200 relative overflow-hidden flex gap-3 items-start shadow-sm ring-1 ring-blue-100 group cursor-pointer hover:border-blue-300">
+                                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                                        <span class="material-icons-outlined text-blue-600 text-[14px]">place</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <h4
+                                                class="font-bold text-[12px] text-[#0F4C75] group-hover:underline decoration-blue-200">
+                                                Llegada a Faldas del Nevado</h4>
+                                            <span
+                                                class="text-[9px] text-blue-600 font-bold animate-pulse bg-blue-50 px-1.5 py-0.5 rounded">En
+                                                curso</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-600 mt-1">Estimado de llegada: <span
+                                                class="font-bold">09:30 AM</span></p>
+                                        <div class="mt-2 flex items-center gap-2">
+                                            <div
+                                                class="flex-1 h-1.5 bg-blue-50 rounded-full overflow-hidden border border-slate-100 relative">
+                                                <div class="absolute inset-y-0 left-0 bg-blue-500 w-3/4 rounded-full">
+                                                </div>
+                                            </div>
+                                            <span class="text-[9px] font-bold text-slate-400">75%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Actividad Pasada -->
+                                <div
+                                    class="bg-white hover:bg-slate-50 transition-colors p-3 rounded-lg border border-slate-200 flex gap-3 items-start cursor-pointer">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                        <span class="material-icons-outlined text-slate-500 text-[14px]">check</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start">
+                                            <h4 class="font-bold text-[12px] text-slate-700">Check-in CDMX Completado
+                                            </h4>
+                                            <span
+                                                class="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">06:15
+                                                AM</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Acciones de Detalle -->
+                        <div class="p-4 border-t border-slate-200 bg-slate-50 rounded-b-xl flex gap-3 object-bottom">
+                            <button
+                                class="flex-1 bg-white border border-slate-300 text-slate-700 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-50 flex items-center justify-center gap-2">
+                                <span class="material-icons-outlined text-[16px]">chat</span> Chat Guía
+                            </button>
+                            <button onclick="switchScreen('trip-detail')"
+                                class="flex-1 bg-[#0F4C75] text-white py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-[#0c3e60] flex items-center justify-center gap-2">
+                                Abrir Pantalla Completa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PANTALLA 3: DETALLE DE VIAJE A PANTALLA COMPLETA (PRIORIDADES DENTRO DEL VIAJE) -->
+            <div id="screen-trip-detail" class="screen-mockup h-full flex flex-col">
+                <!-- Toolbar Superior "Atrás y Acciones" -->
+                <div
+                    class="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-slate-200 shrink-0 mb-4">
+                    <div class="flex items-center gap-4">
+                        <button onclick="switchScreen('trips')"
+                            class="w-10 h-10 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-500 transition-colors">
+                            <span class="material-icons-outlined">arrow_back</span>
+                        </button>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded font-mono uppercase">V-102
+                                    • EN RUTA</span>
+                                <h1 class="text-xl font-bold text-[#0F4C75]">Nevado de Toluca (Ruta de los Volcanes)
+                                </h1>
+                            </div>
+                            <p class="text-sm text-slate-500">Inicio: 08 Mar 06:00 AM • Regreso Est: 10 Mar 19:00 PM</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 flex items-center gap-2 transition-colors shadow-sm">
+                            <span class="material-icons-outlined text-[16px]">edit</span> Editar Operación
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid principal estructurado por prioridades: 1. Mapa del Viaje 2. Staff 3. Pax -->
+                <div class="flex-1 flex gap-4 min-h-0">
+
+                    <!-- COLUMNA PRINCIPAL IZQUIERDA (Prioridad 1: Seguimiento Operativo del Viaje) -->
+                    <div class="flex-[6] flex flex-col gap-4 min-h-0">
+                        <!-- Mapa en Tiempo Real -->
+                        <div
+                            class="flex-[3] bg-white rounded-xl shadow-sm border border-slate-200 relative overflow-hidden flex flex-col">
+                            <div
+                                class="p-3 border-b border-slate-200 bg-slate-50 shrink-0 flex justify-between items-center">
+                                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><span
+                                        class="material-icons-outlined text-blue-500 text-[16px]">map</span> Rastreo GPS
+                                    (Guía Principal)</h3>
+                                <span class="text-[10px] text-slate-500 flex items-center gap-1"><span
+                                        class="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block"></span> En
+                                    vivo</span>
+                            </div>
+                            <div class="flex-1 bg-[#E5E3DF] flex items-center justify-center relative shadow-inner">
+                                <span
+                                    class="text-slate-400 font-medium text-lg border-2 border-dashed border-slate-300 p-8 rounded-lg">
+                                    Mapa Integrado
+                                </span>
+                                <!-- Simulación de widget sobre el mapa -->
+                                <div
+                                    class="absolute bottom-4 left-4 bg-white/90 backdrop-blur rounded-lg p-3 shadow-lg border border-slate-200">
+                                    <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Punto de Control
+                                        Actual</p>
+                                    <h4 class="text-sm font-bold text-slate-800">Faldas del Nevado</h4>
+                                    <p class="text-[10px] text-green-600 font-bold mt-1">Llegada a tiempo</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contenedores Divididos: Alertas vs Itinerario -->
+                        <div class="flex-[2] flex gap-4 min-h-0">
+
+                            <!-- Sección 1: Alertas y Novedades (Prioridad Alta) -->
+                            <div
+                                class="flex-1 bg-white rounded-xl shadow-sm border border-red-200 flex flex-col overflow-hidden ring-1 ring-red-50">
+                                <div
+                                    class="p-3 border-b border-red-100 bg-red-50/50 shrink-0 flex justify-between items-center">
+                                    <h3 class="font-bold text-red-800 text-sm flex items-center gap-2"><span
+                                            class="material-icons-outlined text-red-500 text-[16px]">warning</span>
+                                        Alertas Activas</h3>
+                                </div>
+                                <div class="p-4 overflow-y-auto flex-1 bg-slate-50/30 flex flex-col gap-3">
+
+                                    <!-- Card Incidente (Destacada) -->
+                                    <div
+                                        class="border-l-4 border-l-red-500 bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex flex-col relative overflow-hidden group cursor-pointer hover:shadow-md transition-all">
+                                        <div
+                                            class="absolute -right-4 -top-4 text-red-50/80 pointer-events-none group-hover:scale-110 transition-transform">
+                                            <span class="material-icons-outlined text-[64px]">warning</span>
+                                        </div>
+                                        <div class="relative z-10 h-full flex flex-col">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <span
+                                                    class="text-[9px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded shadow-sm">INCIDENTE</span>
+                                                <span
+                                                    class="text-[9px] text-red-500 font-bold bg-white px-1 border border-red-50 rounded">08:00
+                                                    AM</span>
+                                            </div>
+                                            <h4 class="font-bold text-xs text-slate-800 leading-tight mb-1">Retraso por
+                                                robo a turista</h4>
+                                            <p class="text-[10px] text-slate-600 mb-2 font-medium">Turista afectado:
+                                                Juan Pérez S.</p>
+                                            <div class="mt-auto pt-1">
+                                                <p
+                                                    class="text-[9px] text-slate-700 italic bg-slate-50 p-2 rounded border-l-2 border-red-300">
+                                                    "Policía notificada. Grupo seguro. Seguimos con retraso."</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <!-- Sección 2: Avance del Itinerario -->
+                            <div
+                                class="flex-[2] bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+                                <div
+                                    class="p-3 border-b border-slate-200 bg-slate-50 shrink-0 flex justify-between items-center">
+                                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><span
+                                            class="material-icons-outlined text-blue-500 text-[16px]">view_timeline</span>
+                                        Avance de Itinerario</h3>
+                                    <!-- Botón para Itinerario Completo -->
+                                    <button onclick="switchScreen('itinerary')"
+                                        class="text-[10px] font-bold text-[#0F4C75] hover:text-white bg-white hover:bg-[#0F4C75] transition-colors border border-blue-200 hover:border-[#0F4C75] shadow-sm flex items-center gap-1.5 px-2 py-1 rounded active:scale-95">
+                                        <span class="material-icons-outlined text-[12px]">open_in_new</span> ITINERARIO
+                                        COMPLETO
+                                    </button>
+                                </div>
+                                <div class="p-4 overflow-y-auto flex-1 flex flex-col gap-3 bg-slate-50/50">
+
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <div class="h-px bg-slate-200 flex-1"></div>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Día
+                                            1: 08 Mar</span>
+                                        <div class="h-px bg-slate-200 flex-1"></div>
+                                    </div>
+
+                                    <!-- List Item Pasada -->
+                                    <div
+                                        class="border-l-4 border-l-green-500 bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center gap-3 opacity-90 group cursor-pointer hover:bg-slate-50 transition-all">
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                                            <span
+                                                class="material-icons-outlined text-green-600 text-[16px]">check</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-start">
+                                                <h4 class="font-bold text-sm text-slate-800 leading-tight border-b-0">
+                                                    Check-in Monumento Revolución</h4>
+                                                <span
+                                                    class="text-[9px] text-slate-500 font-bold bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">06:15
+                                                    AM</span>
+                                            </div>
+                                            <div class="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
+                                                <span class="material-icons-outlined text-[12px]">groups</span> 24/25
+                                                Personas a bordo
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- List Item Actual (En curso) -->
+                                    <div
+                                        class="border-l-4 border-l-blue-500 bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center gap-3 ring-1 ring-blue-100 relative group cursor-pointer hover:bg-blue-50/30 transition-all">
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                                            <span class="material-icons-outlined text-blue-600 text-[16px]">place</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-start">
+                                                <h4
+                                                    class="font-bold text-sm text-[#0F4C75] leading-tight flex-1 line-clamp-1 mr-2">
+                                                    Llegada a las faldas del Nevado</h4>
+                                                <span
+                                                    class="text-[9px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded animate-pulse shadow-sm whitespace-nowrap">EST.
+                                                    09:30 AM</span>
+                                            </div>
+                                            <p class="text-[10px] text-slate-500 mt-0.5">Aprox. a 15km de distancia
+                                                según último GPS.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 mt-4 mb-1">
+                                        <div class="h-px bg-slate-200 flex-1"></div>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Día
+                                            2: 09 Mar</span>
+                                        <div class="h-px bg-slate-200 flex-1"></div>
+                                    </div>
+
+                                    <!-- List Item Futura (Día 2) -->
+                                    <div
+                                        class="border-l-4 border-l-slate-300 bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center gap-3 opacity-60 group cursor-pointer hover:bg-slate-50 transition-all">
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                            <span
+                                                class="material-icons-outlined text-slate-400 text-[16px]">hotel</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-start">
+                                                <h4 class="font-bold text-sm text-slate-600 leading-tight">Check-out
+                                                    Hotel Centro</h4>
+                                                <span
+                                                    class="text-[9px] text-slate-400 font-bold bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">PROG.
+                                                    10:00 AM</span>
+                                            </div>
+                                            <p class="text-[10px] text-slate-400 mt-0.5">Revisión de habitaciones y
+                                                abordaje.</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- List Item Futura (Día 3) -->
+                                    <div class="flex items-center gap-2 mt-4 mb-1">
+                                        <div class="h-px bg-slate-200 flex-1"></div>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Día
+                                            3: 10 Mar</span>
+                                        <div class="h-px bg-slate-200 flex-1"></div>
+                                    </div>
+
+                                    <div
+                                        class="border-l-4 border-l-slate-300 bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center gap-3 opacity-60 group cursor-pointer hover:bg-slate-50 transition-all">
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                            <span
+                                                class="material-icons-outlined text-slate-400 text-[16px]">directions_bus</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-start">
+                                                <h4 class="font-bold text-sm text-slate-600 leading-tight">Traslado de
+                                                    regreso a CDMX</h4>
+                                                <span
+                                                    class="text-[9px] text-slate-400 font-bold bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">PROG.
+                                                    16:00 PM</span>
+                                            </div>
+                                            <p class="text-[10px] text-slate-400 mt-0.5">Cierre operativo de viaje.</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA DERECHA (Prioridades Administracion, Staff y Turistas) -->
+                    <div class="flex-[3] flex flex-col gap-4 min-h-0">
+
+                        <!-- Prioridad Administrativa: Ficha Técnica -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col shrink-0">
+                            <div
+                                class="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center rounded-t-xl">
+                                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><span
+                                        class="material-icons-outlined text-slate-500 text-[16px]">info</span>
+                                    Información Operativa</h3>
+                            </div>
+                            <div class="p-3 flex flex-col gap-3">
+                                <div class="grid grid-cols-2 gap-x-2 gap-y-3 text-sm">
+                                    <div class="bg-slate-50 p-2 rounded border border-slate-100">
+                                        <p
+                                            class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                                            <span class="material-icons-outlined text-[12px]">flight_takeoff</span>
+                                            INICIO
+                                        </p>
+                                        <p class="text-xs font-bold text-slate-800 mt-1">08 Mar • 06:00 AM</p>
+                                    </div>
+                                    <div class="bg-slate-50 p-2 rounded border border-slate-100">
+                                        <p
+                                            class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                                            <span class="material-icons-outlined text-[12px]">flight_land</span> REGRESO
+                                        </p>
+                                        <p class="text-xs font-bold text-slate-800 mt-1">10 Mar • 19:00 PM</p>
+                                    </div>
+                                    <div class="col-span-2 pt-1">
+                                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-2">
+                                            Logística de Transporte</p>
+                                        <div
+                                            class="flex items-center gap-3 bg-blue-50/40 p-2.5 rounded border border-blue-100/50 hover:bg-blue-50 transition-colors">
+                                            <div
+                                                class="w-8 h-8 rounded bg-white border border-blue-200 flex items-center justify-center shrink-0 shadow-sm text-blue-600">
+                                                <span class="material-icons-outlined text-[18px]">directions_bus</span>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="text-xs font-bold text-slate-800">Sprinter Turística 20 PAX
+                                                </p>
+                                                <p class="text-[10px] text-slate-500 mt-0.5">Operador: <span
+                                                        class="font-medium text-slate-700">Manuel Gómez</span></p>
+                                            </div>
+                                            <div class="shrink-0 text-right">
+                                                <span
+                                                    class="font-mono bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-[10px] text-slate-600 font-bold">99-XYZ-1</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prioridad 2: Staff Asignado y Control de Comunicación -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col shrink-0">
+                            <div
+                                class="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center rounded-t-xl">
+                                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><span
+                                        class="material-icons-outlined text-indigo-500 text-[16px]">badge</span> Staff a
+                                    Bordo (2)</h3>
+                            </div>
+                            <div class="p-3 flex flex-col gap-2">
+                                <!-- Guía Principal -->
+                                <div
+                                    class="flex items-center justify-between p-2 shadow-sm bg-white rounded-lg border border-slate-100 hover:border-blue-200 hover:shadow transition-all group cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <div class="relative">
+                                            <div
+                                                class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs shadow-inner">
+                                                CR</div>
+                                            <div
+                                                class="absolute -bottom-[2px] -right-[2px] w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-800 line-clamp-1">Carlos R. <span
+                                                    class="bg-indigo-100 text-indigo-700 text-[9px] px-1 rounded ml-1 font-bold">LÍDER</span>
+                                            </p>
+                                            <p class="text-[10px] text-slate-500 mt-0.5">Bat: 85% • Cobertura: Alta</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        class="w-8 h-8 rounded-full bg-slate-50 group-hover:bg-blue-100 text-slate-400 group-hover:text-blue-600 flex items-center justify-center transition-colors shadow-sm"><span
+                                            class="material-icons-outlined text-[16px]">chat</span></button>
+                                </div>
+
+                                <!-- Guía Auxiliar -->
+                                <div
+                                    class="flex items-center justify-between p-2 shadow-sm bg-white rounded-lg border border-slate-100 hover:border-blue-200 hover:shadow transition-all group cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <div class="relative">
+                                            <div
+                                                class="w-9 h-9 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-xs shadow-inner">
+                                                AM</div>
+                                            <div
+                                                class="absolute -bottom-[2px] -right-[2px] w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-800 line-clamp-1">Ana M. <span
+                                                    class="bg-slate-200 text-slate-600 text-[9px] px-1 rounded ml-1 font-bold">AUX</span>
+                                            </p>
+                                            <p class="text-[10px] text-slate-500 mt-0.5">Bat: 92% • Cobertura: Alta</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        class="w-8 h-8 rounded-full bg-slate-50 group-hover:bg-blue-100 text-slate-400 group-hover:text-blue-600 flex items-center justify-center transition-colors shadow-sm"><span
+                                            class="material-icons-outlined text-[16px]">chat</span></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prioridad 3: Turistas y Control de Asistencia (PAX) -->
+                        <div
+                            class="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+                            <div
+                                class="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
+                                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><span
+                                        class="material-icons-outlined text-teal-500 text-[16px]">groups</span> Lista
+                                    PAX</h3>
+                                <div
+                                    class="flex items-center gap-2 text-[10px] font-bold bg-white px-2 py-1 rounded shadow-sm border border-slate-200">
+                                    <span class="text-green-600">24 Ok</span> <span class="text-slate-300">|</span>
+                                    <span class="text-red-500">1 Baja</span>
+                                </div>
+                            </div>
+
+                            <!-- Buscador interno en la lista de PAX -->
+                            <div class="px-3 py-2 border-b border-slate-100 shrink-0">
+                                <div
+                                    class="bg-slate-50 rounded flex items-center px-3 py-1.5 focus-within:ring-1 ring-blue-400 border border-slate-200">
+                                    <span class="material-icons-outlined text-slate-400 text-[14px] mr-2">search</span>
+                                    <input type="text" placeholder="Buscar turista..."
+                                        class="bg-transparent border-none outline-none text-xs w-full text-slate-600">
+                                </div>
+                            </div>
+
+                            <div class="flex-1 overflow-y-auto p-2">
+                                <!-- Turista con Status Especial (Robo) -->
+                                <div
+                                    class="flex items-center justify-between p-2 mb-1 bg-red-50/50 rounded-lg border border-red-100">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-icons-outlined text-red-500 text-[18px]">warning</span>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-800">Juan Pérez Silva</p>
+                                            <p class="text-[10px] text-red-600 font-medium">Alerta: Asistido, sin
+                                                billetera</p>
+                                        </div>
+                                    </div>
+                                    <span
+                                        class="bg-red-100 text-red-700 border border-red-200 text-[9px] px-1.5 py-0.5 rounded font-bold shadow-sm">PRESENTE</span>
+                                </div>
+
+                                <!-- Turista Normal -->
+                                <div
+                                    class="flex items-center justify-between p-2 mb-1 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200">
+                                            LM</div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-700">Laura Martínez</p>
+                                            <p class="text-[10px] text-slate-400">Check-in Automático QR</p>
+                                        </div>
+                                    </div>
+                                    <span class="material-icons-outlined text-green-500 text-[16px]">check_circle</span>
+                                </div>
+
+                                <!-- Turista Normal -->
+                                <div
+                                    class="flex items-center justify-between p-2 mb-1 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200">
+                                            RT</div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-700">Roberto Torres</p>
+                                            <p class="text-[10px] text-slate-400">Check-in Automático QR</p>
+                                        </div>
+                                    </div>
+                                    <span class="material-icons-outlined text-green-500 text-[16px]">check_circle</span>
+                                </div>
+
+                                <!-- Turistan Nuevo -->
+                                <div
+                                    class="flex items-center justify-between p-2 mb-1 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200">
+                                            CV</div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-700">Carmen Vega</p>
+                                            <p class="text-[10px] text-slate-400">Check-in Manual por AM</p>
+                                        </div>
+                                    </div>
+                                    <span class="material-icons-outlined text-green-500 text-[16px]">check_circle</span>
+                                </div>
+
+                                <!-- Turistan Nuevo 2 -->
+                                <div
+                                    class="flex items-center justify-between p-2 mb-1 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200">
+                                            DH</div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-700">Daniel Hernández</p>
+                                            <p class="text-[10px] text-slate-400">Check-in Automático QR</p>
+                                        </div>
+                                    </div>
+                                    <span class="material-icons-outlined text-green-500 text-[16px]">check_circle</span>
+                                </div>
+
+                                <!-- Turistan Nuevo 3 -->
+                                <div
+                                    class="flex items-center justify-between p-2 mb-1 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200">
+                                            SG</div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-700">Sebastián Gómez</p>
+                                            <p class="text-[10px] text-slate-400">Check-in Automático QR</p>
+                                        </div>
+                                    </div>
+                                    <span class="material-icons-outlined text-green-500 text-[16px]">check_circle</span>
+                                </div>
+
+                                <!-- Turista No show -->
+                                <div
+                                    class="flex items-center justify-between p-2 mb-1 bg-slate-50 rounded-lg border border-slate-100 opacity-60">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-400">
+                                            SO</div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-500 line-through">Sandra Ortiz</p>
+                                            <p class="text-[10px] text-red-500 font-bold mt-0.5">No Show (Conf. Ana M.)
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span class="material-icons-outlined text-red-400 text-[16px]">cancel</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 3: Itinerario Administrativo -->
+        <div id="screen-itinerary" class="screen-mockup">
+            <!-- Header Secundario -->
+            <div class="h-14 bg-white border-b border-slate-200 flex items-center px-6 shrink-0 gap-4">
+                <button onclick="switchScreen('trips')"
+                    class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors">
+                    <span class="material-icons-outlined text-[18px]">arrow_back</span>
+                </button>
+                <div>
+                    <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        Itinerario Operativo: V-102 Nevado de Toluca
+                    </h2>
+                    <p class="text-[10px] text-slate-500 font-medium">Vista Administrativa (Proveedores y Logística)</p>
+                </div>
+                <div class="ml-auto flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded">EN CURSO</span>
+                    <button
+                        class="px-3 py-1.5 bg-slate-800 text-white rounded text-xs font-bold hover:bg-slate-700 transition flex items-center gap-1">
+                        <span class="material-icons-outlined text-[14px]">edit_calendar</span> Modificar Logística
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 p-6 overflow-hidden flex gap-6 min-h-0 container mx-auto max-w-6xl">
+                <!-- Columna Izquierda: Línea de tiempo Operativa -->
+                <div
+                    class="flex-[3] bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+                    <div class="p-4 border-b border-slate-200 bg-slate-50 shrink-0">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><span
+                                class="material-icons-outlined text-blue-500 text-[18px]">route</span> Control de
+                            Paradas y Check-ins</h3>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6 relative">
+                        <!-- Línea vertical base -->
+                        <div class="absolute left-[39px] top-6 bottom-6 w-0.5 bg-slate-200 z-0"></div>
+
+                        <!-- Día 1 -->
+                        <div
+                            class="relative z-10 flex items-center gap-0 mb-6 bg-slate-100 py-1.5 px-3 rounded-r border-l-4 border-slate-400 w-max shadow-sm">
+                            <span class="font-bold text-xs text-slate-700 uppercase tracking-wide">Día 1: 08 de
+                                Marzo</span>
+                        </div>
+
+                        <!-- Parada 1: Cita -->
+                        <div class="relative z-10 flex gap-4 mb-8 opacity-70">
+                            <div
+                                class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center border-4 border-white shrink-0 mt-1">
+                                <span class="material-icons-outlined text-slate-500 text-[16px]">groups</span>
+                            </div>
+                            <div
+                                class="flex-1 bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-700">Cita y Pase de Lista (Monumento Rev.)
+                                    </h4>
+                                    <p class="text-xs text-slate-500 mt-1">Check-in inicial. Coordinador: Ana M.</p>
+                                </div>
+                                <div class="text-right">
+                                    <span
+                                        class="text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded">COMPLETADO
+                                        06:15 AM</span>
+                                    <p class="text-xs text-slate-500 mt-1">Prog: 06:00 AM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Parada 2: Desayuno -->
+                        <div class="relative z-10 flex gap-4 mb-8">
+                            <div
+                                class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shrink-0 mt-1 bg-green-500 text-white shadow-sm ring-2 ring-green-100">
+                                <span class="material-icons-outlined text-[16px]">restaurant</span>
+                            </div>
+                            <div
+                                class="flex-1 bg-white border border-green-200 p-4 rounded-xl shadow-sm flex items-center justify-between ring-1 ring-green-50">
+                                <div class="flex-1 mr-4">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-bold text-sm text-slate-800">Parada Desayuno (Tres Marías)</h4>
+                                        <span
+                                            class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200">
+                                            <span class="material-icons-outlined text-[10px]">receipt_long</span> PAGO
+                                            EN SITIO
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">Proveedor: Restaurante El Paraíso.</p>
+                                    <div
+                                        class="mt-2 text-[10px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-2 w-max">
+                                        <span
+                                            class="material-icons-outlined text-green-500 text-[14px]">check_circle</span>
+                                        El guía completó el pago de $2,400 MXN en efectivo a nombre de la agencia.
+                                    </div>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span
+                                        class="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded shadow-sm">EN
+                                        ESTE SITIO 08:30 AM</span>
+                                    <p class="text-xs text-slate-500 mt-1">Prog: 08:30 AM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Parada 3: Actividad Principal -->
+                        <div class="relative z-10 flex gap-4 mb-8">
+                            <div
+                                class="w-8 h-8 rounded-full bg-white flex items-center justify-center border-4 border-slate-200 shrink-0 mt-1 text-slate-400">
+                                <span class="material-icons-outlined text-[16px]">landscape</span>
+                            </div>
+                            <div
+                                class="flex-1 bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                                <div class="flex-1 mr-4">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-bold text-sm text-slate-800">Ingreso al Parque Nacional</h4>
+                                        <span
+                                            class="text-[9px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded flex items-center gap-1 border border-blue-200">
+                                            <span class="material-icons-outlined text-[10px]">domain_verification</span>
+                                            PRE-PAGADO
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">Registro de brazaletes de acceso CONANP.</p>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span
+                                        class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">PENDIENTE</span>
+                                    <p class="text-xs text-slate-500 mt-1">Prog: 10:30 AM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Día 2 -->
+                        <div
+                            class="relative z-10 flex items-center gap-0 mb-6 bg-slate-100 py-1.5 px-3 rounded-r border-l-4 border-slate-400 w-max shadow-sm mt-8">
+                            <span class="font-bold text-xs text-slate-700 uppercase tracking-wide">Día 2: 09 de
+                                Marzo</span>
+                        </div>
+
+                        <!-- Parada 4: Hotel Día 2 -->
+                        <div class="relative z-10 flex gap-4 mb-8 opacity-60">
+                            <div
+                                class="w-8 h-8 rounded-full bg-white flex items-center justify-center border-4 border-slate-200 shrink-0 mt-1 text-slate-400">
+                                <span class="material-icons-outlined text-[16px]">hotel</span>
+                            </div>
+                            <div
+                                class="flex-1 bg-white border border-slate-200 border-dashed p-4 rounded-xl flex items-center justify-between">
+                                <div class="flex-1 mr-4">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-bold text-sm text-slate-800">Check-out Hotel Real del Nevado
+                                        </h4>
+                                        <span
+                                            class="text-[9px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded flex items-center gap-1 border border-blue-200">
+                                            <span class="material-icons-outlined text-[10px]">domain_verification</span>
+                                            PRE-PAGADO
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">Revisión de habitaciones. Voucher #99281.</p>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span
+                                        class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">PROGRAMADO</span>
+                                    <p class="text-xs text-slate-500 mt-1">Prog: 10:00 AM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Día 3 -->
+                        <div
+                            class="relative z-10 flex items-center gap-0 mb-6 bg-slate-100 py-1.5 px-3 rounded-r border-l-4 border-slate-400 w-max shadow-sm mt-8">
+                            <span class="font-bold text-xs text-slate-700 uppercase tracking-wide">Día 3: 10 de
+                                Marzo</span>
+                        </div>
+
+                        <!-- Parada 5: Día 3 -->
+                        <div class="relative z-10 flex gap-4 mb-8 opacity-60">
+                            <div
+                                class="w-8 h-8 rounded-full bg-white flex items-center justify-center border-4 border-slate-200 shrink-0 mt-1 text-slate-400">
+                                <span class="material-icons-outlined text-[16px]">directions_bus</span>
+                            </div>
+                            <div
+                                class="flex-1 bg-white border border-slate-200 border-dashed p-4 rounded-xl flex items-center justify-between">
+                                <div class="flex-1 mr-4">
+                                    <h4 class="font-bold text-sm text-slate-800">Cierre Operativo de Transporte</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Llegada a CDMX. Firma de bitácora
+                                        Operador-Guía.</p>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span
+                                        class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">PROGRAMADO</span>
+                                    <p class="text-xs text-slate-500 mt-1">Prog: 16:00 PM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Detalles Administrativos -->
+                <div class="flex-[2] flex flex-col gap-4">
+                    <!-- Resumen Logístico del Operador -->
+                    <div
+                        class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 flex flex-col overflow-hidden text-white">
+                        <div class="p-3 border-b border-slate-600 bg-slate-800 shrink-0 flex items-center gap-2">
+                            <span class="material-icons-outlined text-blue-400 text-[16px]">directions_bus</span>
+                            <h3 class="font-bold text-sm">Operación de Transporte</h3>
+                        </div>
+                        <div class="p-4 grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Unidad asignada</p>
+                                <p class="font-medium text-blue-200">Sprinter 26 PAX (Mod. 2022)</p>
+                                <p class="text-slate-400 text-[10px]">Placas: 88-XYZ-2M</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Costo Operativo</p>
+                                <p class="font-bold text-green-400">$4,500.00 MXN</p>
+                                <p class="text-slate-400 text-[10px]">Status: LIQUIDADO</p>
+                            </div>
+                            <div class="col-span-2 bg-slate-700/50 p-3 rounded-lg flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center font-bold text-[10px]">
+                                    MG</div>
+                                <div>
+                                    <p class="font-bold text-white">Manuel Gómez (Conductor titular)</p>
+                                    <p class="text-slate-400 text-[10px]">Tel: 55 1234 5678</p>
+                                </div>
+                                <button
+                                    class="ml-auto w-7 h-7 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                                    <span class="material-icons-outlined text-[14px]">call</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Proveedores del Itinerario -->
+                    <div
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 overflow-hidden">
+                        <div
+                            class="p-3 border-b border-slate-200 bg-slate-50 shrink-0 flex justify-between items-center">
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><span
+                                    class="material-icons-outlined text-orange-500 text-[16px]">storefront</span>
+                                Proveedores Relacionados (2)</h3>
+                        </div>
+                        <div class="p-0 flex flex-col divide-y divide-slate-100 overflow-y-auto">
+                            <!-- Provider 1 -->
+                            <div class="p-3 hover:bg-slate-50 transition-colors">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h4 class="font-bold text-xs text-slate-800">Restaurante El Paraíso</h4>
+                                    <span
+                                        class="text-[9px] font-bold text-green-700 bg-green-100 px-1.5 rounded">PAGADO</span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 mb-2">Servicio de desayuno buffet para 25 personas.
+                                </p>
+                                <div
+                                    class="flex items-center gap-2 text-[10px] text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                                    <span class="font-bold">Contacto:</span> Sra. Rosa (Gerente)
+                                    <button
+                                        class="ml-auto flex items-center text-blue-600 hover:text-blue-800 font-bold"><span
+                                            class="material-icons-outlined text-[12px] mr-1">chat</span> Enviar
+                                        WhatsApp</button>
+                                </div>
+                            </div>
+                            <!-- Provider 2 -->
+                            <div class="p-3 hover:bg-slate-50 transition-colors">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h4 class="font-bold text-xs text-slate-800">Parque Nevado de Toluca</h4>
+                                    <span
+                                        class="text-[9px] font-bold text-blue-700 bg-blue-100 px-1.5 rounded">PRE-PAGADO</span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 mb-2">Accesos CONANP (Brazaletes diarios). Pagar
+                                    ejidatarios en sitio.</p>
+                                <div
+                                    class="flex items-center gap-2 text-[10px] text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                                    <span class="font-bold">Nota Gasto:</span> $50 MXN (x25) = $1,250 a ejidatarios.
+                                    Efectivo entregado al guía.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OVERLAY COMPARTIDO PARA DRAWERS -->
+        <div id="drawer-overlay"
+            class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity"
+            onclick="closeAllDrawers()"></div>
+
+        <!-- DRAWER DE NOTIFICACIONES GLOBALES -->
+        <div id="notifications-drawer"
+            class="fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col border-l border-slate-200">
+            <!-- Header Notificaciones -->
+            <div class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0">
+                <div class="flex flex-col">
+                    <h2 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                        <span class="material-icons-outlined text-slate-600 text-[20px]">notifications</span>
+                        Centro de Notificaciones
+                    </h2>
+                    <span class="text-[10px] text-red-500 font-bold">2 Alertas Activas Pendientes</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition-colors">Marcar
+                        todo leído</button>
+                    <button onclick="toggleNotifications()"
+                        class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors ml-2">
+                        <span class="material-icons-outlined">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto bg-slate-50 flex flex-col">
+                <!-- Header de Grupo (CRÍTICAS) -->
+                <div class="px-4 py-2 bg-slate-100 border-b border-slate-200 flex items-center sticky top-0 z-10">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Requieren Atención
+                        Inmediata</span>
+                </div>
+
+                <!-- Notificación Tipo Alerta Roja -->
+                <div
+                    class="p-4 border-b border-slate-200 bg-red-50/30 hover:bg-red-50/50 cursor-pointer transition-colors relative border-l-4 border-l-red-500">
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0 mt-0.5">
+                            <span class="material-icons-outlined text-[16px]">warning</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start mb-0.5">
+                                <h4 class="font-bold text-xs text-red-800">Alerta de Pánico Activada</h4>
+                                <span class="text-[9px] font-bold text-slate-500">Hace 5 min</span>
+                            </div>
+                            <p class="text-[10px] text-slate-600 font-medium mb-1">Viaje <span
+                                    class="text-blue-600 cursor-pointer hover:underline">V-102 (Nevado de Toluca)</span>
+                            </p>
+                            <p class="text-xs text-slate-700">El turista <span class="font-bold">Martín Pérez</span> ha
+                                presionado el botón de pánico en la app.</p>
+                            <div class="mt-2 flex gap-2">
+                                <button
+                                    class="text-[10px] bg-red-600 text-white font-bold px-2 py-1 rounded hover:bg-red-700 transition shadow-sm">Ver
+                                    Detalles</button>
+                                <button onclick="toggleChat(); toggleNotifications();"
+                                    class="text-[10px] bg-white border border-slate-200 text-slate-600 font-bold px-2 py-1 rounded hover:bg-slate-50 transition flex items-center gap-1">
+                                    <span class="material-icons-outlined text-[12px]">chat</span> Contactar Guía
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notificación Tipo SOS Vehicular -->
+                <div
+                    class="p-4 border-b border-slate-200 bg-red-50/30 hover:bg-red-50/50 cursor-pointer transition-colors relative border-l-4 border-l-red-500">
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0 mt-0.5">
+                            <span class="material-icons-outlined text-[16px]">car_crash</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start mb-0.5">
+                                <h4 class="font-bold text-xs text-red-800">Falla Mecánica Reportada</h4>
+                                <span class="text-[9px] font-bold text-slate-500">Hace 12 min</span>
+                            </div>
+                            <p class="text-[10px] text-slate-600 font-medium mb-1">Viaje <span
+                                    class="text-blue-600 cursor-pointer hover:underline">V-088 (Mariposas
+                                    Monarca)</span>
+                            </p>
+                            <p class="text-xs text-slate-700">El guía reporta unidad sobrecalentada en la carretera.
+                                Solicitan unidad de relevo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Header de Grupo (Informativas) -->
+                <div
+                    class="px-4 py-2 bg-slate-100 border-b border-slate-200 flex items-center sticky top-0 z-10 mt-2 border-t">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Informativas
+                        Recientes</span>
+                </div>
+
+                <!-- Notificación Informativa (Checkin/Checkout) -->
+                <div
+                    class="p-4 border-b border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-colors border-l-4 border-l-transparent">
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 shrink-0 mt-0.5 border border-blue-100">
+                            <span class="material-icons-outlined text-[16px]">info</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start mb-0.5">
+                                <h4 class="font-bold text-xs text-slate-700">Aviso de Retraso</h4>
+                                <span class="text-[9px] text-slate-400">Hace 1 hr</span>
+                            </div>
+                            <p class="text-[10px] text-slate-500 font-medium mb-1">Viaje V-103 (Valle de Bravo)</p>
+                            <p class="text-xs text-slate-600">El viaje presenta un retraso de 30 mins respecto al
+                                itinerario original.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-white border-t border-slate-200 text-center">
+                <button
+                    class="text-[10px] font-bold text-slate-500 hover:text-slate-800 transition-colors w-full p-1">Ver
+                    Historial Completo</button>
+            </div>
+        </div>
+
+        <!-- DRAWER DE CHAT GLOBAL -->
+        <div id="chat-drawer"
+            class="fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col border-l border-slate-200">
+            <!-- Header Chat -->
+            <div class="h-16 bg-[#0F4C75] text-white flex items-center justify-between px-4 shrink-0 shadow-md">
+                <div class="flex flex-col">
+                    <h2 class="font-bold text-sm flex items-center gap-2">
+                        <span class="material-icons-outlined text-[18px]">forum</span>
+                        Bandeja de Comunicación (Guías)
+                    </h2>
+                    <span class="text-[10px] text-blue-200">3 conversaciones activas • 1 Sin leer</span>
+                </div>
+                <button onclick="toggleChat()"
+                    class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors">
+                    <span class="material-icons-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Lista de Chats Activos -->
+            <div class="flex-1 overflow-y-auto bg-slate-50 flex flex-col">
+                <!-- Chat 1 (Pendiente por leer) -->
+                <div
+                    class="p-4 border-b border-slate-200 bg-blue-50/30 hover:bg-blue-50/50 cursor-pointer transition-colors relative border-l-4 border-l-blue-500">
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-white shadow-sm relative">
+                                HF
+                                <span
+                                    class="absolute right-0 bottom-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-800">Héctor F.</h4>
+                                <p class="text-[9px] font-bold text-slate-500">Nevado de Toluca • Hace 2 min</p>
+                            </div>
+                        </div>
+                        <span class="bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">1</span>
+                    </div>
+                    <p class="text-xs text-slate-800 font-medium pl-10 pr-2 line-clamp-2">Administrador, el tráfico
+                        está
+                        detenido en la autopista, tomaremos la ruta libre para evitar mayor retraso.</p>
+                </div>
+
+                <!-- Chat 2 (Leído) -->
+                <div
+                    class="p-4 border-b border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-colors border-l-4 border-l-transparent">
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-white shadow-sm relative">
+                                VT
+                                <span
+                                    class="absolute right-0 bottom-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-600">Valeria T.</h4>
+                                <p class="text-[9px] text-slate-400">Xochimilco Oculto • Hace 1 hr</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 pl-10 pr-2 line-clamp-1">Todo en orden, los turistas ya están
+                        abordando las trajineras.</p>
+                </div>
+
+                <!-- Chat 3 (Leído) -->
+                <div
+                    class="p-4 border-b border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-colors border-l-4 border-l-transparent">
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-white shadow-sm relative">
+                                CR
+                                <span
+                                    class="absolute right-0 bottom-0 w-2.5 h-2.5 bg-orange-500 border-2 border-white rounded-full"></span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-600">Carlos R.</h4>
+                                <p class="text-[9px] text-slate-400">Centro Histórico • Ayer 18:30</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 pl-10 pr-2 line-clamp-1">La unidad ya se retornó al encierro.
+                        Excelente viaje.</p>
+                </div>
+            </div>
+
+            <!-- Vista de Mensaje Abierto (Simulada para visualización) -->
+            <div class="h-[250px] bg-slate-100 border-t border-slate-200 flex flex-col">
+                <div class="p-2 border-b border-slate-200 bg-white flex items-center justify-between shadow-sm z-10">
+                    <span class="text-xs font-bold text-slate-700">Chat con Héctor F.</span>
+                    <button class="text-blue-600 text-[10px] font-bold hover:underline">Ir al Viaje</button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+                    <div
+                        class="bg-white p-2.5 rounded-lg rounded-tl-none border border-slate-200 shadow-sm w-[85%] relative">
+                        <p class="text-xs text-slate-700">Administrador, el tráfico está detenido en la autopista,
+                            tomaremos la ruta libre para evitar mayor retraso.</p>
+                        <span class="text-[8px] text-slate-400 absolute bottom-1 right-2">09:42 AM</span>
+                    </div>
+                </div>
+                <div class="p-3 bg-white border-t border-slate-200 flex gap-2">
+                    <input type="text" placeholder="Responder a Héctor..."
+                        class="flex-1 bg-slate-100 border-none outline-none rounded-full px-4 text-xs">
+                    <button
+                        class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition">
+                        <span class="material-icons-outlined text-[14px]">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JS Básico para manejar las pestañas del mockup -->
+    <script>
+        function switchScreen(screenId) {
+            // Hide all
+            document.querySelectorAll('.screen-mockup').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+
+            // Show target
+            document.getElementById('screen-' + screenId).classList.add('active');
+            let navItem = document.getElementById('nav-' + screenId);
+            if (navItem) navItem.classList.add('active');
+        }
+
+        function closeAllDrawers() {
+            const overlay = document.getElementById('drawer-overlay');
+            const chatDrawer = document.getElementById('chat-drawer');
+            const notifDrawer = document.getElementById('notifications-drawer');
+
+            chatDrawer.classList.add('translate-x-full');
+            notifDrawer.classList.add('translate-x-full');
+
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        function toggleChat() {
+            const drawer = document.getElementById('chat-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            const notifDrawer = document.getElementById('notifications-drawer');
+
+            // Si el de notificaciones está abierto, ciérralo primero sin quitar el overlay
+            if (!notifDrawer.classList.contains('translate-x-full')) {
+                notifDrawer.classList.add('translate-x-full');
+            }
+
+            if (drawer.classList.contains('translate-x-full')) {
+                // Abrir Chat
+                drawer.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    overlay.classList.add('opacity-100');
+                }, 10);
+            } else {
+                closeAllDrawers();
+            }
+        }
+
+        function toggleNotifications() {
+            const drawer = document.getElementById('notifications-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            const chatDrawer = document.getElementById('chat-drawer');
+
+            // Si el de chat está abierto, ciérralo
+            if (!chatDrawer.classList.contains('translate-x-full')) {
+                chatDrawer.classList.add('translate-x-full');
+            }
+
+            if (drawer.classList.contains('translate-x-full')) {
+                // Abrir Notificaciones
+                drawer.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    overlay.classList.add('opacity-100');
+                }, 10);
+            } else {
+                closeAllDrawers();
+            }
+        }
+    </script>
+</body>
+
+</html>
+```

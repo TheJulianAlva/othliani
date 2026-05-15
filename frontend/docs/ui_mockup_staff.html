@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mockups OhtliAni Agencia - Gestión de Guías UI</title>
+    <!-- Incluimos Tailwind CSS vía CDN para prototipado rápido y limpio de estructura -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos de Material Icons (Google) -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #F4F6F8;
+            overflow: hidden;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background-color: rgba(15, 76, 117, 0.1);
+            color: #0F4C75;
+            border-right: 3px solid #0F4C75;
+        }
+
+        .sidebar-item {
+            color: #64748b;
+            border-right: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Contenedores para intercambiar pantallas con JS simple */
+        .screen-mockup {
+            display: none;
+            height: 100%;
+        }
+
+        .screen-mockup.active {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body class="h-screen w-screen flex text-slate-800">
+
+    <!-- BARRA LATERAL (SIDEBAR) - PROPUESTA DE REDUCCIÓN DE FRICCIÓN -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0">
+        <div>
+            <div class="h-16 flex items-center px-6 border-b border-slate-200">
+                <div class="w-8 h-8 rounded bg-[#0F4C75] text-white flex items-center justify-center font-bold mr-3">O
+                </div>
+                <span class="text-lg font-bold text-[#0F4C75] tracking-tight">OhtliAni<span
+                        class="text-sm rounded bg-slate-100 text-slate-500 px-1 ml-2">App</span></span>
+            </div>
+
+            <nav class="mt-4 flex flex-col gap-1">
+                <a href="ui_mockup_agencia.html" class="sidebar-item flex items-center px-6 py-3 font-medium text-sm"
+                    id="nav-dashboard">
+                    <span class="material-icons-outlined mr-3 text-[20px]">explore</span> Radar Operativo
+                </a>
+                <a href="#" class="sidebar-item active flex items-center px-6 py-3 font-medium text-sm" id="nav-staff">
+                    <span class="material-icons-outlined mr-3 text-[20px]">badge</span> Directorio de Guías
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-6 py-3 font-medium text-sm">
+                    <span class="material-icons-outlined mr-3 text-[20px]">groups</span> Historial PAX
+                </a>
+            </nav>
+        </div>
+
+        <div class="mb-4">
+            <a href="#" class="sidebar-item flex items-center px-6 py-3 font-medium text-sm">
+                <span class="material-icons-outlined mr-3 text-[20px]">settings</span> Configuración
+            </a>
+            <div class="mx-6 mt-4 pt-4 border-t border-slate-200 flex items-center cursor-pointer">
+                <div
+                    class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold mr-3 text-[#0F4C75]">
+                    AD</div>
+                <div>
+                    <p class="text-xs font-bold text-slate-700">Admin Juan</p>
+                    <p class="text-[10px] text-slate-500">Agencia Central</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="flex-1 flex flex-col h-full bg-[#F4F6F8]">
+
+        <!-- TOP BAR (HEADER GOBAL) - PROPUESTA -->
+        <header
+            class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
+            <!-- Buscador Global -->
+            <div
+                class="w-[400px] h-[38px] bg-slate-100 rounded-lg flex items-center px-3 border border-transparent focus-within:border-blue-400 focus-within:bg-white transition-all">
+                <span class="material-icons-outlined text-slate-400 text-sm mr-2">search</span>
+                <input type="text" placeholder="Búsqueda de guías y operadores..."
+                    class="bg-transparent border-none outline-none text-sm w-full text-slate-600">
+            </div>
+
+            <!-- Acciones Rápidas y Alertas Persistentes -->
+            <div class="flex items-center gap-4">
+
+                <!-- Global Chat Button -->
+                <button onclick="toggleChat()"
+                    class="w-8 h-8 rounded-full hover:bg-blue-50 flex items-center justify-center relative text-slate-500 hover:text-blue-600 transition-colors">
+                    <span class="material-icons-outlined text-[20px]">chat</span>
+                    <span class="absolute top-1 right-1 flex h-2.5 w-2.5">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span
+                            class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500 border-2 border-white"></span>
+                    </span>
+                </button>
+                <!-- Notifications Button -->
+                <button onclick="toggleNotifications()"
+                    class="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center relative text-slate-500 hover:text-red-600 transition-colors">
+                    <span class="material-icons-outlined text-[20px]">notifications</span>
+                    <span class="absolute top-1 right-1 flex h-2.5 w-2.5">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span
+                            class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border-2 border-white"></span>
+                    </span>
+                </button>
+                <button
+                    class="bg-[#0F4C75] hover:bg-[#0a3552] text-white text-sm font-medium h-9 px-4 rounded-md shadow-sm transition-colors flex items-center gap-2">
+                    <span class="material-icons-outlined text-[18px]">person_add</span> Nuevo Guía
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENEDOR DE PANTALLAS (Views) -->
+        <div class="flex-1 overflow-auto relative p-6">
+
+            <!-- PANTALLA 1: STAFF DASHBOARD -->
+            <div id="screen-staff" class="screen-mockup active gap-6 h-full flex flex-col">
+                <!-- Header de Sección -->
+                <div class="shrink-0 flex justify-between items-end mb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-[#0F4C75]">Directorio y Estado de Guías</h1>
+                        <p class="text-slate-500 text-sm mt-1">Consola de disponibilidad, rendimiento y cumplimiento.
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            class="px-3 py-1.5 border border-slate-300 rounded text-sm font-medium text-slate-600 bg-white hover:bg-slate-50">Configurar
+                            Metas</button>
+                    </div>
+                </div>
+
+                <!-- KPIs Superiores de Capacidad -->
+                <div class="grid grid-cols-4 gap-4 shrink-0 mt-4">
+                    <!-- KPI 1 -->
+                    <div
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Disponibles</p>
+                            <h3 class="text-2xl font-bold text-green-600">8</h3>
+                        </div>
+                        <div class="p-3 bg-green-50 text-green-600 rounded-lg"><span
+                                class="material-icons-outlined">check_circle</span></div>
+                    </div>
+                    <!-- KPI 2 -->
+                    <div
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">En Viaje Activo</p>
+                            <h3 class="text-2xl font-bold text-blue-600">4</h3>
+                        </div>
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-lg"><span
+                                class="material-icons-outlined">directions_bus</span></div>
+                    </div>
+                    <!-- KPI 3 -->
+                    <div
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Descanso / Permiso
+                            </p>
+                            <h3 class="text-2xl font-bold text-orange-500">2</h3>
+                        </div>
+                        <div class="p-3 bg-orange-50 text-orange-500 rounded-lg"><span
+                                class="material-icons-outlined">pause_circle_filled</span></div>
+                    </div>
+                    <!-- KPI 4 -->
+                    <div
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Capacidad de
+                                Cuentas (Plan)</p>
+                            <div class="flex items-end gap-2 mt-1">
+                                <h3 class="text-2xl font-bold text-slate-800">18 / 20</h3>
+                                <span class="text-[10px] text-slate-500 font-bold mb-1">Guías Registrados</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><span
+                                class="material-icons-outlined">group_add</span></div>
+                    </div>
+                </div>
+
+                <!-- Main Content Area: Data Grid + Detail Panel -->
+                <div class="flex-1 flex gap-6 overflow-hidden mt-6 pb-2">
+
+                    <!-- IZQUIERDA: Data Grid del Staff -->
+                    <div
+                        class="bg-white rounded-xl shadow-sm border border-slate-200 flex-[7] flex flex-col overflow-hidden">
+
+                        <!-- Barra de Filtros del Grid -->
+                        <div
+                            class="p-4 border-b border-slate-200 bg-slate-50 shrink-0 flex justify-between items-center">
+                            <div class="flex gap-2">
+                                <div class="relative">
+                                    <span
+                                        class="material-icons-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[16px]">search</span>
+                                    <input type="text" placeholder="Buscar nombre, ID..."
+                                        class="pl-9 pr-3 py-1.5 border border-slate-300 rounded text-sm w-64 focus:outline-none focus:border-blue-500">
+                                </div>
+                                <select
+                                    class="border border-slate-300 rounded text-sm px-3 py-1.5 bg-white text-slate-600 outline-none hover:bg-slate-50">
+                                    <option>Rol: Todos</option>
+                                    <option>Guías</option>
+                                    <option>Operadores</option>
+                                </select>
+                                <select
+                                    class="border border-slate-300 rounded text-sm px-3 py-1.5 bg-white text-slate-600 outline-none hover:bg-slate-50">
+                                    <option>Estado: Todos</option>
+                                    <option>Disponible</option>
+                                    <option>En Viaje</option>
+                                </select>
+                            </div>
+                            <button
+                                class="flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-blue-600 transition">
+                                <span class="material-icons-outlined text-[18px]">filter_list</span> Más filtros
+                            </button>
+                        </div>
+
+                        <!-- Tabla / Grid Data -->
+                        <div class="flex-1 overflow-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-white sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th
+                                            class="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                                            Staff</th>
+                                        <th
+                                            class="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 text-center">
+                                            Estado</th>
+                                        <th
+                                            class="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                                            Días de Trabajo (Mes)</th>
+                                        <th
+                                            class="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 text-center">
+                                            CSAT</th>
+                                        <th
+                                            class="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                                            Próx. Viaje</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm">
+
+                                    <!-- Fila 1 (Seleccionada) -->
+                                    <tr onclick="switchScreen('guide-profile')"
+                                        class="hover:bg-blue-50/50 cursor-pointer transition-colors bg-blue-50/20 border-l-4 border-blue-500">
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-xs text-slate-600">
+                                                    CR</div>
+                                                <div>
+                                                    <p class="font-bold text-slate-800">Carlos Rodríguez</p>
+                                                    <p class="text-[10px] text-slate-500">GUA-084 • Coordinador</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span
+                                                class="inline-flex items-center gap-1 bg-green-100 text-green-700 font-bold text-[10px] px-2 py-1 rounded-full border border-green-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Disponible
+                                            </span>
+                                        </td>
+                                        <!-- Barra de Progreso Métrica -->
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-sm font-bold text-slate-700">12 Días</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-center">
+                                            <div class="flex flex-col items-center">
+                                                <div class="flex text-amber-400 text-[14px]">
+                                                    <span class="material-icons-outlined">star</span>
+                                                    <span class="material-icons-outlined">star</span>
+                                                    <span class="material-icons-outlined">star</span>
+                                                    <span class="material-icons-outlined">star</span>
+                                                    <span class="material-icons-outlined">star_half</span>
+                                                </div>
+                                                <span class="text-[10px] text-slate-500 font-bold">4.6 (22 Rev)</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <p class="font-medium text-slate-700 text-xs">Acapulco Fin Sem.</p>
+                                            <p class="text-[10px] text-slate-500">15 Mar • 06:00 AM</p>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Fila 2 -->
+                                    <tr
+                                        class="hover:bg-slate-50 cursor-pointer transition-colors border-l-4 border-transparent">
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-xs text-slate-600">
+                                                    HF</div>
+                                                <div>
+                                                    <p class="font-bold text-slate-800">Héctor Fuentes</p>
+                                                    <p class="text-[10px] text-slate-500">GUA-012 • Eco-Guía</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span
+                                                class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 font-bold text-[10px] px-2 py-1 rounded-full border border-blue-200 shadow-sm">
+                                                <span class="animate-pulse w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                                En Viaje (V-102)
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-sm font-bold text-orange-600">18 Días</span>
+                                                <span class="material-icons-outlined text-orange-500 text-[14px]"
+                                                    title="Exceso de carga">warning</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-center">
+                                            <div class="flex flex-col items-center">
+                                                <div class="flex text-amber-400 text-[14px]">
+                                                    <span class="material-icons-outlined">star</span>
+                                                    <span class="material-icons-outlined">star</span>
+                                                    <span class="material-icons-outlined">star</span>
+                                                    <span class="material-icons-outlined">star</span>
+                                                    <span class="material-icons-outlined text-slate-200">star</span>
+                                                </div>
+                                                <span class="text-[10px] text-slate-500 font-bold">4.1 (14 Rev)</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <p class="font-medium text-slate-400 text-xs italic">Terminando V-102</p>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Fila 3 -->
+                                    <tr
+                                        class="hover:bg-slate-50 cursor-pointer transition-colors border-l-4 border-transparent opacity-60">
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-xs text-slate-600">
+                                                    VT</div>
+                                                <div>
+                                                    <p class="font-bold text-slate-800">Valeria T.</p>
+                                                    <p class="text-[10px] text-slate-500">GUA-099 • Trainee</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-center">
+                                            <span
+                                                class="inline-flex items-center gap-1 bg-slate-100 text-slate-600 font-bold text-[10px] px-2 py-1 rounded-full border border-slate-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Descanso
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-sm font-bold text-slate-700">4 Días</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-center">
+                                            <div class="flex flex-col items-center">
+                                                <span
+                                                    class="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded">N/A
+                                                    (Trainee)</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <p class="font-medium text-slate-700 text-xs">Xochimilco Oculto</p>
+                                            <p class="text-[10px] text-slate-500">12 Mar • 08:30 AM</p>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div
+                            class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+                            <span>Mostrando 1-3 de 14 Guías</span>
+                            <div class="flex gap-1">
+                                <button
+                                    class="w-6 h-6 rounded flex items-center justify-center hover:bg-slate-200 disabled:opacity-50"><span
+                                        class="material-icons-outlined text-[16px]">chevron_left</span></button>
+                                <button
+                                    class="w-6 h-6 rounded flex items-center justify-center hover:bg-slate-200"><span
+                                        class="material-icons-outlined text-[16px]">chevron_right</span></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DERECHA: Consola de Perfil y Desempeño (Detail View) -->
+                    <div
+                        class="bg-white rounded-xl shadow-lg border border-slate-200 flex-[3] flex flex-col overflow-hidden relative">
+                        <!-- Perfil Header -->
+                        <div
+                            class="p-6 pb-4 border-b border-slate-200 bg-gradient-to-br from-slate-50 to-white flex flex-col items-center text-center relative shrink-0">
+                            <!-- Acciones flotantes -->
+                            <div class="absolute top-4 right-4 flex gap-2">
+                                <button
+                                    class="w-8 h-8 rounded-full bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 flex items-center justify-center shadow-sm"
+                                    title="Abrir Chat Privado">
+                                    <span class="material-icons-outlined text-[16px]">chat</span>
+                                </button>
+                                <button
+                                    class="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center justify-center shadow-sm"
+                                    title="Editar Perfil">
+                                    <span class="material-icons-outlined text-[16px]">edit</span>
+                                </button>
+                            </div>
+
+                            <div
+                                class="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center font-bold text-2xl text-slate-600 mb-3 border-4 border-white shadow-sm ring-2 ring-slate-100">
+                                CR</div>
+                            <h2 class="text-xl font-bold text-[#0F4C75] leading-tight">Carlos Rodríguez</h2>
+                            <p class="text-sm text-slate-500 mb-2">ID: GUA-084 • Coordinador Senior</p>
+                            <span
+                                class="inline-flex items-center gap-1 bg-green-100 text-green-700 font-bold text-[10px] px-2.5 py-1 rounded-full border border-green-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Listo Asignación
+                            </span>
+                        </div>
+
+                        <!-- Scroll Content -->
+                        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+
+                            <!-- Sección 1: Certificaciones / Alertas HR -->
+                            <div>
+                                <h3
+                                    class="font-bold text-xs uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                                    <span class="material-icons-outlined text-[16px]">verified</span> Credenciales &
+                                    Alertas
+                                </h3>
+                                <div
+                                    class="bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-start gap-3 mb-2 shadow-sm">
+                                    <span
+                                        class="material-icons-outlined text-orange-500 text-[18px] top-0.5 relative">warning</span>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-800">Licencia de Conducir (Fed.) a punto
+                                            de expirar</p>
+                                        <p class="text-[10px] text-orange-700 mt-0.5">Vence en 14 días (22 Mar).
+                                            Refrendo requerido.</p>
+                                    </div>
+                                    <button
+                                        class="ml-auto text-blue-600 text-[10px] font-bold hover:underline self-center">Notificar</button>
+                                </div>
+                                <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                                    <span class="text-xs text-slate-600 font-medium">Credencial Sectur (NOM-09)</span>
+                                    <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 rounded">VIGENTE
+                                        (2027)</span>
+                                </div>
+                                <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                                    <span class="text-xs text-slate-600 font-medium">Primeros Auxilios (Cruz
+                                        Roja)</span>
+                                    <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 rounded">VIGENTE
+                                        (Oct 26)</span>
+                                </div>
+                            </div>
+
+                            <!-- Sección 2: Métricas Rápidas Históricas -->
+                            <div>
+                                <h3
+                                    class="font-bold text-xs uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                                    <span class="material-icons-outlined text-[16px]">bar_chart</span> Desempeño Global
+                                </h3>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-slate-50 rounded p-3 text-center border border-slate-100">
+                                        <div
+                                            class="text-2xl font-bold text-slate-800 flex justify-center items-end gap-1">
+                                            4.6<span
+                                                class="material-icons-outlined text-amber-400 text-[16px] mb-1">star</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-500 font-medium">Satisfacción (CSAT)</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded p-3 text-center border border-slate-100">
+                                        <div
+                                            class="text-2xl font-bold text-emerald-600 flex justify-center items-end gap-1">
+                                            2.4<span class="text-[12px] text-slate-400 font-bold mb-1">%</span></div>
+                                        <p class="text-[10px] text-slate-500 font-medium tracking-tight">Tasa de
+                                            Incidencias/Viaje</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sección 3: Historial Reciente con Feedback -->
+                            <div>
+                                <h3
+                                    class="font-bold text-xs uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                                    <span class="material-icons-outlined text-[16px]">history</span> Últimos Viajes
+                                    Liderados
+                                </h3>
+                                <div
+                                    class="flex flex-col gap-3 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+
+                                    <!-- History Item 1 -->
+                                    <div class="relative flex items-center justify-between md:-ml-3">
+                                        <!-- Timeline marker -->
+                                        <div class="absolute w-2 h-2 bg-blue-500 rounded-full left-1 z-10"></div>
+                                        <div
+                                            class="ml-6 flex-1 bg-white border border-slate-200 p-3 rounded-lg shadow-sm hover:shadow-md transition">
+                                            <div class="flex justify-between items-start mb-1">
+                                                <h4
+                                                    class="font-bold text-xs text-blue-700 cursor-pointer hover:underline">
+                                                    V-100 (Grutas de Tolantongo)</h4>
+                                                <span class="text-[9px] text-slate-400 font-medium">01 Mar</span>
+                                            </div>
+                                            <div class="flex text-amber-400 text-[12px] mb-2">
+                                                <span class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span>
+                                                <span class="text-slate-400 text-[10px] ml-1">(5.0)</span>
+                                            </div>
+                                            <p
+                                                class="text-[10px] text-slate-600 italic bg-blue-50/50 p-2 rounded border border-blue-50 border-l-2 border-l-blue-400">
+                                                "El reporte del guía indica operación perfecta, sin retrasos orgánicos."
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- History Item 2 -->
+                                    <div class="relative flex items-center justify-between md:-ml-3 mt-1">
+                                        <!-- Timeline marker -->
+                                        <div class="absolute w-2 h-2 bg-slate-300 rounded-full left-1 z-10"></div>
+                                        <div
+                                            class="ml-6 flex-1 bg-white border border-slate-200 p-3 rounded-lg shadow-sm hover:shadow-md transition opacity-80">
+                                            <div class="flex justify-between items-start mb-1">
+                                                <h4
+                                                    class="font-bold text-xs text-slate-700 hover:text-blue-700 cursor-pointer hover:underline">
+                                                    V-082 (Chignahuapan)</h4>
+                                                <span class="text-[9px] text-slate-400 font-medium">18 Feb</span>
+                                            </div>
+                                            <div class="flex text-amber-400 text-[12px] mb-2">
+                                                <span class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined text-slate-200">star</span><span
+                                                    class="material-icons-outlined text-slate-200">star</span>
+                                                <span class="text-slate-400 text-[10px] ml-1">(3.0)</span>
+                                            </div>
+                                            <p
+                                                class="text-[10px] text-slate-600 italic bg-slate-50 p-2 rounded border border-slate-100 border-l-2 border-l-amber-400">
+                                                "Una llanta se pinchó en ruta, el guía demoró 45 min el itinerario para
+                                                solventarlo asegurando a los turistas."</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PANTALLA 2: GUIDE PROFILE (FULL SCREEN DETAIL) -->
+            <div id="screen-guide-profile" class="screen-mockup gap-6 h-full flex flex-col">
+                <!-- Header del Perfil: Atrás + Bio Breve + Gamificación -->
+                <div
+                    class="shrink-0 flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-6">
+                        <button onclick="switchScreen('staff')"
+                            class="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors">
+                            <span class="material-icons-outlined">arrow_back</span>
+                        </button>
+
+                        <div class="flex items-center gap-4 border-l border-slate-200 pl-6">
+                            <div
+                                class="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center font-bold text-2xl text-slate-600 ring-4 ring-white shadow-md relative">
+                                CR
+                                <div
+                                    class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full">
+                                </div>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-[#0F4C75] flex items-center gap-2">Carlos Rodríguez
+                                    <span class="material-icons-outlined text-blue-500 text-[20px]"
+                                        title="Verificado">verified</span>
+                                </h2>
+                                <p class="text-sm text-slate-500">GUA-084 • Coordinador Senior • Desde 2021</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 4: Gamificación / Insignias Rápida -->
+                    <div class="flex gap-2">
+                        <div class="flex flex-col items-center justify-center bg-amber-50 px-3 py-1.5 rounded border border-amber-200"
+                            title="Mejor Evaluación">
+                            <span class="material-icons-outlined text-amber-500 text-[18px]">workspace_premium</span>
+                            <span class="text-[10px] font-bold text-amber-700">Top 10% Mensual</span>
+                        </div>
+                        <div class="flex flex-col items-center justify-center bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200"
+                            title="Eficiencia">
+                            <span class="material-icons-outlined text-emerald-500 text-[18px]">timer</span>
+                            <span class="text-[10px] font-bold text-emerald-700">Cero Retrasos (90d)</span>
+                        </div>
+                        <div class="ml-4 flex items-center">
+                            <button
+                                class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow flex items-center gap-2 transition-colors">
+                                <span class="material-icons-outlined text-[18px]">chat</span> Contactar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalles Principales en Grid -->
+                <div class="flex-1 overflow-y-auto pb-4 shrink-0 flex flex-col gap-6">
+                    <div class="flex gap-6 h-auto">
+
+                        <!-- Columna Izquierda: Bio Operativa & Finanzas -->
+                        <div class="flex-[3] flex flex-col gap-6">
+
+                            <!-- Módulo 1: Panel Bio e Historial Administrativo -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                                <h3
+                                    class="font-bold text-sm uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                                    <span class="material-icons-outlined text-[18px]">assignment_ind</span> Perfil
+                                    Operativo
+                                </h3>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <p class="text-xs text-slate-500 font-medium mb-1">Idiomas Dominados</p>
+                                        <div class="flex gap-2">
+                                            <span
+                                                class="bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-1 rounded font-medium">Español
+                                                (Nativo)</span>
+                                            <span
+                                                class="bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-1 rounded font-medium">Inglés
+                                                (Avanzado)</span>
+                                            <span
+                                                class="bg-slate-50 text-slate-600 border border-slate-200 text-xs px-2.5 py-1 rounded font-medium">Francés
+                                                (Básico)</span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p class="text-xs text-slate-500 font-medium mb-1">Especialidades</p>
+                                        <div class="flex gap-2">
+                                            <span
+                                                class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded">Ecoturismo</span>
+                                            <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded">Alta
+                                                Montaña</span>
+                                            <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded">Grupos
+                                                > 40 pax</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-4 border-t border-slate-100">
+                                        <p class="text-xs text-slate-500 font-medium mb-2">Certificaciones Clave</p>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="material-icons-outlined text-green-500 text-[18px]">check_circle</span>
+                                                <span class="text-sm font-medium text-slate-700">NOM-09-TUR-2002</span>
+                                            </div>
+                                            <span class="text-[10px] text-slate-500">Exp. 12 Sep 2027</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="material-icons-outlined text-orange-500 text-[18px]">warning</span>
+                                                <span class="text-sm font-medium text-slate-700">Licencia Transporte
+                                                    Fed.</span>
+                                            </div>
+                                            <span
+                                                class="text-[10px] text-orange-600 font-bold bg-orange-100 px-2 rounded">Vence
+                                                en 14 días</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Módulo 2: Finanzas y Rentabilidad (Para la Agencia) -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h3
+                                        class="font-bold text-sm uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                                        <span class="material-icons-outlined text-[18px]">account_balance_wallet</span>
+                                        Resumen Financiero (Marzo)
+                                    </h3>
+                                    <button class="text-xs text-blue-600 hover:underline font-medium">Ver
+                                        desglose</button>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                        <p class="text-xs text-slate-500 font-medium mb-1">Pagado este mes</p>
+                                        <h4 class="text-xl font-bold text-slate-800">$12,450.00 <span
+                                                class="text-[10px] text-slate-400 font-normal">MXN</span></h4>
+                                        <p class="text-[10px] text-green-600 font-medium mt-1">4 Viajes liquidados</p>
+                                    </div>
+                                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-100">
+                                        <p class="text-xs text-orange-700 font-medium mb-1">Saldo Pendiente</p>
+                                        <h4 class="text-xl font-bold text-orange-700">$3,200.00 <span
+                                                class="text-[10px] text-orange-400 font-normal">MXN</span></h4>
+                                        <p class="text-[10px] text-orange-600 font-medium mt-1">1 Viaje por pagar
+                                            (V-100)</p>
+                                    </div>
+                                </div>
+                                <button
+                                    class="mt-4 w-full bg-white border border-slate-300 text-slate-700 text-sm font-medium py-2 rounded-md hover:bg-slate-50 transition-colors">
+                                    Registrar Pago / Anticipo
+                                </button>
+                            </div>
+
+                        </div>
+
+                        <!-- Columna Derecha: Rendimiento y Historial -->
+                        <div class="flex-[5] flex flex-col gap-6">
+
+                            <!-- Módulo 3: Heatmap / Timeline de Rendimiento e Incidencias -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex-1 flex flex-col">
+                                <h3
+                                    class="font-bold text-sm uppercase tracking-wider text-slate-500 mb-6 flex items-center gap-2">
+                                    <span class="material-icons-outlined text-[18px]">multiline_chart</span> Rendimiento
+                                    Operativo (Últimos 12 Viajes)
+                                </h3>
+
+                                <!-- Timeline Abstraido como Heatmap (Mock visual) -->
+                                <div class="mb-8">
+                                    <div class="flex justify-between text-xs text-slate-400 mb-2 font-medium">
+                                        <span>Diciembre</span>
+                                        <span>Enero</span>
+                                        <span>Febrero</span>
+                                        <span>Marzo (Actual)</span>
+                                    </div>
+                                    <div class="flex gap-1.5 h-16 items-end">
+                                        <!-- Simulando barras de rendimiento: Verde = Ok, Naranja = Incidencia menor, Rojo = Incidente crítico -->
+                                        <!-- Mes 1 -->
+                                        <div class="flex-1 bg-green-400 hover:bg-green-500 transition-colors cursor-pointer rounded-sm h-[80%]"
+                                            title="Viaje Sin Novedad"></div>
+                                        <div class="flex-1 bg-green-400 hover:bg-green-500 transition-colors cursor-pointer rounded-sm h-[90%]"
+                                            title="Viaje Sin Novedad"></div>
+                                        <div class="flex-1 bg-orange-400 hover:bg-orange-500 transition-colors cursor-pointer rounded-sm h-[60%]"
+                                            title="Incidencia: Retraso 20min"></div>
+
+                                        <!-- Mes 2 -->
+                                        <div class="flex-1 bg-green-400 hover:bg-green-500 transition-colors cursor-pointer rounded-sm h-[100%] ml-2"
+                                            title="Viaje Excelente"></div>
+                                        <div class="flex-1 bg-green-400 hover:bg-green-500 transition-colors cursor-pointer rounded-sm h-[85%]"
+                                            title="Viaje Sin Novedad"></div>
+
+                                        <!-- Mes 3 -->
+                                        <div class="flex-1 bg-green-400 hover:bg-green-500 transition-colors cursor-pointer rounded-sm h-[95%] ml-2"
+                                            title="Viaje Sin Novedad"></div>
+                                        <div class="flex-1 bg-red-400 hover:bg-red-500 transition-colors cursor-pointer rounded-sm h-[40%]"
+                                            title="Incidente Crítico: Avería"></div>
+                                        <div class="flex-1 bg-green-400 hover:bg-green-500 transition-colors cursor-pointer rounded-sm h-[80%]"
+                                            title="Viaje Sin Novedad"></div>
+                                        <div class="flex-1 bg-green-400 hover:bg-green-500 transition-colors cursor-pointer rounded-sm h-[90%]"
+                                            title="Viaje Sin Novedad"></div>
+
+                                        <!-- Mes 4 -->
+                                        <div class="flex-1 bg-green-400 hover:bg-green-500 transition-colors cursor-pointer rounded-sm h-[100%] ml-2"
+                                            title="Viaje Excelente"></div>
+                                        <div class="flex-1 bg-green-400 hover:bg-green-500 transition-colors cursor-pointer rounded-sm h-[90%]"
+                                            title="Viaje Sin Novedad"></div>
+                                        <div class="flex-1 bg-slate-200 rounded-sm h-[10%]" title="Próximo Viaje"></div>
+                                    </div>
+
+                                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-100">
+                                        <div class="flex gap-4">
+                                            <div class="flex items-center gap-1.5">
+                                                <div class="w-3 h-3 bg-green-400 rounded-sm"></div><span
+                                                    class="text-xs text-slate-500">Exitoso</span>
+                                            </div>
+                                            <div class="flex items-center gap-1.5">
+                                                <div class="w-3 h-3 bg-orange-400 rounded-sm"></div><span
+                                                    class="text-xs text-slate-500">Inc. Menor</span>
+                                            </div>
+                                            <div class="flex items-center gap-1.5">
+                                                <div class="w-3 h-3 bg-red-400 rounded-sm"></div><span
+                                                    class="text-xs text-slate-500">Inc. Mayor</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs font-bold text-slate-700">Tasa de Exito: 82%</div>
+                                    </div>
+                                </div>
+
+                                <!-- Feed Resumido Evaluaciones CSAT -->
+                                <h4 class="font-bold text-xs text-slate-700 mb-3 block">Últimas Evaluaciones
+                                    Cualitativas</h4>
+                                <div class="space-y-3 overflow-y-auto pr-2" style="max-height: 200px;">
+
+                                    <div class="bg-slate-50 border border-slate-100 p-3 rounded-lg">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="text-xs font-bold text-slate-700">V-100 • Grutas de
+                                                Tolantongo</span>
+                                            <div class="flex text-amber-400 text-[12px]">
+                                                <span class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-[11px] text-slate-600">"El guía Carlos mantuvo el control total
+                                            del grupo. Comunicación excelente y solventó el retraso del desayuno muy
+                                            bien. Sumamente recomendado para viajes VIP."</p>
+                                        <p class="text-[9px] text-slate-400 mt-1 italic">- Turista (F. Martínez) vía App
+                                        </p>
+                                    </div>
+
+                                    <div class="bg-slate-50 border border-slate-100 p-3 rounded-lg">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="text-xs font-bold text-slate-700">V-082 • Chignahuapan</span>
+                                            <div class="flex text-amber-400 text-[12px]">
+                                                <span class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined">star</span><span
+                                                    class="material-icons-outlined text-slate-300">star</span><span
+                                                    class="material-icons-outlined text-slate-300">star</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-[11px] text-slate-600">"El viaje estuvo bien, pero la llanta
+                                            ponchada nos quitó mucho tiempo. El guía Carlos fue muy amable y nos mantuvo
+                                            relajados, pero el camión debería revisarse mejor."</p>
+                                        <p class="text-[9px] text-slate-400 mt-1 italic">- Feedback Consolidado de
+                                            Turistas</p>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen-mockup').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + screenId).classList.add('active');
+        }
+    </script>
+</body>
+
+</html>
