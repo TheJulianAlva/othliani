@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:frontend/features/agencia/shared/domain/entities/alerta.dart';
 import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart';
 

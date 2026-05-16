@@ -19,7 +19,7 @@ class _TripsScreenState extends State<TripsScreen> {
   final ScrollController _scrollController = ScrollController();
   
   String _searchQuery = '';
-  Set<String> _selectedStatuses = {'TODOS'};
+  final Set<String> _selectedStatuses = {'TODOS'};
   DateTimeRange? _selectedDateRange;
   Timer? _debounce;
   

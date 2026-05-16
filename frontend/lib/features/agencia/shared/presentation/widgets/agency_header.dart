@@ -867,15 +867,16 @@ class _AgencyHeaderState extends State<AgencyHeader> {
           ElevatedButton.icon(
             onPressed: () async {
               if (!await _checkUnsavedChanges()) return;
-              if (mounted) {
-                if (currentPath.contains('/usuarios')) {
-                  // Acción para nuevo guía (simulada)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Funcionalidad de Nuevo Guía en desarrollo")),
-                  );
-                } else {
-                  context.go('/viajes/nuevo');
-                }
+              if (!context.mounted) return;
+              if (currentPath.contains('/usuarios')) {
+                // Acción para nuevo guía (simulada)
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Funcionalidad de Nuevo Guía en desarrollo"),
+                  ),
+                );
+              } else {
+                context.go('/viajes/nuevo');
               }
             },
             icon: Icon(currentPath.contains('/usuarios') ? Icons.person_add : Icons.add, size: 18),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart'; // Para PointerDeviceKind
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
@@ -23,12 +22,11 @@ class AgencyMapWidget extends StatefulWidget {
 class _AgencyMapWidgetState extends State<AgencyMapWidget> {
   // Controladores
   final MapController _mapController = MapController();
-  late PageController _pageController;
 
   // Estado de Filtros
-  bool _showEnCurso = true;
-  bool _showProgramados = false;
-  bool _showFinalizados = false;
+  final bool _showEnCurso = true;
+  final bool _showProgramados = false;
+  final bool _showFinalizados = false;
 
   // Estado de Selección
   int _selectedIndex = -1; // -1 significa ninguno seleccionado
@@ -382,84 +380,5 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
     if (estado == 'EN_CURSO') return Icons.directions_bus;
     if (estado == 'PROGRAMADO') return Icons.calendar_today;
     return Icons.flag;
-  }
-
-  // Widget FilterChip (Reutilizado del paso anterior)
-  Widget _buildFilterChip(
-    String label,
-    Color color,
-    bool isSelected,
-    Function(bool) onChanged,
-  ) {
-    return FilterChip(
-      label: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : color,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      selected: isSelected,
-      onSelected: onChanged,
-      backgroundColor: Colors.white.withValues(alpha: 0.95),
-      selectedColor: color,
-      checkmarkColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isSelected ? Colors.transparent : color.withValues(alpha: 0.3),
-        ),
-      ),
-      padding: EdgeInsets.zero,
-      visualDensity: VisualDensity.compact,
-    );
-  }
-
-  // --- MÉTODOS PARA SEVERIDAD DE ALERTAS ---
-
-  String _getMaxSeverity(List<Alerta> alertas) {
-    if (alertas.isEmpty) return 'info';
-
-    // Prioridad: critical > warning > info
-    bool hasCritical = false;
-    bool hasWarning = false;
-
-    for (final alerta in alertas) {
-      final tipo = alerta.tipo;
-      if (tipo == 'PANICO' || tipo == 'CONECTIVIDAD') {
-        hasCritical = true;
-      } else if (tipo == 'DESCONEXION' ||
-          tipo == 'LEJANIA' ||
-          tipo == 'BATERIA') {
-        hasWarning = true;
-      }
-    }
-
-    if (hasCritical) return 'critical';
-    if (hasWarning) return 'warning';
-    return 'info';
-  }
-
-  Color _getSeverityColor(String severity) {
-    switch (severity) {
-      case 'critical':
-        return Colors.red;
-      case 'warning':
-        return Colors.amber.shade800;
-      default:
-        return Colors.blue;
-    }
-  }
-
-  Color _getSeverityBgColor(String severity) {
-    switch (severity) {
-      case 'critical':
-        return Colors.red[50]!;
-      case 'warning':
-        return Colors.amber[50]!;
-      default:
-        return Colors.blue[50]!;
-    }
   }
 }

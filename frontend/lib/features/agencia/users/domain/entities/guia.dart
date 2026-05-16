@@ -13,6 +13,7 @@ class Guia extends Equatable {
   final List<String> especialidades;
   final double pagadoMes;
   final double saldoPendiente;
+  final int viajesAsignados;
 
   const Guia({
     required this.id,
@@ -27,6 +28,7 @@ class Guia extends Equatable {
     this.especialidades = const [],
     this.pagadoMes = 0.0,
     this.saldoPendiente = 0.0,
+    this.viajesAsignados = 0,
   });
 
   @override
@@ -43,5 +45,6 @@ class Guia extends Equatable {
     especialidades,
     pagadoMes,
     saldoPendiente,
+    viajesAsignados,
   ];
 }

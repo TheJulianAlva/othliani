@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/usuarios/usuarios_bloc.dart';
 import '../../domain/entities/guia.dart';
 import '../widgets/guide_master_list.dart';
 import '../widgets/guide_quick_detail.dart';
@@ -228,7 +226,7 @@ class _UsersScreenState extends State<UsersScreen> {
             ),
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withOpacity(0.05), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.05), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 20),
             ),
           ],

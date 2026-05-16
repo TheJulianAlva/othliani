@@ -45,7 +45,7 @@ class GuideMasterList extends StatelessWidget {
                 onTap: () => onGuiaSelected(guia),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  color: isSelected ? Colors.blue.shade50.withOpacity(0.5) : null,
+                  color: isSelected ? Colors.blue.shade50.withValues(alpha: 0.5) : null,
                   child: Row(
                     children: [
                       // STAFF
