@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:frontend/features/guia/trips/domain/entities/actividad_itinerario.dart';
-import 'package:frontend/features/guia/home/presentation/shared_widgets/activity_card.dart';
+import 'package:frontend/features/guia/trips/presentation/widgets/activity_card.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/personal_home_bloc/personal_home_cubit.dart';
 
 // ─── Constantes ───
@@ -16,10 +16,18 @@ class ActivityListWithFilter extends StatefulWidget {
   final List<ActividadItinerario> actividades;
   final bool esGestion;
 
+  /// Filtro externo — cuando es != null, el widget NO usa PersonalHomeCubit.
+  /// Permite reutilizar este widget en layouts que no tengan PersonalHomeCubit
+  /// (ej: AgenciaMainLayout).
+  final FiltroEstado? externalFiltro;
+  final ValueChanged<FiltroEstado>? onFiltroChanged;
+
   const ActivityListWithFilter({
     super.key,
     required this.actividades,
     this.esGestion = false,
+    this.externalFiltro,
+    this.onFiltroChanged,
   });
 
   @override
@@ -29,8 +37,15 @@ class ActivityListWithFilter extends StatefulWidget {
 class _ActivityListWithFilterState extends State<ActivityListWithFilter> {
   DateTime? _selectedDate;
 
+  /// Filtro local para el modo "standalone" (sin cubit y sin external).
+  FiltroEstado _localFiltro = FiltroEstado.todas;
+
+  bool get _usaCubit =>
+      widget.externalFiltro == null && widget.onFiltroChanged == null;
+
   List<DateTime> get _diasUnicos =>
-      widget.actividades.map((a) => _soloFecha(a.horaInicio)).toSet().toList()..sort();
+      widget.actividades.map((a) => _soloFecha(a.horaInicio)).toSet().toList()
+        ..sort();
 
   @override
   void initState() {
@@ -41,11 +56,42 @@ class _ActivityListWithFilterState extends State<ActivityListWithFilter> {
   @override
   void didUpdateWidget(covariant ActivityListWithFilter oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.actividades != oldWidget.actividades && widget.actividades.isNotEmpty) {
+    if (widget.actividades != oldWidget.actividades &&
+        widget.actividades.isNotEmpty) {
       final dias = _diasUnicos;
       if (_selectedDate == null || !dias.contains(_selectedDate)) {
         setState(() => _selectedDate = dias.first);
       }
+    }
+  }
+
+  FiltroEstado _getCurrentFiltro(BuildContext context) {
+    if (widget.externalFiltro != null) return widget.externalFiltro!;
+    if (_usaCubit) {
+      try {
+        return context.select<PersonalHomeCubit, FiltroEstado>(
+          (cubit) => cubit.state is PersonalHomeLoaded
+              ? (cubit.state as PersonalHomeLoaded).filtroActivo
+              : FiltroEstado.todas,
+        );
+      } catch (_) {
+        return _localFiltro;
+      }
+    }
+    return _localFiltro;
+  }
+
+  void _changeFiltro(FiltroEstado nuevoFiltro) {
+    if (widget.onFiltroChanged != null) {
+      widget.onFiltroChanged!(nuevoFiltro);
+    } else if (_usaCubit) {
+      try {
+        context.read<PersonalHomeCubit>().cambiarFiltro(nuevoFiltro);
+      } catch (_) {
+        setState(() => _localFiltro = nuevoFiltro);
+      }
+    } else {
+      setState(() => _localFiltro = nuevoFiltro);
     }
   }
 
@@ -73,46 +119,51 @@ class _ActivityListWithFilterState extends State<ActivityListWithFilter> {
     final dias = _diasUnicos;
     _selectedDate ??= dias.first;
 
-    final delDia = widget.actividades
-        .where((a) => _soloFecha(a.horaInicio) == _selectedDate);
-
-    final filtro = context.select<PersonalHomeCubit, FiltroEstado>(
-      (cubit) => cubit.state is PersonalHomeLoaded
-          ? (cubit.state as PersonalHomeLoaded).filtroActivo
-          : FiltroEstado.todas,
+    final delDia = widget.actividades.where(
+      (a) => _soloFecha(a.horaInicio) == _selectedDate,
     );
 
-    final filtradas = delDia.where((a) {
-      return switch (filtro) {
-        FiltroEstado.pendientes => !a.completada,
-        FiltroEstado.completadas => a.completada,
-        FiltroEstado.todas => true,
-      };
-    }).toList();
+    final filtro = _getCurrentFiltro(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _DaySelector(
-          days: dias,
-          selected: _selectedDate!,
-          onSelected: (d) => setState(() => _selectedDate = d),
-        ),
-        _FilterChips(filtro: filtro, actividadesDelDia: delDia),
-        const SizedBox(height: 15),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: filtradas.isEmpty
-              ? const _EmptyState(key: ValueKey('empty'))
-              : Column(
-                  key: ValueKey('${_selectedDate?.toIso8601String()}_$filtro'),
-                  children: [
-                    for (final act in filtradas)
-                      ActivityCard(actividad: act, esGestion: widget.esGestion),
-                  ],
-                ),
-        ),
-      ],
+    final filtradas =
+        delDia.where((a) {
+          return switch (filtro) {
+            FiltroEstado.pendientes => !a.completada,
+            FiltroEstado.completadas => a.completada,
+            FiltroEstado.todas => true,
+          };
+        }).toList();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _DaySelector(
+            days: dias,
+            selected: _selectedDate!,
+            onSelected: (d) => setState(() => _selectedDate = d),
+          ),
+          _FilterChips(
+            filtro: filtro,
+            actividadesDelDia: delDia,
+            onFiltroChanged: _changeFiltro,
+          ),
+          const SizedBox(height: 15),
+          Expanded(
+            child: filtradas.isEmpty
+                ? const _EmptyState()
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    itemCount: filtradas.length,
+                    itemBuilder: (context, index) => ActivityCard(
+                      actividad: filtradas[index],
+                      esGestion: widget.esGestion,
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -157,7 +208,11 @@ class _DayChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _DayChip({required this.label, required this.isSelected, required this.onTap});
+  const _DayChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -190,8 +245,13 @@ class _DayChip extends StatelessWidget {
 class _FilterChips extends StatelessWidget {
   final FiltroEstado filtro;
   final Iterable<ActividadItinerario> actividadesDelDia;
+  final ValueChanged<FiltroEstado> onFiltroChanged;
 
-  const _FilterChips({required this.filtro, required this.actividadesDelDia});
+  const _FilterChips({
+    required this.filtro,
+    required this.actividadesDelDia,
+    required this.onFiltroChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +268,11 @@ class _FilterChips extends StatelessWidget {
             const SizedBox(width: 8),
             _chip(context, 'Pendientes ($pendientes)', FiltroEstado.pendientes),
             const SizedBox(width: 8),
-            _chip(context, 'Completadas ($completadas)', FiltroEstado.completadas),
+            _chip(
+              context,
+              'Completadas ($completadas)',
+              FiltroEstado.completadas,
+            ),
           ],
         ),
       ),
@@ -227,12 +291,14 @@ class _FilterChips extends StatelessWidget {
         ),
       ),
       selected: isSelected,
-      onSelected: (_) => context.read<PersonalHomeCubit>().cambiarFiltro(value),
+      onSelected: (_) => onFiltroChanged(value),
       backgroundColor: Colors.transparent,
       selectedColor: _kGreenChip,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: isSelected ? Colors.transparent : Colors.grey.shade300),
+        side: BorderSide(
+          color: isSelected ? Colors.transparent : Colors.grey.shade300,
+        ),
       ),
       showCheckmark: false,
       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -242,7 +308,7 @@ class _FilterChips extends StatelessWidget {
 
 /// Estado vacío cuando no hay actividades para el filtro actual.
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({super.key});
+  const _EmptyState();
 
   @override
   Widget build(BuildContext context) {
@@ -251,12 +317,20 @@ class _EmptyState extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.check_circle_outline_rounded, size: 60, color: Colors.grey.shade300),
+            Icon(
+              Icons.check_circle_outline_rounded,
+              size: 60,
+              color: Colors.grey.shade300,
+            ),
             const SizedBox(height: 16),
             Text(
               'Aún no has terminado ninguna actividad.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -270,3 +344,4 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
+

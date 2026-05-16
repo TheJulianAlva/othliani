@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/turista/chat/presentation/widgets/chat_bubble.dart';
 import 'package:frontend/features/turista/chat/presentation/widgets/message_input_field.dart';
+import 'package:frontend/features/guia/shared/widgets/guia_custom_app_bar.dart';
 
 /// Chat grupal del guía.
 /// Diferenciador vs. turista: botón de "Anuncio General" que resalta el mensaje
@@ -88,21 +89,12 @@ class _GuiaChatScreenState extends State<GuiaChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FF),
-      appBar: AppBar(
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Chat del grupo', style: TextStyle(fontSize: 15)),
-            Text(
-              '24 participantes · 19 en línea',
-              style: TextStyle(fontSize: 11, color: Colors.white70),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFF1A237E),
-        foregroundColor: Colors.white,
+      appBar: GuiaCustomAppBar(
+        title: 'Chat del grupo',
+        subtitle: '24 participantes · 19 en línea',
+        icon: Icons.chat_bubble_outline_rounded,
         actions: [
-          IconButton(icon: const Icon(Icons.people_rounded), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.people_rounded, color: Colors.white), onPressed: () {}),
         ],
       ),
       body: Column(

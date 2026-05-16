@@ -4,22 +4,21 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/agencia_home_bloc/agencia_home_cubit.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/eco_mode/eco_mode_cubit.dart';
-import 'package:frontend/features/guia/home/presentation/shared_widgets/sos_button.dart';
-import 'package:frontend/features/guia/home/presentation/shared_widgets/weather_widget.dart';
-import 'package:frontend/features/guia/home/presentation/shared_widgets/map_preview_card.dart';
-import 'package:frontend/features/guia/home/domain/entities/agencia_home_data.dart';
-import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
-import 'package:frontend/features/guia/home/presentation/screens/pantalla_alertas_guia.dart';
+import 'package:frontend/features/guia/home/presentation/blocs/personal_home_bloc/personal_home_cubit.dart'
+    show FiltroEstado;
+import 'package:frontend/features/guia/trips/presentation/widgets/activity_list_with_filter.dart';
+import 'package:frontend/features/guia/home/presentation/widgets/grupo_turistas_tab.dart';
 
 // ────────────────────────────────────────────────────────────────────────────
 // AGENCIA MAIN LAYOUT — Dashboard B2B
-// Prioridad: Lista de personas (Pase de lista) → Control del grupo → Geocerca
+// Estructura unificada con PersonalMainLayout: tabs Itinerario | Grupo
 // Acento: Azul corporativo Veltur  #1A237E / #3D5AF1
 // ────────────────────────────────────────────────────────────────────────────
 
-const _azulPrimario = Color(0xFF1A237E);
-const _azulSecundario = Color(0xFF3D5AF1);
-const _azulClaro = Color(0xFFE8EEFF);
+import 'package:frontend/features/guia/shared/theme/guia_theme.dart';
+import 'package:frontend/features/guia/shared/widgets/guia_custom_app_bar.dart';
+import 'package:frontend/features/guia/shared/widgets/weather_widget.dart'
+    show WeatherWidget;
 
 class AgenciaMainLayout extends StatefulWidget {
   final String nombreGuia;
@@ -35,256 +34,319 @@ class AgenciaMainLayout extends StatefulWidget {
   State<AgenciaMainLayout> createState() => _AgenciaMainLayoutState();
 }
 
-class _AgenciaMainLayoutState extends State<AgenciaMainLayout> {
+class _AgenciaMainLayoutState extends State<AgenciaMainLayout>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabCtrl;
+  late final ValueNotifier<int> _tabIndex;
+
   @override
   void initState() {
     super.initState();
+    _tabCtrl = TabController(length: 2, vsync: this);
+    _tabIndex = ValueNotifier(0);
+    _tabCtrl.addListener(() => _tabIndex.value = _tabCtrl.index);
     context.read<AgenciaHomeCubit>().cargarDatos(widget.folio);
   }
 
   @override
+  void dispose() {
+    _tabCtrl.dispose();
+    _tabIndex.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F3FF),
-      body: BlocBuilder<AgenciaHomeCubit, AgenciaHomeState>(
-        builder: (context, state) {
-          if (state is AgenciaHomeLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: _azulSecundario),
-            );
-          }
-          if (state is AgenciaHomeLoaded) {
-            return _buildContent(context, state);
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+    return BlocBuilder<AgenciaHomeCubit, AgenciaHomeState>(
+      builder: (context, state) {
+        if (state is AgenciaHomeLoading) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: GuiaColors.secondary),
+            ),
+          );
+        }
+        if (state is AgenciaHomeLoaded) {
+          return _buildContent(context, state);
+        }
+        return const Scaffold(body: SizedBox.shrink());
+      },
     );
   }
 
   Widget _buildContent(BuildContext context, AgenciaHomeLoaded state) {
-    return CustomScrollView(
-      slivers: [
-        // ── SliverAppBar corporativo ─────────────────────────────────────
-        SliverAppBar(
-          expandedHeight: 140,
-          pinned: true,
-          backgroundColor: _azulPrimario,
-          automaticallyImplyLeading: false,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [_azulPrimario, _azulSecundario],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F3FF),
+      appBar: _buildAppBar(context, state),
+      body: Column(
+        children: [
+          // ── Header compacto: resumen del grupo ──────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Nombre del viaje + folio
+                _TripHeader(state: state),
+                const SizedBox(height: 8),
+                // Chips de estado
+                _ResumenEstados(state: state),
+              ],
+            ),
+          ),
+
+          // ── TabBar ──────────────────────────────────────────────────────
+          TabBar(
+            controller: _tabCtrl,
+            labelColor: GuiaColors.primary,
+            unselectedLabelColor: Colors.grey,
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
+            ),
+            indicatorColor: GuiaColors.primary,
+            indicatorWeight: 3,
+            dividerColor: Colors.transparent,
+            tabs: const [
+              Tab(
+                height: 40,
+                text: 'Itinerario',
+                icon: Icon(Icons.route_rounded, size: 18),
               ),
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  // Folio banner persistente
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 5,
+              Tab(
+                height: 40,
+                text: 'Grupo',
+                icon: Icon(Icons.group_rounded, size: 18),
+              ),
+            ],
+          ),
+
+          // ── Contenido (tabs) ───────────────────────────────────────────
+          Expanded(
+            child: ValueListenableBuilder<int>(
+              valueListenable: _tabIndex,
+              builder: (context, index, _) {
+                // Convertir FiltroEstadoAgencia → FiltroEstado para compatibilidad
+                final filtroAgencia = state.filtroActivo;
+                final filtro = switch (filtroAgencia) {
+                  FiltroEstadoAgencia.todas => FiltroEstado.todas,
+                  FiltroEstadoAgencia.pendientes => FiltroEstado.pendientes,
+                  FiltroEstadoAgencia.completadas => FiltroEstado.completadas,
+                };
+
+                return IndexedStack(
+                  index: index,
+                  children: [
+                    // Tab 0: Itinerario
+                    ActivityListWithFilter(
+                      key: const PageStorageKey('agencia_tab_itinerario'),
+                      actividades: state.actividades,
+                      esGestion: true,
+                      externalFiltro: filtro,
+                      onFiltroChanged: (nuevoFiltro) {
+                        final agenciaFiltro = switch (nuevoFiltro) {
+                          FiltroEstado.todas => FiltroEstadoAgencia.todas,
+                          FiltroEstado.pendientes =>
+                            FiltroEstadoAgencia.pendientes,
+                          FiltroEstado.completadas =>
+                            FiltroEstadoAgencia.completadas,
+                        };
+                        context.read<AgenciaHomeCubit>().cambiarFiltro(
+                          agenciaFiltro,
+                        );
+                      },
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(20),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.white.withAlpha(60)),
+                    // Tab 1: Grupo
+                    GrupoTuristasTab(
+                      key: const PageStorageKey('agencia_tab_grupo'),
+                      turistas: state.listaTuristas,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.business_center,
-                          color: Color(0xFF90CAF9),
-                          size: 14,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Folio activo: ${state.folio}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.white.withAlpha(30),
-                        child: const Icon(
-                          Icons.badge_outlined,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Bienvenido, ${widget.nombreGuia}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                      _BadgeContador(
-                        count: state.enAlerta,
-                        label: 'Alertas',
-                        color: Colors.red.shade300,
-                      ),
-                      const SizedBox(width: 8),
-                      // ── Botón Modo Eco ───────────────────────────────
-                      Tooltip(
-                        message: 'Activar Modo Eco',
-                        child: GestureDetector(
-                          onTap:
-                              () =>
-                                  context.read<EcoModeCubit>().enableEcoMode(),
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(20),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Colors.white.withAlpha(50),
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.battery_saver_rounded,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(
+    BuildContext context,
+    AgenciaHomeLoaded state,
+  ) {
+    return GuiaCustomAppBar(
+      title: '', // Custom bottom widget handles this
+      subtitle: 'Modo Agencia',
+      icon: Icons.business_center_rounded,
+      actions: [
+        const WeatherWidget(isCompact: true),
+        if (state.enAlerta > 0)
+          Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: _BadgeContador(
+              count: state.enAlerta,
+              label: 'Alertas',
+              color: Colors.red.shade300,
+            ),
+          ),
+        _AddButton(tabIndex: _tabIndex, onPressed: _onAdd),
+        _OverflowMenu(onSelected: (v) => _onMenu(v, state)),
+      ],
+      customBottomWidget: Row(
+        children: [
+          const CircleAvatar(
+            radius: 20,
+            backgroundColor: Colors.white24,
+            child: Icon(Icons.badge_outlined, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Bienvenido, ${widget.nombreGuia}',
+              style: GuiaTextStyles.appBarTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(25),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.white.withAlpha(50)),
+            ),
+            child: Text(
+              'Folio: ${state.folio}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
-        ),
-
-        // ── Cuerpo ───────────────────────────────────────────────────────
-        SliverPadding(
-          padding: const EdgeInsets.all(18),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              // ── Clima ──────────────────────────────────────────────────
-              const WeatherWidget(),
-              const SizedBox(height: 14),
-
-              // ── Resumen del grupo ──────────────────────────────────────
-              _SeccionTitulo(
-                titulo: 'Pase de lista · ${state.totalParticipantes} inscritos',
-              ),
-              const SizedBox(height: 8),
-              _ResumenEstados(state: state),
-              const SizedBox(height: 12),
-              _ListaParticipantes(participantes: state.participantes),
-              const SizedBox(height: 18),
-
-              // ── Mapa / Geocerca ────────────────────────────────────────
-              _SeccionTitulo(titulo: 'Geocerca institucional'),
-              const SizedBox(height: 8),
-              _GeocercaBanner(geocercaRadio: state.geocercaRadio),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => context.push(RoutesGuia.map),
-                child: const MapPreviewCard(
-                  locationLabel:
-                      'Monitoreo de grupo en tiempo real · Toca para abrir',
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // ── Comunicación con central ───────────────────────────────
-              _SeccionTitulo(titulo: 'Panel de comunicación'),
-              const SizedBox(height: 8),
-              _PanelComunicacion(),
-              const SizedBox(height: 14),
-
-              // ── Historial de alertas (ISO 31000 trazabilidad) ──────────
-              _SeccionTitulo(titulo: 'Historial de alertas'),
-              const SizedBox(height: 8),
-              _HistorialAlertas(alertas: state.historialAlertas),
-              const SizedBox(height: 18),
-
-              // ── Accesos rápidos ────────────────────────────────────────
-              _AccesosRapidos(
-                items: [
-                  (Icons.map_rounded, 'Mapa', RoutesGuia.map),
-                  (Icons.route_rounded, 'Gestión', RoutesGuia.itineraryChanges),
-                  (Icons.chat_bubble_rounded, 'Chat', RoutesGuia.chat),
-                  (Icons.security_rounded, 'Bitácora', RoutesGuia.bitacora),
-                  (
-                    Icons.shield_rounded,
-                    'Caja Negra',
-                    RoutesGuia.expeditionLog,
-                  ),
-                  (Icons.list_alt_rounded, 'Itinerario', RoutesGuia.itinerary),
-                  (Icons.currency_exchange, 'Conversor', RoutesGuia.converter),
-                  (Icons.person_rounded, 'Perfil', RoutesGuia.profile),
-                ],
-                accentColor: _azulSecundario,
-              ),
-              const SizedBox(height: 20),
-
-              // ── SOS ────────────────────────────────────────────────────
-              const SosButton(),
-              const SizedBox(height: 16),
-
-              // ── Finalizar Expedición ──────────────────────────────────
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed:
-                      () => context.push(
-                        RoutesGuia.reporteFinViaje,
-                        extra: {
-                          'nombre': state.nombreViaje,
-                          'inicio': DateTime.now().subtract(
-                            const Duration(hours: 4),
-                          ),
-                          'distanciaKm': 0.0,
-                          'esGuiaIndependiente': false,
-                        },
-                      ),
-                  icon: const Icon(Icons.flag_rounded),
-                  label: const Text(
-                    'Finalizar Expedición',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red.shade700,
-                    side: BorderSide(color: Colors.red.shade300),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-            ]),
+          IconButton(
+            icon: const Icon(Icons.battery_saver_rounded, color: Colors.white),
+            tooltip: 'Modo Eco',
+            onPressed: () => context.read<EcoModeCubit>().enableEcoMode(),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  void _onAdd() {
+    if (_tabCtrl.index == 0) {
+      // Navegar a la pantalla de gestión de cambios (Ajustar Itinerario)
+      context.push(RoutesGuia.itineraryChanges);
+    } else {
+      // Para añadir turistas, por ahora mantenemos el mensaje o navegamos
+      // si existiera una ruta dedicada.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Añadir turista (próximamente)')),
+      );
+    }
+  }
+
+  void _onMenu(String v, AgenciaHomeLoaded state) {
+    switch (v) {
+      case 'gestion':
+        context.push(RoutesGuia.itineraryChanges);
+      case 'finalizar':
+        context.push(
+          RoutesGuia.reporteFinViaje,
+          extra: {
+            'nombre': state.nombreViaje,
+            'inicio': DateTime.now().subtract(const Duration(hours: 4)),
+            'distanciaKm': 0.0,
+            'esGuiaIndependiente': false,
+          },
+        );
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  Sub-widgets privados
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Header del viaje ──────────────────────────────────────────────────────────
+
+class _TripHeader extends StatelessWidget {
+  final AgenciaHomeLoaded state;
+  const _TripHeader({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  state.nombreViaje,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  state.destino,
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.people_outline,
+                  size: 14,
+                  color: Colors.blue.shade700,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${state.totalParticipantes}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ── Sub-widgets privados B2B ──────────────────────────────────────────────────
+// ── Chips de estado (Sincronizados / Offline / Alertas) ──────────────────────
 
 class _ResumenEstados extends StatelessWidget {
   final AgenciaHomeLoaded state;
@@ -369,337 +431,68 @@ class _ChipEstado extends StatelessWidget {
   }
 }
 
-class _ListaParticipantes extends StatelessWidget {
-  final List<Participante> participantes;
-  const _ListaParticipantes({required this.participantes});
+// ── Widgets atómicos (const-friendly, ultra-ligeros) ─────────────────────────
+
+class _AddButton extends StatelessWidget {
+  final ValueNotifier<int> tabIndex;
+  final VoidCallback onPressed;
+  const _AddButton({required this.tabIndex, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: participantes.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 6),
-      itemBuilder: (_, i) {
-        final p = participantes[i];
-        final (color, bgColor, icono, etiqueta) = switch (p.estado) {
-          EstadoParticipante.sincronizado => (
-            const Color(0xFF2E7D32),
-            const Color(0xFFE8F5E9),
-            Icons.check_circle_rounded,
-            'Sincronizado',
+    return ValueListenableBuilder<int>(
+      valueListenable: tabIndex,
+      builder:
+          (_, idx, __) => IconButton(
+            icon: const Icon(Icons.add_rounded),
+            tooltip: idx == 0 ? 'Añadir actividad' : 'Añadir turista',
+            onPressed: onPressed,
           ),
-          EstadoParticipante.offline => (
-            Colors.grey.shade600,
-            Colors.grey.shade100,
-            Icons.wifi_off_rounded,
-            'Offline',
-          ),
-          EstadoParticipante.alerta => (
-            const Color(0xFFB71C1C),
-            const Color(0xFFFFEBEE),
-            Icons.warning_rounded,
-            'Alerta',
-          ),
-        };
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade100),
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: bgColor,
-                child: Icon(icono, size: 16, color: color),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  p.nombre,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  etiqueta,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
 
-class _GeocercaBanner extends StatelessWidget {
-  final String geocercaRadio;
-  const _GeocercaBanner({required this.geocercaRadio});
+class _OverflowMenu extends StatelessWidget {
+  final ValueChanged<String> onSelected;
+  const _OverflowMenu({required this.onSelected});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _azulClaro,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _azulSecundario.withAlpha(60)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.fence, color: _azulPrimario, size: 28),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Geocerca activa',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: _azulPrimario,
-                  ),
-                ),
-                Text(
-                  geocercaRadio,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF3949AB),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          TextButton.icon(
-            onPressed: () => context.push(RoutesGuia.itineraryChanges),
-            icon: const Icon(Icons.edit_rounded, size: 14),
-            label: const Text('Solicitar\nmodif.', textAlign: TextAlign.center),
-            style: TextButton.styleFrom(
-              foregroundColor: _azulSecundario,
-              textStyle: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert_rounded),
+      onSelected: onSelected,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      itemBuilder:
+          (_) => const [
+            PopupMenuItem(
+              value: 'gestion',
+              child: _MenuItem(
+                Icons.edit_calendar_rounded,
+                'Gestión de Cambios',
               ),
             ),
-          ),
-        ],
-      ),
+            PopupMenuItem(
+              value: 'finalizar',
+              child: _MenuItem(Icons.flag_rounded, 'Finalizar Expedición'),
+            ),
+          ],
     );
   }
 }
 
-class _PanelComunicacion extends StatelessWidget {
+class _MenuItem extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _MenuItem(this.icon, this.text);
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
-          child: _BtnComunicacion(
-            icono: Icons.headset_mic_rounded,
-            label: 'Voz con central',
-            color: _azulPrimario,
-            onTap: () {},
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _BtnComunicacion(
-            icono: Icons.chat_rounded,
-            label: 'Chat agencia',
-            color: _azulSecundario,
-            onTap: () => context.push(RoutesGuia.chat),
-          ),
-        ),
+        Icon(icon, size: 20, color: Colors.grey.shade700),
+        const SizedBox(width: 12),
+        Text(text, style: const TextStyle(fontSize: 14)),
       ],
-    );
-  }
-}
-
-class _BtnComunicacion extends StatelessWidget {
-  final IconData icono;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-  const _BtnComunicacion({
-    required this.icono,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Icon(icono, color: Colors.white, size: 24),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HistorialAlertas extends StatelessWidget {
-  final List<AlertaHistorial> alertas;
-  const _HistorialAlertas({required this.alertas});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        itemCount: alertas.length,
-        separatorBuilder:
-            (_, __) => Divider(height: 1, color: Colors.grey.shade100),
-        itemBuilder: (_, i) {
-          final a = alertas[i];
-          return ListTile(
-            dense: true,
-            onTap: () {
-              // Simulamos acceso a la alerta para debug/review
-              final dummyTurista = Turista(
-                id: 't_mock',
-                nombre: 'Turista Afectado',
-                viajeId: 'v_mock',
-                status: 'SOS',
-                bateria: 0.5,
-                enCampo: true,
-                vulnerabilidad: NivelVulnerabilidad.critica,
-              );
-              context.push(
-                RoutesGuia.alertaTurista,
-                extra: AlertaTuristaParams(
-                  turista: dummyTurista,
-                  motivoAlerta: a.descripcion,
-                  distanciaMetros: 50.0,
-                ),
-              );
-            },
-            leading: const Icon(
-              Icons.notifications_active_rounded,
-              color: Color(0xFFE53935),
-              size: 18,
-            ),
-            title: Text(a.descripcion, style: const TextStyle(fontSize: 12)),
-            trailing: Text(
-              a.hora,
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// ── Shared helpers ────────────────────────────────────────────────────────────
-
-class _SeccionTitulo extends StatelessWidget {
-  final String titulo;
-  const _SeccionTitulo({required this.titulo});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      titulo,
-      style: const TextStyle(
-        fontWeight: FontWeight.w800,
-        fontSize: 14,
-        color: Color(0xFF1A1A2E),
-        letterSpacing: 0.2,
-      ),
-    );
-  }
-}
-
-class _AccesosRapidos extends StatelessWidget {
-  final List<(IconData, String, String)> items;
-  final Color accentColor;
-  const _AccesosRapidos({required this.items, required this.accentColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 4,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      children:
-          items.map((a) {
-            return GestureDetector(
-              onTap: () {
-                if (a.$3 == RoutesGuia.expeditionLog) {
-                  context.push(a.$3, extra: false); // B2B: Agencia (false)
-                } else {
-                  context.push(a.$3);
-                }
-              },
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: accentColor.withAlpha(20),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(a.$1, color: accentColor, size: 22),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    a.$2,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFF555577),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
     );
   }
 }
@@ -718,18 +511,25 @@ class _BadgeContador extends StatelessWidget {
   Widget build(BuildContext context) {
     if (count == 0) return const SizedBox.shrink();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reducido padding
       decoration: BoxDecoration(
         color: color.withAlpha(180),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(
-        '$count $label',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-        ),
+      child: Row( // Agregamos un row pequeño
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.warning_amber_rounded, size: 12, color: Colors.white),
+          const SizedBox(width: 4),
+          Text(
+            '$count', // Solo el número para ahorrar espacio
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
       ),
     );
   }

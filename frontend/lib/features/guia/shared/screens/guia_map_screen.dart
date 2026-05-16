@@ -1,10 +1,7 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:frontend/features/guia/shared/widgets/guia_custom_app_bar.dart';
 
-/// Mapa de monitoreo activo del guía.
-/// Como el proyecto no tiene google_maps integrado aún, usamos un Canvas
-/// personalizado que simula: geocerca, pines de turistas con iniciales,
-/// marcador del guía y la leyenda de estado.
+/// Mapa de monitoreo activo del guía con Geocerca ajustable.
 class GuiaMapScreen extends StatefulWidget {
   const GuiaMapScreen({super.key});
 
@@ -83,6 +80,7 @@ class _GuiaMapScreenState extends State<GuiaMapScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulso;
   String? _seleccionado;
+  double _radioActual = 300.0;
 
   @override
   void initState() {
@@ -91,6 +89,153 @@ class _GuiaMapScreenState extends State<GuiaMapScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
+  }
+
+  void _mostrarAjusteGeocerca() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder:
+          (context) => StatefulBuilder(
+            builder: (context, setSheetState) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Ajustar Geocerca',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Define el radio de seguridad para el grupo.',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Radio actual:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          '${_radioActual.round()} m',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            color: Colors.cyan.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: Colors.cyan.shade600,
+                        thumbColor: Colors.cyan.shade600,
+                        trackHeight: 6,
+                      ),
+                      child: Slider(
+                        value: _radioActual,
+                        min: 50,
+                        max: 1000,
+                        divisions: 19,
+                        onChanged: (v) {
+                          setSheetState(() => _radioActual = v);
+                          setState(() => _radioActual = v);
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _ChipAjuste(
+                          label: '50 m',
+                          isSelected: _radioActual == 50,
+                          onTap: () {
+                            setSheetState(() => _radioActual = 50);
+                            setState(() => _radioActual = 50);
+                          },
+                        ),
+                        _ChipAjuste(
+                          label: '200 m',
+                          isSelected: _radioActual == 200,
+                          onTap: () {
+                            setSheetState(() => _radioActual = 200);
+                            setState(() => _radioActual = 200);
+                          },
+                        ),
+                        _ChipAjuste(
+                          label: '300 m',
+                          isSelected: _radioActual == 300,
+                          onTap: () {
+                            setSheetState(() => _radioActual = 300);
+                            setState(() => _radioActual = 300);
+                          },
+                        ),
+                        _ChipAjuste(
+                          label: '500 m',
+                          isSelected: _radioActual == 500,
+                          onTap: () {
+                            setSheetState(() => _radioActual = 500);
+                            setState(() => _radioActual = 500);
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.cyan.shade700,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'CONFIRMAR AJUSTE',
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+    );
   }
 
   @override
@@ -103,20 +248,27 @@ class _GuiaMapScreenState extends State<GuiaMapScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F3FF),
-      appBar: AppBar(
-        title: const Text('Mapa en vivo'),
-        backgroundColor: const Color(0xFF1A237E),
-        foregroundColor: Colors.white,
+      appBar: GuiaCustomAppBar(
+        title: 'Mapa en vivo',
+        subtitle: 'Monitoreo de grupo',
+        icon: Icons.map_outlined,
         actions: [
-          IconButton(icon: const Icon(Icons.my_location), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.layers_rounded), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.my_location, color: Colors.white),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.layers_rounded, color: Colors.white),
+            onPressed: () {},
+          ),
         ],
       ),
       body: Column(
         children: [
-          // ── Barra de estado rápido ───────────────────────────────────
-          _BarraEstado(),
-          // ── Canvas del mapa ──────────────────────────────────────────
+          _BarraEstado(
+            onAjustar: _mostrarAjusteGeocerca,
+            radioActual: _radioActual,
+          ),
           Expanded(
             child: AnimatedBuilder(
               animation: _pulso,
@@ -125,6 +277,7 @@ class _GuiaMapScreenState extends State<GuiaMapScreen>
                   turistas: _mockTuristas,
                   pulsoValue: _pulso.value,
                   seleccionado: _seleccionado,
+                  radioGeocerca: _radioActual,
                   onTap:
                       (id) => setState(
                         () => _seleccionado = id == _seleccionado ? null : id,
@@ -133,15 +286,49 @@ class _GuiaMapScreenState extends State<GuiaMapScreen>
               },
             ),
           ),
-          // ── Info del pin seleccionado ────────────────────────────────
           if (_seleccionado != null)
             _InfoPin(
               turista: _mockTuristas.firstWhere((t) => t.id == _seleccionado),
               onCerrar: () => setState(() => _seleccionado = null),
             ),
-          // ── Leyenda ──────────────────────────────────────────────────
           _Leyenda(),
         ],
+      ),
+    );
+  }
+}
+
+class _ChipAjuste extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  const _ChipAjuste({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.cyan.shade700 : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Colors.cyan.shade700 : Colors.grey.shade300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: isSelected ? Colors.white : Colors.grey.shade700,
+          ),
+        ),
       ),
     );
   }
@@ -153,12 +340,14 @@ class _MapaCanvas extends StatelessWidget {
   final List<_TuristaPin> turistas;
   final double pulsoValue;
   final String? seleccionado;
+  final double radioGeocerca;
   final void Function(String id) onTap;
 
   const _MapaCanvas({
     required this.turistas,
     required this.pulsoValue,
     required this.seleccionado,
+    required this.radioGeocerca,
     required this.onTap,
   });
 
@@ -181,6 +370,7 @@ class _MapaCanvas extends StatelessWidget {
           turistas: turistas,
           pulso: pulsoValue,
           seleccionado: seleccionado,
+          radioGeocerca: radioGeocerca,
         ),
         child: Container(),
       ),
@@ -192,22 +382,22 @@ class _MapaPainter extends CustomPainter {
   final List<_TuristaPin> turistas;
   final double pulso;
   final String? seleccionado;
+  final double radioGeocerca;
 
   _MapaPainter({
     required this.turistas,
     required this.pulso,
+    required this.radioGeocerca,
     this.seleccionado,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // ── Fondo estilo mapa simple ──────────────────────────────────────────
     canvas.drawRect(
       Offset.zero & size,
       Paint()..color = const Color(0xFFE8EAF0),
     );
 
-    // Cuadrícula de calles
     final callesPaint =
         Paint()
           ..color = Colors.white
@@ -224,7 +414,7 @@ class _MapaPainter extends CustomPainter {
         callesPaint,
       );
     }
-    // Bloques de edificios
+
     final edificioPaint = Paint()..color = const Color(0xFFCFD8DC);
     final bloques = [
       Rect.fromLTWH(
@@ -283,33 +473,31 @@ class _MapaPainter extends CustomPainter {
       );
     }
 
-    // ── Geocerca (círculo cian traslúcido) ────────────────────────────────
     final centro = Offset(size.width * 0.50, size.height * 0.45);
-    final radio = size.width * 0.30;
+    final radioVisual = size.width * (radioGeocerca / 1000);
+
     canvas.drawCircle(
       centro,
-      radio,
+      radioVisual,
       Paint()
         ..color = const Color(0x3000BCD4)
         ..style = PaintingStyle.fill,
     );
     canvas.drawCircle(
       centro,
-      radio,
+      radioVisual,
       Paint()
         ..color = const Color(0xFF00BCD4)
         ..strokeWidth = 2
         ..style = PaintingStyle.stroke,
     );
 
-    // ── Pines de turistas ─────────────────────────────────────────────────
     for (final t in turistas) {
       final px = t.x * size.width;
       final py = t.y * size.height;
       final esAlerta = t.estado == EstadoPin.alerta;
       final esAlejado = t.estado == EstadoPin.alejado;
 
-      // Pulso para alerta
       if (esAlerta) {
         canvas.drawCircle(
           Offset(px, py),
@@ -319,7 +507,6 @@ class _MapaPainter extends CustomPainter {
         );
       }
 
-      // Círculo del pin
       final borderColor =
           esAlerta
               ? const Color(0xFFD32F2F)
@@ -343,7 +530,6 @@ class _MapaPainter extends CustomPainter {
           ..style = PaintingStyle.stroke,
       );
 
-      // Iniciales
       final partes = t.nombre.split(' ');
       final iniciales =
           partes.length >= 2
@@ -362,7 +548,6 @@ class _MapaPainter extends CustomPainter {
       )..layout();
       tp.paint(canvas, Offset(px - tp.width / 2, py - tp.height / 2));
 
-      // Seleccionado → tooltip
       if (seleccionado == t.id) {
         final tooltipPaint = Paint()..color = const Color(0xFF1A237E);
         final rr = RRect.fromRectAndRadius(
@@ -385,7 +570,6 @@ class _MapaPainter extends CustomPainter {
       }
     }
 
-    // ── Pin del guía (rojo / posición central) ────────────────────────────
     final guiaPx = size.width * 0.49;
     final guiaPy = size.height * 0.44;
     canvas.drawCircle(
@@ -401,8 +585,6 @@ class _MapaPainter extends CustomPainter {
         ..strokeWidth = 2
         ..style = PaintingStyle.stroke,
     );
-
-    // Triángulo inferior del pin
     final path =
         Path()
           ..moveTo(guiaPx - 6, guiaPy + 12)
@@ -427,11 +609,10 @@ class _MapaPainter extends CustomPainter {
       Offset(guiaPx - tpGuia.width / 2, guiaPy - tpGuia.height / 2),
     );
 
-    // Radio de la geocerca en texto
     final tpGeo = TextPainter(
-      text: const TextSpan(
-        text: '⬤ Geocerca · 300 m',
-        style: TextStyle(
+      text: TextSpan(
+        text: '⬤ Geocerca · ${radioGeocerca.toInt()} m',
+        style: const TextStyle(
           fontSize: 11,
           color: Color(0xFF00838F),
           fontWeight: FontWeight.w600,
@@ -447,40 +628,133 @@ class _MapaPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_MapaPainter old) =>
-      old.pulso != pulso || old.seleccionado != seleccionado;
+      old.pulso != pulso ||
+      old.seleccionado != seleccionado ||
+      old.radioGeocerca != radioGeocerca;
 }
 
-// ── Barra de estado ───────────────────────────────────────────────────────────
+// ── Otros Widgets ─────────────────────────────────────────────────────────────
 
 class _BarraEstado extends StatelessWidget {
+  final VoidCallback onAjustar;
+  final double radioActual;
+  const _BarraEstado({required this.onAjustar, required this.radioActual});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              _ChipEstadoMapa(
+                icono: Icons.check_circle,
+                texto: '4 ok',
+                color: const Color(0xFF2E7D32),
+              ),
+              const SizedBox(width: 8),
+              _ChipEstadoMapa(
+                icono: Icons.wifi_off,
+                texto: '2 offline',
+                color: Colors.orange,
+              ),
+              const SizedBox(width: 8),
+              _ChipEstadoMapa(
+                icono: Icons.warning,
+                texto: '1 alerta',
+                color: const Color(0xFFD32F2F),
+              ),
+              const Spacer(),
+              const Text(
+                '14:38',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+        _GeocercaBannerMapa(onAjustar: onAjustar, radioActual: radioActual),
+      ],
+    );
+  }
+}
+
+class _GeocercaBannerMapa extends StatelessWidget {
+  final VoidCallback onAjustar;
+  final double radioActual;
+  const _GeocercaBannerMapa({
+    required this.onAjustar,
+    required this.radioActual,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE0F7FA),
+        border: Border(
+          bottom: BorderSide(color: Colors.cyan.shade100),
+          top: BorderSide(color: Colors.grey.shade100),
+        ),
+      ),
       child: Row(
         children: [
-          _ChipEstadoMapa(
-            icono: Icons.check_circle,
-            texto: '4 ok',
-            color: const Color(0xFF2E7D32),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: const BoxDecoration(
+              color: Color(0xFF00ACC1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.gps_fixed, color: Colors.white, size: 14),
           ),
-          const SizedBox(width: 8),
-          _ChipEstadoMapa(
-            icono: Icons.wifi_off,
-            texto: '2 offline',
-            color: Colors.orange,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'GEOCERCA ACTIVA',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF006064),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  'Radio: ${radioActual.toInt()}m · Zona Arqueológica',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF00838F),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 8),
-          _ChipEstadoMapa(
-            icono: Icons.warning,
-            texto: '1 alerta',
-            color: const Color(0xFFD32F2F),
+          TextButton(
+            onPressed: onAjustar,
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.white,
+              visualDensity: VisualDensity.compact,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(color: Colors.cyan.shade200),
+              ),
+            ),
+            child: const Text(
+              'Ajustar',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+            ),
           ),
-          const Spacer(),
-          const Icon(Icons.circle, color: Color(0xFF00BCD4), size: 10),
-          const SizedBox(width: 4),
-          const Text('Geocerca activa', style: TextStyle(fontSize: 11)),
         ],
       ),
     );
@@ -496,7 +770,6 @@ class _ChipEstadoMapa extends StatelessWidget {
     required this.texto,
     required this.color,
   });
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -517,13 +790,10 @@ class _ChipEstadoMapa extends StatelessWidget {
   }
 }
 
-// ── Info pin seleccionado ──────────────────────────────────────────────────────
-
 class _InfoPin extends StatelessWidget {
   final _TuristaPin turista;
   final VoidCallback onCerrar;
   const _InfoPin({required this.turista, required this.onCerrar});
-
   @override
   Widget build(BuildContext context) {
     final (color, etiqueta) = switch (turista.estado) {
@@ -575,8 +845,6 @@ class _InfoPin extends StatelessWidget {
   }
 }
 
-// ── Leyenda ───────────────────────────────────────────────────────────────────
-
 class _Leyenda extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -609,7 +877,6 @@ class _ItemLeyenda extends StatelessWidget {
     required this.texto,
     this.forma = BoxShape.circle,
   });
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -631,6 +898,3 @@ class _ItemLeyenda extends StatelessWidget {
     );
   }
 }
-
-// ignore: unused_element
-double _unused(double a, double b) => math.max(a, b);

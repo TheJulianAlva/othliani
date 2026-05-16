@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
-import 'package:frontend/features/guia/home/presentation/blocs/sos/sos_cubit.dart';
-import 'package:frontend/features/guia/home/presentation/shared_widgets/swipe_to_action_widget.dart';
+import 'package:frontend/features/guia/sos/presentation/blocs/sos_cubit.dart';
+import 'package:frontend/features/guia/sos/presentation/widgets/swipe_to_action_widget.dart';
 import 'package:frontend/features/guia/home/presentation/screens/sos_alarm_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────

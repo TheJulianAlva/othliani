@@ -17,7 +17,6 @@ class HerramientasScreen extends StatelessWidget {
         title: l10n.currencyConverter,
         description: l10n.currencyConverterDesc,
         icon: Icons.currency_exchange_rounded,
-        gradientColors: [const Color(0xFF10B981), const Color(0xFF059669)],
         destination: const CurrencyConverterScreen(),
         emoji: '💱',
       ),
@@ -25,7 +24,6 @@ class HerramientasScreen extends StatelessWidget {
         title: l10n.translatorTitle,
         description: l10n.translatorDesc,
         icon: Icons.camera_alt_rounded,
-        gradientColors: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
         destination: const TraductorScreen(),
         emoji: '📸',
       ),
@@ -33,7 +31,6 @@ class HerramientasScreen extends StatelessWidget {
         title: l10n.voiceTranslatorTitle,
         description: l10n.voiceTranslatorDesc,
         icon: Icons.record_voice_over_rounded,
-        gradientColors: [const Color(0xFF8B5CF6), const Color(0xFF6D28D9)],
         destination: const TraductorVozScreen(),
         emoji: '🎙️',
       ),
@@ -41,7 +38,6 @@ class HerramientasScreen extends StatelessWidget {
         title: l10n.expenseSplitterTitle,
         description: l10n.expenseSplitterDesc,
         icon: Icons.receipt_long_rounded,
-        gradientColors: [const Color(0xFFF59E0B), const Color(0xFFD97706)],
         destination: const DivisorGastosScreen(),
         emoji: '🧾',
       ),
@@ -63,14 +59,12 @@ class _ToolItem {
     required this.title,
     required this.description,
     required this.icon,
-    required this.gradientColors,
     required this.destination,
     required this.emoji,
   });
   final String title;
   final String description;
   final IconData icon;
-  final List<Color> gradientColors;
   final Widget destination;
   final String emoji;
 }
@@ -88,7 +82,7 @@ class _FloatingToolCardState extends State<_FloatingToolCard> {
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.item.gradientColors.first;
+    final primaryColor = Theme.of(context).primaryColor;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
@@ -107,18 +101,13 @@ class _FloatingToolCardState extends State<_FloatingToolCard> {
           duration: const Duration(milliseconds: 180),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: _pressed ? 0.35 : 0.18),
-                blurRadius: _pressed ? 24 : 16,
-                spreadRadius: _pressed ? 2 : 0,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                spreadRadius: 1,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -126,72 +115,49 @@ class _FloatingToolCardState extends State<_FloatingToolCard> {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                // Icono con gradiente flotante
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: widget.item.gradientColors,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
+                    color: primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
-                    child: Text(
-                      widget.item.emoji,
-                      style: const TextStyle(fontSize: 28),
+                    child: Icon(
+                      widget.item.icon,
+                      color: primaryColor,
+                      size: 28,
                     ),
                   ),
                 ),
-                const SizedBox(width: 18),
-                // Texto
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         widget.item.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF1A1A2E),
-                          letterSpacing: -0.2,
+                          color: primaryColor,
                         ),
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 4),
                       Text(
                         widget.item.description,
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey.shade500,
-                          height: 1.4,
+                          color: Colors.grey.shade600,
                         ),
                       ),
                     ],
                   ),
                 ),
-                // Flecha animada
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.arrow_forward_rounded,
-                    color: color,
-                    size: 16,
-                  ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.grey.shade400,
+                  size: 16,
                 ),
               ],
             ),
@@ -201,3 +167,4 @@ class _FloatingToolCardState extends State<_FloatingToolCard> {
     );
   }
 }
+

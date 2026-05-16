@@ -135,11 +135,11 @@ class _SwipeToActionWidgetState extends State<SwipeToActionWidget>
               ),
 
               // Thumb deslizable
-              GestureDetector(
-                onHorizontalDragUpdate: (d) => _onDragUpdate(d, maxDrag),
-                onHorizontalDragEnd: (d) => _onDragEnd(d, maxDrag),
-                child: Positioned(
-                  left: _dragX + _padding,
+              Positioned(
+                left: _dragX + _padding,
+                child: GestureDetector(
+                  onHorizontalDragUpdate: (d) => _onDragUpdate(d, maxDrag),
+                  onHorizontalDragEnd: (d) => _onDragEnd(d, maxDrag),
                   child: _Thumb(
                     size: _thumbSize,
                     color: widget.baseColor,

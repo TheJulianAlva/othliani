@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
-import 'package:frontend/core/widgets/info_modal.dart';
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/features/turista/auth/presentation/cubit/verification_cubit.dart';
 import 'package:frontend/features/turista/auth/presentation/cubit/verification_state.dart';
+// ignore: unused_import
 import 'package:frontend/core/l10n/app_localizations.dart';
 
 class FolioScreen extends StatelessWidget {
@@ -46,10 +46,10 @@ class _FolioViewState extends State<_FolioView> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: BlocListener<VerificationCubit, VerificationState>(
         listener: (context, state) {
           if (state is FolioVerified && state.isValid) {
@@ -61,109 +61,109 @@ class _FolioViewState extends State<_FolioView> {
           }
         },
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              const hPad = 24.0;
-              const vPad = 32.0;
-
-              return SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: hPad,
-                  vertical: vPad,
-                ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: (constraints.maxHeight - (vPad * 2)).clamp(0.0, double.infinity),
-                  ),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 420),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.enterFolio,
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              l10n.folioDescription,
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                            const SizedBox(height: 24),
-                            TextFormField(
-                              controller: _folioController,
-                              decoration: InputDecoration(
-                                labelText: l10n.folioNumber,
-                                prefixIcon: const Icon(
-                                  Icons.confirmation_number_outlined,
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return l10n.enterFolio;
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 24),
-                            BlocBuilder<VerificationCubit, VerificationState>(
-                              builder: (context, state) {
-                                return SizedBox(
-                                  width: double.infinity,
-                                  height: 48,
-                                  child: ElevatedButton(
-                                    onPressed:
-                                        state is VerificationLoading
-                                            ? null
-                                            : () => _onConfirm(context),
-                                    child:
-                                        state is VerificationLoading
-                                            ? const SizedBox(
-                                              height: 20,
-                                              width: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                            )
-                                            : Text(l10n.continueButton),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 24),
-                            GestureDetector(
-                              onTap: () {
-                                InfoModal.show(
-                                  context: context,
-                                  title: 'Aviso de Privacidad',
-                                  content:
-                                      'Contenido del aviso de privacidad...',
-                                );
-                              },
-                              child: Text(
-                                'Privacidad',
-                                style: TextStyle(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 32.0,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Logo placeholder (large blue logo)
+                      Icon(
+                        Icons.sailing, // Fallback icon if logo image is missing
+                        size: 100,
+                        color: theme.primaryColor,
                       ),
-                    ),
+                      const SizedBox(height: 48),
+                      TextFormField(
+                        controller: _folioController,
+                        style: const TextStyle(fontSize: 18),
+                        decoration: InputDecoration(
+                          hintText: 'Ingresa tu Folio de Viaje',
+                          hintStyle: TextStyle(color: Colors.grey.shade400),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 20,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: theme.primaryColor,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingresa tu Folio de Viaje';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                      BlocBuilder<VerificationCubit, VerificationState>(
+                        builder: (context, state) {
+                          return SizedBox(
+                            height: 56,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.primaryColor,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed:
+                                  state is VerificationLoading
+                                      ? null
+                                      : () => _onConfirm(context),
+                              child:
+                                  state is VerificationLoading
+                                      ? const SizedBox(
+                                        height: 24,
+                                        width: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      )
+                                      : const Text(
+                                        'Comenzar Aventura',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
+              ),
+            ),
           ),
         ),
       ),

@@ -38,27 +38,24 @@ class ActivityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(_kCardRadius);
 
-    final tarjetaBase = Container(
-      margin: _kCardMargin,
-      child: Material(
-        color: Colors.white,
-        borderRadius: borderRadius,
-        child: InkWell(
-          borderRadius: borderRadius,
-          onTap: () => mostrarDetalleActividad(
-            context,
-            actividad: actividad,
-            horarioTexto: _horarioTexto,
+    final tarjetaBase = Padding(
+      padding: _kCardMargin,
+      child: GestureDetector(
+        onTap: () => mostrarDetalleActividad(
+          context,
+          actividad: actividad,
+          horarioTexto: _horarioTexto,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: borderRadius,
+            border: Border.all(color: Colors.grey.shade100),
           ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: borderRadius,
-              border: Border.all(color: Colors.grey.shade100),
-            ),
-            child: Row(
-              children: [
-                Icon(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              Icon(
                   actividad.completada ? Icons.check_circle : Icons.circle_outlined,
                   color: actividad.completada ? _kGreen : Colors.grey,
                 ),
@@ -88,18 +85,16 @@ class ActivityCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
 
     if (!esGestion) return tarjetaBase;
 
     return Dismissible(
-      key: Key(actividad.nombre),
+      key: ValueKey('${actividad.nombre}_${actividad.horaInicio.toIso8601String()}'),
       dismissThresholds: const {
         DismissDirection.startToEnd: 0.7,
         DismissDirection.endToStart: 0.5,
       },
-      movementDuration: const Duration(milliseconds: 600),
       background: _SwipeBackground(
         alignment: Alignment.centerLeft,
         color: Colors.redAccent.shade100,

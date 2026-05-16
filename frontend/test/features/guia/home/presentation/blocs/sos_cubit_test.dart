@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 // Importa tu SosCubit, UseCase y Entidades
-import 'package:frontend/features/guia/home/presentation/blocs/sos/sos_cubit.dart';
+import 'package:frontend/features/guia/sos/presentation/blocs/sos_cubit.dart';
 import 'package:frontend/features/guia/home/domain/usecases/sucesion_mando_usecase.dart';
 import 'package:frontend/features/agencia/trips/domain/entities/viaje.dart';
 

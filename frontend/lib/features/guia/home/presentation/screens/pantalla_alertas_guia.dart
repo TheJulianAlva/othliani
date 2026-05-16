@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
 import 'package:frontend/features/guia/shared/widgets/critical_medical_card.dart';
-import 'package:frontend/features/guia/home/presentation/shared_widgets/swipe_to_action_widget.dart';
+import 'package:frontend/features/guia/sos/presentation/widgets/swipe_to_action_widget.dart';
 import 'package:frontend/features/guia/trips/domain/services/caja_negra_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────

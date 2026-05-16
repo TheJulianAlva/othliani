@@ -27,37 +27,98 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    // In a real implementation with Clean Arch:
-    // BlocBuilder<MapBloc, MapState> would provide the markers and initial position.
-
     final Set<Marker> markers = {
-      const Marker(
-        markerId: MarkerId('tulum_ruins'),
-        position: LatLng(20.2114, -87.4654),
-        infoWindow: InfoWindow(
-          title: 'Ruinas de Tulum',
-          snippet: 'Zona Arqueológica',
+      Marker(
+        markerId: const MarkerId('tourist'),
+        position: const LatLng(20.2114, -87.4654),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        infoWindow: const InfoWindow(
+          title: 'Tú',
+          snippet: 'Ubicación actual',
         ),
       ),
-      const Marker(
-        markerId: MarkerId('hotel'),
-        position: LatLng(20.2090, -87.4500),
-        infoWindow: InfoWindow(
-          title: 'Hotel Tulum Beach',
-          snippet: 'Tu alojamiento',
+      Marker(
+        markerId: const MarkerId('guide'),
+        position: const LatLng(20.2090, -87.4500),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange), // Representing the guide
+        infoWindow: const InfoWindow(
+          title: 'Tu Guía',
+          snippet: 'Guía del recorrido',
         ),
+      ),
+    };
+
+    final Set<Circle> circles = {
+      Circle(
+        circleId: const CircleId('safe_zone'),
+        center: const LatLng(20.2100, -87.4580),
+        radius: 1500, // 1.5 km
+        fillColor: Colors.blue.withValues(alpha: 0.2),
+        strokeColor: Colors.blue.withValues(alpha: 0.5),
+        strokeWidth: 2,
       ),
     };
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.map)),
-      body: GoogleMap(
-        onMapCreated: _onMapCreated,
-        initialCameraPosition: CameraPosition(target: _center, zoom: 13.0),
-        markers: markers,
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
+      body: Stack(
+        children: [
+          GoogleMap(
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: CameraPosition(target: _center, zoom: 14.0),
+            markers: markers,
+            circles: circles,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+          ),
+          Positioned(
+            bottom: 30,
+            left: 20,
+            right: 20,
+            child: GestureDetector(
+              onLongPress: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('¡Emergencia activada!'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              },
+              child: Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.red.shade700,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withValues(alpha: 0.5),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.white, size: 28),
+                    SizedBox(width: 12),
+                    Text(
+                      'MANTENER PRESIONADO 3 SEG',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+

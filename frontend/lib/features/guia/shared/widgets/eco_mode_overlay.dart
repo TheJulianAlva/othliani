@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/eco_mode/eco_mode_cubit.dart';
-import 'package:frontend/features/guia/home/presentation/shared_widgets/swipe_to_action_widget.dart';
+import 'package:frontend/features/guia/sos/presentation/widgets/swipe_to_action_widget.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // EcoModeOverlay
