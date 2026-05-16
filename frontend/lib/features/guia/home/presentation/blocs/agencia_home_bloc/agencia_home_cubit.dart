@@ -6,7 +6,7 @@ import '../../../domain/entities/agencia_home_data.dart';
 import '../../../domain/usecases/get_agencia_home_data_usecase.dart';
 
 // ── Filtro compartido (mismo enum que PersonalHomeCubit) ─────────────────────
-// TODO: Mover FiltroEstado a un archivo compartido si se desea unificar
+// NOTE: Mover FiltroEstado a un archivo compartido si se desea unificar
 enum FiltroEstadoAgencia { todas, pendientes, completadas }
 
 // ── Estados ───────────────────────────────────────────────────────────────────

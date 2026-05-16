@@ -62,7 +62,7 @@ class _MainAppGuiaState extends State<MainAppGuia> {
   @override
   Widget build(BuildContext context) {
     // Los cubits se crean directamente aquí en vez de usar guia_locator.
-    // TODO: Mover al guia_locator.dart cuando se coordine con el equipo.
+    // NOTE: Mover al guia_locator.dart cuando se coordine con el equipo.
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => GuiaThemeCubit(sharedPreferences: sl())),

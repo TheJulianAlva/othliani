@@ -455,7 +455,7 @@ class _BodyContentState extends State<_BodyContent> {
                   ],
                 ),
               ),
-              // ── DRAG TARGET OVERLAY — CUBRE TODO EL PANEL ──────────────
+              // ── DRAG TARGET OVERLAY — CUBRE EL PANEL COMPLETO ──────────
               Positioned.fill(
                 child: DragTarget<ActividadItinerario>(
                   onWillAcceptWithDetails: (_) => true,

@@ -192,9 +192,9 @@ class StatusHeaderWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: colorPrincipal.withOpacity(0.05),
+        color: colorPrincipal.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorPrincipal.withOpacity(0.2)),
+        border: Border.all(color: colorPrincipal.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
