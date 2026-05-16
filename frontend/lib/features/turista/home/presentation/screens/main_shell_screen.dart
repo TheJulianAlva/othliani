@@ -3,7 +3,6 @@ import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
-import '../widgets/walkie_talkie_button.dart';
 import 'package:frontend/features/turista/home/presentation/screens/trip_home_screen.dart';
 
 import 'package:frontend/features/turista/chat/presentation/screens/chat_screen.dart';
@@ -65,8 +64,6 @@ class _MainShellScreenState extends State<MainShellScreen>
       body: Stack(
         children: [
           IndexedStack(index: _currentIndex, children: _screens),
-          // Walkie-talkie button always on top
-          const WalkieTalkieButton(),
         ],
       ),
       bottomNavigationBar: AnimatedBottomNavigationBar.builder(

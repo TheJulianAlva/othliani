@@ -131,8 +131,78 @@ class _TripHomeViewState extends State<_TripHomeView>
             }
           }
 
+          final inProgressActivity = currentDayActivities.where((a) => a.status == ActivityStatus.inProgress).firstOrNull;
+
           return Column(
             children: [
+              if (inProgressActivity != null)
+                Container(
+                  margin: const EdgeInsets.all(AppSpacing.md),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: theme.primaryColor,
+                    borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'ACTIVIDAD EN CURSO',
+                            style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                          ),
+                          Row(
+                            children: const [
+                              Icon(Icons.wb_sunny, color: Colors.yellow, size: 16),
+                              SizedBox(width: 4),
+                              Text('32°C', style: TextStyle(color: Colors.white, fontSize: 12)),
+                              SizedBox(width: 12),
+                              Icon(Icons.checkroom, color: Colors.white, size: 16),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        inProgressActivity.title,
+                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Center(
+                          child: Column(
+                            children: [
+                              Text(
+                                '⏱️ Tiempo Libre',
+                                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Faltan 45 min para regresar',
+                                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
               // Trip Card
               Container(
                 margin: const EdgeInsets.all(AppSpacing.md),
@@ -611,6 +681,18 @@ class _ActivityCardState extends State<ActivityCard> {
                           Text(
                             widget.activity.description,
                             style: theme.textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(Icons.wb_sunny, size: 18, color: Colors.orange),
+                              const SizedBox(width: 4),
+                              Text('32°C', style: theme.textTheme.bodySmall),
+                              const SizedBox(width: 16),
+                              const Icon(Icons.checkroom, size: 18, color: Colors.blueGrey),
+                              const SizedBox(width: 4),
+                              Text('Ropa cómoda', style: theme.textTheme.bodySmall),
+                            ],
                           ),
                           const SizedBox(height: 12),
                           GestureDetector(

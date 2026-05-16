@@ -4,7 +4,7 @@ import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/theme/app_colors.dart';
 import 'package:frontend/core/theme/app_constants.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
-import 'package:frontend/features/turista/home/presentation/widgets/walkie_talkie_button.dart';
+// Removed WalkieTalkieButton
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
 
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_event.dart';
@@ -65,6 +65,87 @@ class _ProfileView extends StatelessWidget {
 
   void _logout(BuildContext context) {
     context.read<AuthBloc>().add(AuthLogoutRequested());
+  }
+
+  void _showReviewDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    '¿Cómo calificarías a tu guía?',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      5,
+                      (index) => const Icon(
+                        Icons.star_border,
+                        color: Colors.white,
+                        size: 40,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  const Text(
+                    'Al finalizar, Veltur dejará de rastrear tu ubicación de inmediato.',
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Theme.of(context).primaryColor,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                      _logout(context);
+                    },
+                    child: const Text(
+                      'Confirmar y Finalizar',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text(
+                      'Cancelar',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
   }
 
   @override
@@ -132,15 +213,21 @@ class _ProfileView extends StatelessWidget {
                       const Divider(),
                       const SizedBox(height: AppSpacing.xl),
 
-                      // Logout
+                      // Finalizar Viaje
                       ElevatedButton(
-                        onPressed: () => _logout(context),
+                        onPressed: () => _showReviewDialog(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.error,
                           foregroundColor: Colors.white,
                           minimumSize: const Size(double.infinity, 50),
                         ),
-                        child: Text(l10n.logout),
+                        child: const Text(
+                          'Finalizar Mi Viaje',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       TextButton(
@@ -163,7 +250,6 @@ class _ProfileView extends StatelessWidget {
               return const SizedBox.shrink();
             },
           ),
-          const WalkieTalkieButton(),
         ],
       ),
     );
