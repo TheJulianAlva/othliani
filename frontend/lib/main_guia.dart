@@ -24,7 +24,8 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final onboardingCompletado = prefs.getBool('GUIA_ONBOARDING_DONE') ?? false;
-  final isLoggedIn = prefs.getBool('isLoggedInGuia') ?? false;
+  // El LocalDataSource guarda el usuario con esta llave
+  final isLoggedIn = prefs.getString('CACHED_GUIA_USER') != null;
 
   String initialRoute;
   if (!onboardingCompletado) {

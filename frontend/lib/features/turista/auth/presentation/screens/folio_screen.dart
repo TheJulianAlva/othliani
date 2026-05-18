@@ -75,11 +75,10 @@ class _FolioViewState extends State<_FolioView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Logo placeholder (large blue logo)
-                      Icon(
-                        Icons.sailing, // Fallback icon if logo image is missing
-                        size: 100,
-                        color: theme.primaryColor,
+                      // Logo de Turista
+                      Image.asset(
+                        'assets/logos/logo_turista.png',
+                        height: 120,
                       ),
                       const SizedBox(height: 48),
                       TextFormField(

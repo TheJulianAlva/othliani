@@ -1,6 +1,8 @@
 import 'package:frontend/core/di/service_locator.dart';
+import 'package:frontend/core/network/dio_client.dart';
 
 import 'package:frontend/features/agencia/shared/data/datasources/agencia_datasource.dart';
+import 'package:frontend/features/agencia/shared/data/datasources/agencia_remote_datasource.dart';
 import 'package:frontend/features/agencia/auth/data/repositories/auth_repository_impl.dart';
 import 'package:frontend/features/agencia/auth/domain/repositories/auth_repository.dart';
 import 'package:frontend/features/agencia/auth/presentation/blocs/login/login_bloc.dart';
@@ -28,7 +30,9 @@ Future<void> initAgenciaDependencies() async {
   // ====================================================
 
   sl.registerLazySingleton<AgenciaDataSource>(
-    () => AgenciaMockDataSourceImpl(sl()),
+    () => AgenciaRemoteDataSource(
+      dio: sl<DioClient>().dio,
+    ),
   );
 
   // ====================================================
@@ -36,7 +40,9 @@ Future<void> initAgenciaDependencies() async {
   // ====================================================
 
   // Auth Repository
-  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl());
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(dioClient: sl<DioClient>()),
+  );
 
   // Dashboard Repository
   sl.registerLazySingleton<DashboardRepository>(

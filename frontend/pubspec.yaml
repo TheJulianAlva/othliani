@@ -69,3 +69,6 @@ flutter:
   generate: true
   assets:
     - .env
+    - assets/logos/logo_agencia.png
+    - assets/logos/logo_guia.png
+    - assets/logos/logo_turista.png

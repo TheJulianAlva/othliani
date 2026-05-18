@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/features/turista/auth/data/models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
@@ -61,5 +63,70 @@ class AuthMockDataSource implements AuthRemoteDataSource {
     if (email == 'error@test.com') {
       throw Exception('Email not found');
     }
+  }
+}
+
+class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+  final Dio dio;
+
+  AuthRemoteDataSourceImpl({required this.dio});
+
+  @override
+  Future<bool> verifyFolio(String folio) async {
+    try {
+      final response = await dio.post('/participantes/login', data: {'folio': folio});
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data;
+        final isSuccess = data['exito'] == true;
+        if (isSuccess) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('CACHED_FOLIO', folio);
+        }
+        return isSuccess;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
+  Future<void> requestPhoneCode(String phoneNumber) async {
+    await Future.delayed(const Duration(seconds: 1));
+  }
+
+  @override
+  Future<bool> verifyPhoneCode(String phoneNumber, String code) async {
+    return code == '123456' || code.isNotEmpty;
+  }
+
+  @override
+  Future<UserModel> login(String email, String password) async {
+    await Future.delayed(const Duration(seconds: 1));
+    return UserModel(
+      id: '1',
+      email: email.isNotEmpty ? email : 'juanmorales@outlook.com',
+      name: 'Juan Morales',
+    );
+  }
+
+  @override
+  Future<UserModel> register(String name, String email, String password) async {
+    await Future.delayed(const Duration(seconds: 1));
+    return UserModel(
+      id: '2',
+      email: email.isNotEmpty ? email : 'juanmorales@outlook.com',
+      name: name.isNotEmpty ? name : 'Juan Morales',
+    );
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    await Future.delayed(const Duration(seconds: 1));
+  }
+
+  @override
+  Future<void> resendEmailVerification(String email) async {
+    await Future.delayed(const Duration(seconds: 1));
   }
 }

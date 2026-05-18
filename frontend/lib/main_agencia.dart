@@ -12,28 +12,27 @@ import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importar dotenv
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Ensure window manager is initialized
   await windowManager.ensureInitialized();
   await dotenv.load(fileName: ".env"); // Cargar variables de entorno
-  await dotenv.load(fileName: ".env"); // Cargar variables de entorno
-  await di_shared.initSharedDependencies(); // Initialize Shared Dependencies
-  await di_agencia.initAgenciaDependencies(); // Initialize Agencia Dependencies
+  await di_shared.initSharedDependencies(); // Inicializar dependencias compartidas
+  await di_agencia.initAgenciaDependencies(); // Inicializar dependencias de Agencia
 
-  WindowOptions windowOptions = const WindowOptions(
+  final WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
-    minimumSize: Size(1024, 600), // Minimum size to avoiding heavy overflows
+    minimumSize: Size(1024, 600),
     center: true,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
+    title: 'Veltur Agencia — Panel de Control',
   );
+
+  runApp(const AgencyApp());
 
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
   });
-
-  runApp(const AgencyApp());
 }
 
 class AgencyApp extends StatelessWidget {

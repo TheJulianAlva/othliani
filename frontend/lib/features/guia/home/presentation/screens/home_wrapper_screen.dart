@@ -102,11 +102,11 @@ class _HomeWrapperScreenState extends State<HomeWrapperScreen> {
       );
       gestionScreen = const PersonalMainLayout(nombreGuia: 'Guía');
     } else if (user.role == GuiaRole.agencia) {
-      final folio = _folioDesdeId(user.id);
+      // Usamos el ID del usuario real para que la petición red busque por este ID
       layoutCubitProvider = BlocProvider<AgenciaHomeCubit>(
         create: (_) => sl<AgenciaHomeCubit>(),
       );
-      gestionScreen = AgenciaMainLayout(nombreGuia: user.name, folio: folio);
+      gestionScreen = AgenciaMainLayout(nombreGuia: user.name, folio: user.id);
       numTuristas = 15;
     } else {
       layoutCubitProvider = BlocProvider<PersonalHomeCubit>(
@@ -121,12 +121,6 @@ class _HomeWrapperScreenState extends State<HomeWrapperScreen> {
       // Pasamos el contenedor maestro que maneja el IndexedStack
       content: _HomeTabs(gestionScreen: gestionScreen),
     );
-  }
-
-  String _folioDesdeId(String id) {
-    final partes = id.replaceFirst('guia_b2b_', '').toUpperCase().split('_');
-    if (partes.length >= 2) return '${partes[0]}-${partes[1]}';
-    return id.toUpperCase();
   }
 }
 

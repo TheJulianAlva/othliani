@@ -84,27 +84,27 @@ class AgencyAuthLayout extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
-                      Icons.business,
-                      size: isMobile ? 40 : 60,
+                      Icons.factory_rounded,
+                      size: isMobile ? 60 : 80,
                       color: Colors.white,
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      '"Transformando el\nriesgo en confianza\noperativa."',
+                      'Veltur Control de Operaciones',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: isMobile ? 24 : 32,
+                        fontSize: isMobile ? 22 : 30,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'Serif',
                         height: 1.2,
                       ),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Gestión logística y seguridad centralizada.',
+                      'Gestión de expediciones turísticas en tiempo real. Monitorea geocercas, activa canales de voz de emergencia y coordina la seguridad de tus grupos en cualquier parte',
                       style: TextStyle(
                         color: Colors.white70,
-                        fontSize: isMobile ? 14 : 18,
+                        fontSize: isMobile ? 13 : 16,
+                        height: 1.5,
                       ),
                     ),
                   ],

@@ -9,6 +9,7 @@ import 'package:frontend/features/turista/home/presentation/bloc/trip_event.dart
 import 'package:frontend/features/turista/home/presentation/bloc/trip_state.dart';
 import 'package:frontend/features/turista/home/presentation/screens/activity_detail_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class TripHomeScreen extends StatelessWidget {
   const TripHomeScreen({super.key});
@@ -36,12 +37,71 @@ class _TripHomeViewState extends State<_TripHomeView>
   final LatLng _center = const LatLng(
     20.2114,
     -87.4654,
-  ); // Coordenadas MVP (Ej. Tulum)
+  );
+
+  IO.Socket? socket;
+
+  @override
+  void initState() {
+    super.initState();
+    _conectarAlWebSocket();
+  }
+
+  void _conectarAlWebSocket() {
+    socket = IO.io('http://10.170.6.0:3000', <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': false,
+    });
+
+    socket!.connect();
+
+    socket!.onConnect((_) {
+      print('Turista conectado a la Torre de Control 🗼');
+      socket!.emit('unirseAlViaje', {'viaje_id': 'viaje_123', 'folio': 'GTO-4'});
+    });
+
+    socket!.on('alertaAmarilla', (data) {
+      _mostrarAlertaEnPantalla(data['mensaje']);
+    });
+  }
+
+  void _mostrarAlertaEnPantalla(String mensaje) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.amber.shade50,
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 30),
+            SizedBox(width: 10),
+            Text("¡Aviso Importante!", style: TextStyle(color: Colors.orange)),
+          ],
+        ),
+        content: Text(
+          mensaje,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<TripBloc>().add(TripStarted());
+            },
+            child: const Text("Entendido"),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void dispose() {
     _tabController?.dispose();
     _mapController?.dispose();
+    socket?.disconnect();
     super.dispose();
   }
 

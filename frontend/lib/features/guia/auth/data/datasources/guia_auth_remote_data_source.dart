@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:frontend/features/guia/auth/data/models/guia_user_model.dart';
 
 abstract class GuiaAuthRemoteDataSource {
@@ -9,6 +10,72 @@ abstract class GuiaAuthRemoteDataSource {
   Future<void> verifyFolio(String folio);
   Future<GuiaUserModel> loginWithAgencyAccess(String folio, String phone);
 }
+
+class GuiaAuthRemoteDataSourceImpl implements GuiaAuthRemoteDataSource {
+  final Dio dio;
+
+  GuiaAuthRemoteDataSourceImpl({required this.dio});
+
+  @override
+  Future<GuiaUserModel> login(String email, String password) async {
+    try {
+      final response = await dio.post('/usuarios/login', data: {
+        'correo': email,
+        'password': password,
+      });
+
+      final data = response.data['usuario'] as Map<String, dynamic>;
+
+      return GuiaUserModel(
+        id: data['id'] as String,
+        email: data['correo'] as String,
+        name: data['nombre_completo'] as String,
+        permissionLevel: 1, // Por ahora fijo para el demo
+      );
+    } catch (e) {
+      throw Exception('Credenciales inválidas o error de servidor');
+    }
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    throw UnimplementedError('Not implemented yet');
+  }
+
+  @override
+  Future<GuiaUserModel> loginWithAgencyToken(String token) async {
+    throw UnimplementedError('Not implemented yet');
+  }
+
+  @override
+  Future<void> verifyFolio(String folio) async {
+    // Para el demo, asumimos que cualquier folio es válido aquí y la verdadera
+    // validación ocurre al mandar el teléfono cruzado con el folio.
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
+  @override
+  Future<GuiaUserModel> loginWithAgencyAccess(String folio, String phone) async {
+    try {
+      final response = await dio.post('/usuarios/login-agencia', data: {
+        'folio': folio,
+        'telefono': phone,
+      });
+
+      final data = response.data['usuario'] as Map<String, dynamic>;
+
+      return GuiaUserModel(
+        id: data['id'] as String,
+        email: data['correo'] as String,
+        name: data['nombre_completo'] as String,
+        permissionLevel: 2, // Agencia B2B access
+      );
+    } catch (e) {
+      throw Exception('Folio o teléfono incorrectos');
+    }
+  }
+}
+
 
 class GuiaAuthMockDataSource implements GuiaAuthRemoteDataSource {
   @override

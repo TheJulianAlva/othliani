@@ -26,9 +26,9 @@ class _GuiaLoginView extends StatefulWidget {
 
 class _GuiaLoginViewState extends State<_GuiaLoginView> {
   final _emailController = TextEditingController(
-    text: 'juanmorales@outlook.com',
+    text: 'guia.lider@veltur.com',
   );
-  final _passwordController = TextEditingController(text: '************');
+  final _passwordController = TextEditingController(text: 'supersecreta123');
   final _ocultarPassword = ValueNotifier<bool>(true);
 
   @override
@@ -84,7 +84,14 @@ class _GuiaLoginViewState extends State<_GuiaLoginView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
+                Center(
+                  child: Image.asset(
+                    'assets/logos/logo_guia.png',
+                    height: 120,
+                  ),
+                ),
+                const SizedBox(height: 20),
                 Text(
                   'Iniciar sesión',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(

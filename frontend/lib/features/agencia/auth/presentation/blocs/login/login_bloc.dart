@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:frontend/core/session/agencia_session.dart';
 import '../../../domain/repositories/auth_repository.dart';
 import '../../../domain/entities/auth_user.dart';
 
@@ -58,8 +59,15 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(LoginLoading());
     final result = await repository.login(event.email, event.password);
     result.fold(
-      (failure) => emit(LoginFailure("Credenciales inválidas")),
-      (user) => emit(LoginSuccess(user)),
+      (failure) => emit(LoginFailure(failure.message)),
+      (user) {
+        // Registrar la sesión global para que el datasource remoto acceda al ID
+        AgenciaSession.instance.inicializar(
+          agenciaId: user.id,
+          nombre: user.name,
+        );
+        emit(LoginSuccess(user));
+      },
     );
   }
 }

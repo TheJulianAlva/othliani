@@ -46,8 +46,8 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
   void _initSocket() {
     String serverIp =
         Platform.isAndroid
-            ? 'http://192.168.100.108:3000'
-            : 'http://192.168.100.108:3000';
+            ? 'http://10.170.6.0:3000'
+            : 'http://10.170.6.0:3000';
     socket = io.io(serverIp, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,

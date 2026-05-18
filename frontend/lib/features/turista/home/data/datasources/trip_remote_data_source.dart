@@ -1,4 +1,8 @@
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/features/turista/home/data/models/trip_model.dart';
+import 'package:frontend/features/turista/home/data/models/activity_model.dart';
+import 'package:frontend/features/turista/home/domain/entities/activity.dart';
 
 abstract class TripRemoteDataSource {
   Future<TripModel> getCurrentTrip();
@@ -101,5 +105,54 @@ class TripMockDataSource implements TripRemoteDataSource {
     };
 
     return TripModel.fromJson(json);
+  }
+}
+
+class TripRemoteDataSourceImpl implements TripRemoteDataSource {
+  final Dio dio;
+
+  TripRemoteDataSourceImpl({required this.dio});
+
+  @override
+  Future<TripModel> getCurrentTrip() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final folio = prefs.getString('CACHED_FOLIO') ?? 'GTO-4';
+      
+      final response = await dio.post('/participantes/login', data: {'folio': folio});
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data;
+        if (data['exito'] == true) {
+          final viaje = data['viaje'];
+          final actividades = viaje['actividades'] as List<dynamic>? ?? [];
+          
+          final mappedActivities = actividades.map((act) {
+            return ActivityModel(
+              id: act['id'],
+              title: act['nombre_actividad'],
+              description: act['direccion'] ?? 'Actividad del viaje',
+              time: act['hora_programada'].toString().substring(11, 16),
+              status: act['estado'] == 'COMPLETADO' 
+                  ? ActivityStatus.finished 
+                  : (act['estado'] == 'EN_CURSO' ? ActivityStatus.inProgress : ActivityStatus.pending),
+            );
+          }).toList();
+
+          final json = {
+            'id': viaje['id'],
+            'title': viaje['nombre_viaje'],
+            'description': 'Nevado de Toluca',
+            'activitiesByDay': {
+              'Día 1': mappedActivities.map((e) => e.toJson()).toList(),
+            },
+          };
+
+          return TripModel.fromJson(json);
+        }
+      }
+      throw Exception('Error al obtener el viaje del servidor');
+    } catch (e) {
+      throw Exception('Error de red: $e');
+    }
   }
 }

@@ -99,6 +99,8 @@ class AgencySidebar extends StatelessWidget {
               border: Border(bottom: BorderSide(color: borderGray, width: 1)),
             ),
             child: Row(
+              mainAxisSize:
+                  isCollapsed ? MainAxisSize.min : MainAxisSize.max,
               mainAxisAlignment:
                   isCollapsed
                       ? MainAxisAlignment.center
@@ -123,17 +125,20 @@ class AgencySidebar extends StatelessWidget {
                 ),
                 if (!isCollapsed) ...[
                   const SizedBox(width: 12),
-                  const Text(
-                    'VELTUR',
-                    style: TextStyle(
-                      color: primaryDark,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
+                  Flexible(
+                    child: Text(
+                      'VELTUR',
+                      style: TextStyle(
+                        color: primaryDark,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 6),
-                  const Text(
+                  Text(
                     'App',
                     style: TextStyle(
                       color: textGray,
@@ -357,9 +362,11 @@ class AgencySidebar extends StatelessWidget {
               ),
             ),
           ),
-          padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 0 : 20),
+          padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 0 : 16),
           alignment: isCollapsed ? Alignment.center : Alignment.centerLeft,
           child: Row(
+            mainAxisSize:
+                isCollapsed ? MainAxisSize.min : MainAxisSize.max,
             mainAxisAlignment:
                 isCollapsed
                     ? MainAxisAlignment.center
@@ -367,7 +374,7 @@ class AgencySidebar extends StatelessWidget {
             children: [
               Icon(icon, color: isActive ? primaryDark : textGray, size: 20),
               if (!isCollapsed) ...[
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Text(
                     label,
@@ -376,6 +383,7 @@ class AgencySidebar extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

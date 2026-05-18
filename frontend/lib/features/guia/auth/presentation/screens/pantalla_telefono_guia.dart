@@ -17,7 +17,7 @@ class PantallaPhoneGuia extends StatefulWidget {
 }
 
 class _PantallaPhoneGuiaState extends State<PantallaPhoneGuia> {
-  final _phoneController = TextEditingController();
+  final _phoneController = TextEditingController(text: '5512345678');
 
   @override
   void dispose() {

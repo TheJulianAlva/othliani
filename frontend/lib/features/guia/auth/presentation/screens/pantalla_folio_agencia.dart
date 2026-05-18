@@ -14,7 +14,7 @@ class PantallaFolioAgencia extends StatefulWidget {
 }
 
 class _PantallaFolioAgenciaState extends State<PantallaFolioAgencia> {
-  final _folioController = TextEditingController();
+  final _folioController = TextEditingController(text: 'VEL2026MX001');
 
   @override
   void dispose() {
