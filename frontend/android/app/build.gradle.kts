@@ -30,6 +30,26 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "rol"
+
+    productFlavors {
+        create("turista") {
+            dimension = "rol"
+            applicationIdSuffix = ".turista"
+            resValue("string", "app_name", "Veltur Turista")
+        }
+        create("guia") {
+            dimension = "rol"
+            applicationIdSuffix = ".guia"
+            resValue("string", "app_name", "Veltur Guía")
+        }
+        create("agencia") {
+            dimension = "rol"
+            applicationIdSuffix = ".agencia"
+            resValue("string", "app_name", "Veltur Agencia")
+        }
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")

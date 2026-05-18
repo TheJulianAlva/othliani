@@ -14,7 +14,7 @@ import flutter_tts
 import geolocator_apple
 import path_provider_foundation
 import printing
-import record_darwin
+import record_macos
 import screen_retriever_macos
 import shared_preferences_foundation
 import speech_to_text
@@ -30,7 +30,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   GeolocatorPlugin.register(with: registry.registrar(forPlugin: "GeolocatorPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
   PrintingPlugin.register(with: registry.registrar(forPlugin: "PrintingPlugin"))
-  RecordPlugin.register(with: registry.registrar(forPlugin: "RecordPlugin"))
+  RecordMacOsPlugin.register(with: registry.registrar(forPlugin: "RecordMacOsPlugin"))
   ScreenRetrieverMacosPlugin.register(with: registry.registrar(forPlugin: "ScreenRetrieverMacosPlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
   SpeechToTextPlugin.register(with: registry.registrar(forPlugin: "SpeechToTextPlugin"))
