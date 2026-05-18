@@ -6,7 +6,6 @@ import 'package:frontend/features/turista/home/presentation/bloc/itinerary_bloc.
 import 'package:frontend/features/turista/home/presentation/bloc/itinerary_event.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/itinerary_state.dart';
 import '../widgets/itinerary_event_card.dart';
-import '../widgets/walkie_talkie_button.dart';
 
 class ItineraryScreen extends StatelessWidget {
   const ItineraryScreen({super.key});
@@ -62,7 +61,6 @@ class _ItineraryView extends StatelessWidget {
               return const SizedBox.shrink();
             },
           ),
-          const WalkieTalkieButton(tripId: 'current_trip'),
         ],
       ),
     );

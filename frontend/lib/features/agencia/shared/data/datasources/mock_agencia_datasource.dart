@@ -44,52 +44,21 @@ class MockAgenciaDataSource {
     ),
 
     // 📅 GUÍAS CON VIAJES PROGRAMADOS (4)
-    const Guia(
-      id: 'G-04',
-      nombre: 'Carlos Vega',
-      status: 'ONLINE',
-    ),
+    const Guia(id: 'G-04', nombre: 'Carlos Vega', status: 'ONLINE'),
 
-    const Guia(
-      id: 'G-05',
-      nombre: 'Luisa Lane',
-      status: 'ONLINE',
-    ),
+    const Guia(id: 'G-05', nombre: 'Luisa Lane', status: 'ONLINE'),
 
-    const Guia(
-      id: 'G-06',
-      nombre: 'Roberto Gómez',
-      status: 'ONLINE',
-    ),
+    const Guia(id: 'G-06', nombre: 'Roberto Gómez', status: 'ONLINE'),
 
-    const Guia(
-      id: 'G-07',
-      nombre: 'María López',
-      status: 'ONLINE',
-    ),
-
+    const Guia(id: 'G-07', nombre: 'María López', status: 'ONLINE'),
 
     // ✅ GUÍAS DISPONIBLES (2) - ONLINE sin viajes
-    const Guia(
-      id: 'G-08',
-      nombre: 'Jorge T.',
-      status: 'ONLINE',
-    ),
+    const Guia(id: 'G-08', nombre: 'Jorge T.', status: 'ONLINE'),
 
-    const Guia(
-      id: 'G-09',
-      nombre: 'Elena M.',
-      status: 'ONLINE',
-    ),
-
+    const Guia(id: 'G-09', nombre: 'Elena M.', status: 'ONLINE'),
 
     // ⚫ GUÍA OFFLINE (1)
-    const Guia(
-      id: 'G-10',
-      nombre: 'Sofia R.',
-      status: 'OFFLINE',
-    ),
-
+    const Guia(id: 'G-10', nombre: 'Sofia R.', status: 'OFFLINE'),
   ];
 
   // --- 2. LISTA DE VIAJES (Usando Entity Viaje con fechas dinámicas) ---

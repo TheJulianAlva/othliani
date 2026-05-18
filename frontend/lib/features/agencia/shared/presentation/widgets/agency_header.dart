@@ -699,7 +699,8 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 decoration: InputDecoration(
-                  hintText: 'Búsqueda rápida (Ctrl+K): Viajes, guías, turistas...',
+                  hintText:
+                      'Búsqueda rápida (Ctrl+K): Viajes, guías, turistas...',
                   prefixIcon: const Icon(
                     Icons.search,
                     size: 20,
@@ -860,7 +861,7 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                   ),
                 ],
           ),
-          
+
           const SizedBox(width: 24),
 
           // --- BOTÓN DINÁMICO (NUEVO VIAJE / NUEVO GUÍA) ---
@@ -879,13 +880,18 @@ class _AgencyHeaderState extends State<AgencyHeader> {
                 context.go('/viajes/nuevo');
               }
             },
-            icon: Icon(currentPath.contains('/usuarios') ? Icons.person_add : Icons.add, size: 18),
+            icon: Icon(
+              currentPath.contains('/usuarios') ? Icons.person_add : Icons.add,
+              size: 18,
+            ),
             label: Text(
               currentPath.contains('/usuarios') ? 'Nuevo Guía' : 'Nuevo Viaje',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1B3B6F), // Azul marino para coherencia
+              backgroundColor: const Color(
+                0xFF1B3B6F,
+              ), // Azul marino para coherencia
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               shape: RoundedRectangleBorder(

@@ -8,6 +8,7 @@ import 'package:frontend/features/turista/home/presentation/bloc/trip_bloc.dart'
 import 'package:frontend/features/turista/home/presentation/bloc/trip_event.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/trip_state.dart';
 import 'package:frontend/features/turista/home/presentation/screens/activity_detail_screen.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class TripHomeScreen extends StatelessWidget {
   const TripHomeScreen({super.key});
@@ -31,10 +32,16 @@ class _TripHomeView extends StatefulWidget {
 class _TripHomeViewState extends State<_TripHomeView>
     with TickerProviderStateMixin {
   TabController? _tabController;
+  GoogleMapController? _mapController;
+  final LatLng _center = const LatLng(
+    20.2114,
+    -87.4654,
+  ); // Coordenadas MVP (Ej. Tulum)
 
   @override
   void dispose() {
     _tabController?.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -131,338 +138,517 @@ class _TripHomeViewState extends State<_TripHomeView>
             }
           }
 
-          final inProgressActivity = currentDayActivities.where((a) => a.status == ActivityStatus.inProgress).firstOrNull;
+          final inProgressActivity =
+              currentDayActivities
+                  .where((a) => a.status == ActivityStatus.inProgress)
+                  .firstOrNull;
 
-          return Column(
+          return Stack(
             children: [
-              if (inProgressActivity != null)
-                Container(
-                  margin: const EdgeInsets.all(AppSpacing.md),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: theme.primaryColor,
-                    borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.primaryColor.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+              // Fondo Interactivo de Mapa
+              Positioned.fill(
+                child: GoogleMap(
+                  onMapCreated: (controller) => _mapController = controller,
+                  initialCameraPosition: CameraPosition(
+                    target: _center,
+                    zoom: 14.0,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'ACTIVIDAD EN CURSO',
-                            style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
-                          ),
-                          Row(
-                            children: const [
-                              Icon(Icons.wb_sunny, color: Colors.yellow, size: 16),
-                              SizedBox(width: 4),
-                              Text('32°C', style: TextStyle(color: Colors.white, fontSize: 12)),
-                              SizedBox(width: 12),
-                              Icon(Icons.checkroom, color: Colors.white, size: 16),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        inProgressActivity.title,
-                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 24),
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Center(
-                          child: Column(
-                            children: [
-                              Text(
-                                '⏱️ Tiempo Libre',
-                                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Faltan 45 min para regresar',
-                                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-              // Trip Card
-              Container(
-                margin: const EdgeInsets.all(AppSpacing.md),
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                  border: Border.all(color: theme.dividerColor),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(AppBorderRadius.sm),
-                      ),
-                      child: Icon(
-                        Icons.image,
-                        size: 35,
-                        color: theme.iconTheme.color,
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled:
+                      false, // Desactivado para no chocar con la UI
+                  zoomControlsEnabled: false,
+                  markers: {
+                    Marker(
+                      markerId: const MarkerId('tourist'),
+                      position: const LatLng(20.2114, -87.4654),
+                      icon: BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueAzure,
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  l10n.active,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            trip.title,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            trip.description,
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ],
+                    Marker(
+                      markerId: const MarkerId('guide'),
+                      position: const LatLng(20.2090, -87.4500),
+                      icon: BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueOrange,
                       ),
                     ),
-                  ],
+                  },
                 ),
               ),
 
-              // Tabs de días
-              if (_tabController != null)
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(AppBorderRadius.sm),
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    labelColor: theme.colorScheme.onPrimary,
-                    unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-                    indicator: BoxDecoration(
-                      color: theme.colorScheme.primary,
-                      borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+              // Panel Deslizable
+              DraggableScrollableSheet(
+                initialChildSize: 0.95,
+                minChildSize: 0.15,
+                maxChildSize: 0.95,
+                snap: true,
+                builder: (context, scrollController) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: theme.scaffoldBackgroundColor,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, -5),
+                        ),
+                      ],
                     ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    dividerColor: Colors.transparent,
-                    onTap: (index) {
-                      // Add event handled by listener, but explicit tap safe too
-                      final newDay = trip.days[index];
-                      context.read<TripBloc>().add(TripDayChanged(newDay));
-                    },
-                    tabs:
-                        trip.days
-                            .map(
-                              (day) => Tab(
-                                child: Text(
-                                  day,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
+                    child: CustomScrollView(
+                      controller: scrollController,
+                      slivers: [
+                        // Pill handle
+                        SliverToBoxAdapter(
+                          child: Center(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 12),
+                              width: 40,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withValues(alpha: 0.4),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SliverToBoxAdapter(
+                          child: Column(
+                            children: [
+                              if (inProgressActivity != null)
+                                Container(
+                                  margin: const EdgeInsets.all(AppSpacing.md),
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: theme.primaryColor,
+                                    borderRadius: BorderRadius.circular(
+                                      AppBorderRadius.md,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: theme.primaryColor.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            'ACTIVIDAD EN CURSO',
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1.2,
+                                            ),
+                                          ),
+                                          Row(
+                                            children: const [
+                                              Icon(
+                                                Icons.wb_sunny,
+                                                color: Colors.yellow,
+                                                size: 16,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                '32°C',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              SizedBox(width: 12),
+                                              Icon(
+                                                Icons.checkroom,
+                                                color: Colors.white,
+                                                size: 16,
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        inProgressActivity.title,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: const Center(
+                                          child: Column(
+                                            children: [
+                                              Text(
+                                                '⏱️ Tiempo Libre',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                'Faltan 45 min para regresar',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                // Trip Card
+                                Container(
+                                  margin: const EdgeInsets.all(AppSpacing.md),
+                                  padding: const EdgeInsets.all(AppSpacing.md),
+                                  decoration: BoxDecoration(
+                                    color: theme.cardColor,
+                                    borderRadius: BorderRadius.circular(
+                                      AppBorderRadius.md,
+                                    ),
+                                    border: Border.all(
+                                      color: theme.dividerColor,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 80,
+                                        height: 80,
+                                        decoration: BoxDecoration(
+                                          color:
+                                              theme
+                                                  .colorScheme
+                                                  .surfaceContainerHighest,
+                                          borderRadius: BorderRadius.circular(
+                                            AppBorderRadius.sm,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.image,
+                                          size: 35,
+                                          color: theme.iconTheme.color,
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.md),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Wrap(
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.green
+                                                        .withValues(alpha: 0.2),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    l10n.active,
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.green,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              trip.title,
+                                              style: theme.textTheme.titleMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              trip.description,
+                                              style: theme.textTheme.bodySmall,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                              // Tabs de días
+                              if (_tabController != null)
+                                Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.md,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        theme
+                                            .colorScheme
+                                            .surfaceContainerHighest,
+                                    borderRadius: BorderRadius.circular(
+                                      AppBorderRadius.sm,
+                                    ),
+                                  ),
+                                  child: TabBar(
+                                    controller: _tabController,
+                                    labelColor: theme.colorScheme.onPrimary,
+                                    unselectedLabelColor:
+                                        theme.colorScheme.onSurfaceVariant,
+                                    indicator: BoxDecoration(
+                                      color: theme.colorScheme.primary,
+                                      borderRadius: BorderRadius.circular(
+                                        AppBorderRadius.sm,
+                                      ),
+                                    ),
+                                    indicatorSize: TabBarIndicatorSize.tab,
+                                    dividerColor: Colors.transparent,
+                                    onTap: (index) {
+                                      // Add event handled by listener, but explicit tap safe too
+                                      final newDay = trip.days[index];
+                                      context.read<TripBloc>().add(
+                                        TripDayChanged(newDay),
+                                      );
+                                    },
+                                    tabs:
+                                        trip.days
+                                            .map(
+                                              (day) => Tab(
+                                                child: Text(
+                                                  day,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                            .toList(),
+                                  ),
+                                ),
+
+                              const SizedBox(height: AppSpacing.md),
+
+                              // Progress indicator
+                              Container(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                ),
+                                padding: const EdgeInsets.all(AppSpacing.md),
+                                decoration: BoxDecoration(
+                                  color: theme.cardColor,
+                                  borderRadius: BorderRadius.circular(
+                                    AppBorderRadius.sm,
+                                  ),
+                                  border: Border.all(color: theme.dividerColor),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          l10n.dayProgress,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                        Text(
+                                          '${(progress * 100).toStringAsFixed(0)}%',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: theme.colorScheme.primary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: LinearProgressIndicator(
+                                        value: progress,
+                                        minHeight: 8,
+                                        backgroundColor:
+                                            theme
+                                                .colorScheme
+                                                .surfaceContainerHighest,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              theme.colorScheme.primary,
+                                            ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Wrap(
+                                      spacing: 8.0,
+                                      runSpacing: 8.0,
+                                      alignment: WrapAlignment.spaceAround,
+                                      children: [
+                                        _buildStatusBadge(
+                                          '✓ ${statusCounts['terminada']}',
+                                          Colors.green,
+                                        ),
+                                        _buildStatusBadge(
+                                          '⟳ ${statusCounts['en_curso']}',
+                                          Colors.orange,
+                                        ),
+                                        _buildStatusBadge(
+                                          '○ ${statusCounts['pendiente']}',
+                                          Colors.grey,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: AppSpacing.md),
+
+                              // Filtros
+                              Container(
+                                height: 40,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                ),
+                                child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  children: [
+                                    _buildFilterChip(
+                                      context,
+                                      'Todas',
+                                      l10n.all,
+                                      state.selectedFilter,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _buildFilterChip(
+                                      context,
+                                      'Terminada',
+                                      l10n.finished,
+                                      state.selectedFilter,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _buildFilterChip(
+                                      context,
+                                      'En_curso',
+                                      l10n.inProgress,
+                                      state.selectedFilter,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _buildFilterChip(
+                                      context,
+                                      'Pendiente',
+                                      l10n.pending,
+                                      state.selectedFilter,
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: AppSpacing.md),
+                            ],
+                          ),
+                        ),
+
+                        // Lista de actividades
+                        filteredActivities.isEmpty
+                            ? SliverToBoxAdapter(
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 40),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.filter_list_off,
+                                        size: 48,
+                                        color: theme.disabledColor,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        l10n.noActivities,
+                                        style: TextStyle(
+                                          color: theme.disabledColor,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
                             )
-                            .toList(),
-                  ),
-                ),
+                            : SliverPadding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                              ),
+                              sliver: SliverList(
+                                delegate: SliverChildBuilderDelegate((
+                                  context,
+                                  index,
+                                ) {
+                                  final activity = filteredActivities[index];
+                                  return ActivityCard(activity: activity);
+                                }, childCount: filteredActivities.length),
+                              ),
+                            ),
 
-              const SizedBox(height: AppSpacing.md),
-
-              // Progress indicator
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(AppBorderRadius.sm),
-                  border: Border.all(color: theme.dividerColor),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l10n.dayProgress,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          '${(progress * 100).toStringAsFixed(0)}%',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
+                        // Padding final para que el FAB no tape el ultimo elemento
+                        const SliverToBoxAdapter(child: SizedBox(height: 80)),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 8,
-                        backgroundColor:
-                            theme.colorScheme.surfaceContainerHighest,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          theme.colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      alignment: WrapAlignment.spaceAround,
-                      children: [
-                        _buildStatusBadge(
-                          '✓ ${statusCounts['terminada']}',
-                          Colors.green,
-                        ),
-                        _buildStatusBadge(
-                          '⟳ ${statusCounts['en_curso']}',
-                          Colors.orange,
-                        ),
-                        _buildStatusBadge(
-                          '○ ${statusCounts['pendiente']}',
-                          Colors.grey,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.md),
-
-              // Filtros
-              Container(
-                height: 40,
-                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _buildFilterChip(
-                      context,
-                      'Todas',
-                      l10n.all,
-                      state.selectedFilter,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildFilterChip(
-                      context,
-                      'Terminada',
-                      l10n.finished,
-                      state.selectedFilter,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildFilterChip(
-                      context,
-                      'En_curso',
-                      l10n.inProgress,
-                      state.selectedFilter,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildFilterChip(
-                      context,
-                      'Pendiente',
-                      l10n.pending,
-                      state.selectedFilter,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.md),
-
-              // Lista de actividades
-              Expanded(
-                child:
-                    filteredActivities.isEmpty
-                        ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.filter_list_off,
-                                size: 48,
-                                color: theme.disabledColor,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                l10n.noActivities,
-                                style: TextStyle(color: theme.disabledColor),
-                              ),
-                            ],
-                          ),
-                        )
-                        : ListView.builder(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
-                          ),
-                          itemCount: filteredActivities.length,
-                          itemBuilder: (context, index) {
-                            final activity = filteredActivities[index];
-                            return ActivityCard(activity: activity);
-                          },
-                        ),
+                  );
+                },
               ),
             ],
           );
@@ -685,13 +871,24 @@ class _ActivityCardState extends State<ActivityCard> {
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              const Icon(Icons.wb_sunny, size: 18, color: Colors.orange),
+                              const Icon(
+                                Icons.wb_sunny,
+                                size: 18,
+                                color: Colors.orange,
+                              ),
                               const SizedBox(width: 4),
                               Text('32°C', style: theme.textTheme.bodySmall),
                               const SizedBox(width: 16),
-                              const Icon(Icons.checkroom, size: 18, color: Colors.blueGrey),
+                              const Icon(
+                                Icons.checkroom,
+                                size: 18,
+                                color: Colors.blueGrey,
+                              ),
                               const SizedBox(width: 4),
-                              Text('Ropa cómoda', style: theme.textTheme.bodySmall),
+                              Text(
+                                'Ropa cómoda',
+                                style: theme.textTheme.bodySmall,
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),

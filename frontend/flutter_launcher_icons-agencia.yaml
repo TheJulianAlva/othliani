@@ -1,4 +1,6 @@
 flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: "assets/logos/logo_agencia.png"
+  android: false
+  ios: false
+  windows:
+    generate: true
+    image_path: "assets/logos/logo_agencia.png"

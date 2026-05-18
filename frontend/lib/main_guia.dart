@@ -80,7 +80,7 @@ class _MainAppGuiaState extends State<MainAppGuia> {
 /// el MaterialApp cuando el tema, idioma o accesibilidad cambian.
 class _GuiaAppView extends StatelessWidget {
   final GoRouter router;
-  
+
   const _GuiaAppView({required this.router});
 
   @override

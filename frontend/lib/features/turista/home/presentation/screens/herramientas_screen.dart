@@ -46,10 +46,11 @@ class HerramientasScreen extends StatelessWidget {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       itemCount: tools.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: _FloatingToolCard(item: tools[index]),
-      ),
+      itemBuilder:
+          (context, index) => Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _FloatingToolCard(item: tools[index]),
+          ),
     );
   }
 }
@@ -167,4 +168,3 @@ class _FloatingToolCardState extends State<_FloatingToolCard> {
     );
   }
 }
-

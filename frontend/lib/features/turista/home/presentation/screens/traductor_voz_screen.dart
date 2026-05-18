@@ -21,7 +21,7 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
   bool _isProcessing = false;
   String _textoReconocido = "Presiona el micrófono y empieza a hablar";
   String _textoTraducido = "";
-  
+
   // Animación del botón del micrófono
   late AnimationController _animationController;
 
@@ -44,7 +44,7 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
     super.initState();
     _speech = stt.SpeechToText();
     _flutterTts = FlutterTts();
-    
+
     _configurarTts();
 
     _animationController = AnimationController(
@@ -76,26 +76,30 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
             setState(() => _isListening = false);
             // Cuando deja de escuchar, traduce lo recolectado
             if (_textoReconocido.isNotEmpty &&
-                _textoReconocido != "Presiona el micrófono y empieza a hablar") {
+                _textoReconocido !=
+                    "Presiona el micrófono y empieza a hablar") {
               _traducirTexto();
             }
           }
         },
         onError: (val) => debugPrint('onError: $val'),
       );
-      
+
       if (available) {
         setState(() => _isListening = true);
         _speech.listen(
-          onResult: (val) => setState(() {
-            _textoReconocido = val.recognizedWords;
-          }),
-          localeId: _idiomaOrigen, // Escucha en el idioma seleccionado de origen
+          onResult:
+              (val) => setState(() {
+                _textoReconocido = val.recognizedWords;
+              }),
+          localeId:
+              _idiomaOrigen, // Escucha en el idioma seleccionado de origen
         );
       } else {
         setState(() {
           _isListening = false;
-          _textoReconocido = "El reconocimiento de voz no está disponible en este dispositivo.";
+          _textoReconocido =
+              "El reconocimiento de voz no está disponible en este dispositivo.";
         });
       }
     } else {
@@ -107,16 +111,16 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
   // --- Traducir Texto ---
   Future<void> _traducirTexto() async {
     if (_textoReconocido.isEmpty) return;
-    
+
     setState(() => _isProcessing = true);
-    
+
     try {
       var translation = await _translator.translate(
         _textoReconocido,
         from: _idiomaOrigen,
         to: _idiomaDestino,
       );
-      
+
       setState(() {
         _textoTraducido = translation.text;
         _isProcessing = false;
@@ -140,13 +144,15 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
   @override
   Widget build(BuildContext context) {
     // Usamos traducciones seguras con fallback en español
-    final title = (() {
-      try {
-        return AppLocalizations.of(context)?.translatorTitle ?? 'Traductor de Voz';
-      } catch (e) {
-        return 'Traductor de Voz';
-      }
-    })();
+    final title =
+        (() {
+          try {
+            return AppLocalizations.of(context)?.translatorTitle ??
+                'Traductor de Voz';
+          } catch (e) {
+            return 'Traductor de Voz';
+          }
+        })();
 
     return Scaffold(
       appBar: AppBar(
@@ -168,7 +174,10 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Yo hablo:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Yo hablo:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -181,11 +190,19 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
                             child: DropdownButton<String>(
                               isExpanded: true,
                               value: _idiomaOrigen,
-                              items: _idiomasSoportados.entries.map((e) => 
-                                DropdownMenuItem(value: e.key, child: Text(e.value))
-                              ).toList(),
+                              items:
+                                  _idiomasSoportados.entries
+                                      .map(
+                                        (e) => DropdownMenuItem(
+                                          value: e.key,
+                                          child: Text(e.value),
+                                        ),
+                                      )
+                                      .toList(),
                               onChanged: (val) {
-                                if (val != null) setState(() => _idiomaOrigen = val);
+                                if (val != null) {
+                                  setState(() => _idiomaOrigen = val);
+                                }
                               },
                             ),
                           ),
@@ -193,12 +210,16 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
                       ],
                     ),
                   ),
-                  
+
                   // Icono Intercambio
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: IconButton(
-                      icon: const Icon(Icons.swap_horiz, size: 30, color: Colors.blueAccent),
+                      icon: const Icon(
+                        Icons.swap_horiz,
+                        size: 30,
+                        color: Colors.blueAccent,
+                      ),
                       onPressed: () {
                         setState(() {
                           final temp = _idiomaOrigen;
@@ -215,7 +236,10 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Traducir a:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Traducir a:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -228,9 +252,15 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
                             child: DropdownButton<String>(
                               isExpanded: true,
                               value: _idiomaDestino,
-                              items: _idiomasSoportados.entries.map((e) => 
-                                DropdownMenuItem(value: e.key, child: Text(e.value))
-                              ).toList(),
+                              items:
+                                  _idiomasSoportados.entries
+                                      .map(
+                                        (e) => DropdownMenuItem(
+                                          value: e.key,
+                                          child: Text(e.value),
+                                        ),
+                                      )
+                                      .toList(),
                               onChanged: (val) {
                                 if (val != null) {
                                   setState(() => _idiomaDestino = val);
@@ -245,7 +275,7 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 30),
 
               // --- TEXTO RECONOCIDO ---
@@ -279,7 +309,10 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
                         child: SingleChildScrollView(
                           child: Text(
                             _textoReconocido,
-                            style: const TextStyle(fontSize: 22, color: Colors.black87),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              color: Colors.black87,
+                            ),
                           ),
                         ),
                       ),
@@ -317,7 +350,10 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
                           ),
                           if (_textoTraducido.isNotEmpty)
                             IconButton(
-                              icon: const Icon(Icons.volume_up, color: Colors.blueAccent),
+                              icon: const Icon(
+                                Icons.volume_up,
+                                color: Colors.blueAccent,
+                              ),
                               iconSize: 32,
                               onPressed: _speak,
                             ),
@@ -329,7 +365,7 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
                           child: Text(
                             _textoTraducido.isEmpty ? "..." : _textoTraducido,
                             style: const TextStyle(
-                              fontSize: 24, 
+                              fontSize: 24,
                               fontWeight: FontWeight.w500,
                               color: Colors.black87,
                             ),
@@ -363,7 +399,8 @@ class _TraductorVozScreenState extends State<TraductorVozScreen>
                       ),
                       child: CircleAvatar(
                         radius: 45,
-                        backgroundColor: _isListening ? Colors.redAccent : Colors.blueAccent,
+                        backgroundColor:
+                            _isListening ? Colors.redAccent : Colors.blueAccent,
                         child: Icon(
                           _isListening ? Icons.mic : Icons.mic_none,
                           color: Colors.white,

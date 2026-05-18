@@ -99,7 +99,10 @@ class AgencySidebar extends StatelessWidget {
               border: Border(bottom: BorderSide(color: borderGray, width: 1)),
             ),
             child: Row(
-              mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+              mainAxisAlignment:
+                  isCollapsed
+                      ? MainAxisAlignment.center
+                      : MainAxisAlignment.start,
               children: [
                 Container(
                   width: 36,
@@ -182,7 +185,10 @@ class AgencySidebar extends StatelessWidget {
                     const SizedBox(height: 20),
                     if (!isCollapsed)
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
                         child: Text(
                           'SISTEMA',
                           style: TextStyle(
@@ -222,7 +228,10 @@ class AgencySidebar extends StatelessWidget {
                       vertical: 16,
                     ),
                     child: Row(
-                      mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                      mainAxisAlignment:
+                          isCollapsed
+                              ? MainAxisAlignment.center
+                              : MainAxisAlignment.start,
                       children: [
                         CircleAvatar(
                           backgroundColor: const Color(0xFFE8EEFF),
@@ -270,7 +279,11 @@ class AgencySidebar extends StatelessWidget {
                 // Logout Widget
                 if (!isCollapsed)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
+                    padding: const EdgeInsets.only(
+                      bottom: 16,
+                      left: 20,
+                      right: 20,
+                    ),
                     child: InkWell(
                       onTap: () => _handleLogout(context),
                       borderRadius: BorderRadius.circular(8),
@@ -278,7 +291,11 @@ class AgencySidebar extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         child: Row(
                           children: const [
-                            Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                            Icon(
+                              Icons.logout_rounded,
+                              color: Colors.redAccent,
+                              size: 20,
+                            ),
                             SizedBox(width: 12),
                             Text(
                               'Cerrar Sesión',
@@ -297,7 +314,10 @@ class AgencySidebar extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: IconButton(
-                      icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                      icon: const Icon(
+                        Icons.logout_rounded,
+                        color: Colors.redAccent,
+                      ),
                       onPressed: () => _handleLogout(context),
                     ),
                   ),
@@ -340,13 +360,12 @@ class AgencySidebar extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 0 : 20),
           alignment: isCollapsed ? Alignment.center : Alignment.centerLeft,
           child: Row(
-            mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+            mainAxisAlignment:
+                isCollapsed
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.start,
             children: [
-              Icon(
-                icon,
-                color: isActive ? primaryDark : textGray,
-                size: 20,
-              ),
+              Icon(icon, color: isActive ? primaryDark : textGray, size: 20),
               if (!isCollapsed) ...[
                 const SizedBox(width: 16),
                 Expanded(

@@ -70,9 +70,10 @@ class _ActivityListWithFilterState extends State<ActivityListWithFilter> {
     if (_usaCubit) {
       try {
         return context.select<PersonalHomeCubit, FiltroEstado>(
-          (cubit) => cubit.state is PersonalHomeLoaded
-              ? (cubit.state as PersonalHomeLoaded).filtroActivo
-              : FiltroEstado.todas,
+          (cubit) =>
+              cubit.state is PersonalHomeLoaded
+                  ? (cubit.state as PersonalHomeLoaded).filtroActivo
+                  : FiltroEstado.todas,
         );
       } catch (_) {
         return _localFiltro;
@@ -151,16 +152,18 @@ class _ActivityListWithFilterState extends State<ActivityListWithFilter> {
           ),
           const SizedBox(height: 15),
           Expanded(
-            child: filtradas.isEmpty
-                ? const _EmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    itemCount: filtradas.length,
-                    itemBuilder: (context, index) => ActivityCard(
-                      actividad: filtradas[index],
-                      esGestion: widget.esGestion,
+            child:
+                filtradas.isEmpty
+                    ? const _EmptyState()
+                    : ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      itemCount: filtradas.length,
+                      itemBuilder:
+                          (context, index) => ActivityCard(
+                            actividad: filtradas[index],
+                            esGestion: widget.esGestion,
+                          ),
                     ),
-                  ),
           ),
         ],
       ),
@@ -344,4 +347,3 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
-

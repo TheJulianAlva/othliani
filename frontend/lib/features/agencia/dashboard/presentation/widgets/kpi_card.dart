@@ -7,7 +7,7 @@ class KPICard extends StatelessWidget {
   final String subtitle;
   final bool isAlert;
   final VoidCallback? onTap;
-  
+
   // Nuevas propiedades para diseño
   final Color? customIconColor;
   final Color? customIconBgColor;
@@ -28,15 +28,18 @@ class KPICard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Alert Styles
     final backgroundColor = isAlert ? const Color(0xFFFFEBEE) : Colors.white;
-    
+
     // Icon colors logic
-    final iconColor = isAlert 
-        ? const Color(0xFFC62828) 
-        : (customIconColor ?? const Color(0xFF1B3B6F)); // Default VELTUR blue
-        
-    final iconBgColor = isAlert
-        ? const Color(0xFFFFCDD2)
-        : (customIconBgColor ?? const Color(0xFFE8EEFF));
+    final iconColor =
+        isAlert
+            ? const Color(0xFFC62828)
+            : (customIconColor ??
+                const Color(0xFF1B3B6F)); // Default VELTUR blue
+
+    final iconBgColor =
+        isAlert
+            ? const Color(0xFFFFCDD2)
+            : (customIconBgColor ?? const Color(0xFFE8EEFF));
 
     final valueColor = isAlert ? const Color(0xFFC62828) : Colors.black87;
     final titleColor = isAlert ? const Color(0xFFC62828) : Colors.grey.shade600;
@@ -103,7 +106,10 @@ class KPICard extends StatelessWidget {
                       Text(
                         subtitle,
                         style: TextStyle(
-                          color: isAlert ? const Color(0xFFE53935) : Colors.grey.shade500,
+                          color:
+                              isAlert
+                                  ? const Color(0xFFE53935)
+                                  : Colors.grey.shade500,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),

@@ -53,12 +53,12 @@ class GuiaAccessibilityState extends Equatable {
 
   @override
   List<Object?> get props => [
-        fontSize,
-        highContrast,
-        screenReader,
-        reduceAnimations,
-        hapticFeedback,
-      ];
+    fontSize,
+    highContrast,
+    screenReader,
+    reduceAnimations,
+    hapticFeedback,
+  ];
 }
 
 // ─── Cubit ───────────────────────────────────────────────────────────────────
@@ -72,21 +72,27 @@ class GuiaAccessibilityCubit extends Cubit<GuiaAccessibilityState> {
   final SharedPreferences sharedPreferences;
 
   GuiaAccessibilityCubit({required this.sharedPreferences})
-      : super(const GuiaAccessibilityState()) {
+    : super(const GuiaAccessibilityState()) {
     _loadSettings();
   }
 
   void _loadSettings() {
     final fontSizeIndex = sharedPreferences.getInt('fontSize') ?? 1;
-    final validIndex = fontSizeIndex.clamp(0, GuiaFontSizeOption.values.length - 1);
+    final validIndex = fontSizeIndex.clamp(
+      0,
+      GuiaFontSizeOption.values.length - 1,
+    );
 
-    emit(GuiaAccessibilityState(
-      fontSize: GuiaFontSizeOption.values[validIndex],
-      highContrast: sharedPreferences.getBool('highContrast') ?? false,
-      screenReader: sharedPreferences.getBool('screenReader') ?? false,
-      reduceAnimations: sharedPreferences.getBool('reduceAnimations') ?? false,
-      hapticFeedback: sharedPreferences.getBool('hapticFeedback') ?? true,
-    ));
+    emit(
+      GuiaAccessibilityState(
+        fontSize: GuiaFontSizeOption.values[validIndex],
+        highContrast: sharedPreferences.getBool('highContrast') ?? false,
+        screenReader: sharedPreferences.getBool('screenReader') ?? false,
+        reduceAnimations:
+            sharedPreferences.getBool('reduceAnimations') ?? false,
+        hapticFeedback: sharedPreferences.getBool('hapticFeedback') ?? true,
+      ),
+    );
   }
 
   Future<void> setFontSize(GuiaFontSizeOption size) async {

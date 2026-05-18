@@ -56,20 +56,31 @@ class QuickDetailCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.green,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           viaje.estado.replaceAll('_', ' '),
-                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       const Icon(Icons.edit, color: Colors.white, size: 16),
                       const SizedBox(width: 8),
-                      const Icon(Icons.more_vert, color: Colors.white, size: 16),
+                      const Icon(
+                        Icons.more_vert,
+                        color: Colors.white,
+                        size: 16,
+                      ),
                     ],
                   ),
                 ),
@@ -96,7 +107,7 @@ class QuickDetailCard extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Resumen content
           Expanded(
             child: Padding(
@@ -109,17 +120,23 @@ class QuickDetailCard extends StatelessWidget {
                     children: [
                       const Text(
                         "Resumen de Actividad",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                       TextButton.icon(
                         icon: const Icon(Icons.map_outlined, size: 14),
-                        label: const Text("Ver Itinerario", style: TextStyle(fontSize: 12)),
+                        label: const Text(
+                          "Ver Itinerario",
+                          style: TextStyle(fontSize: 12),
+                        ),
                         onPressed: () {},
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  
+
                   // Alert Box (Dummy si hay alertas)
                   if (viaje.alertasActivas > 0)
                     Container(
@@ -127,7 +144,12 @@ class QuickDetailCard extends StatelessWidget {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.red.shade50,
-                        border: Border(left: BorderSide(color: Colors.red.shade400, width: 4)),
+                        border: Border(
+                          left: BorderSide(
+                            color: Colors.red.shade400,
+                            width: 4,
+                          ),
+                        ),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Column(
@@ -138,26 +160,44 @@ class QuickDetailCard extends StatelessWidget {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.warning, size: 16, color: Colors.red.shade700),
+                                  Icon(
+                                    Icons.warning,
+                                    size: 16,
+                                    color: Colors.red.shade700,
+                                  ),
                                   const SizedBox(width: 8),
                                   Text(
                                     "Retraso por incidencia",
-                                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade900, fontSize: 13),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red.shade900,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ],
                               ),
-                              Text("Hace 1 h", style: TextStyle(color: Colors.red.shade400, fontSize: 11)),
+                              Text(
+                                "Hace 1 h",
+                                style: TextStyle(
+                                  color: Colors.red.shade400,
+                                  fontSize: 11,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 4),
                           Text(
                             "Notificado en bitácora de viaje. Continuamos ruta con retraso estimado.",
-                            style: TextStyle(color: Colors.red.shade700, fontSize: 12, fontStyle: FontStyle.italic),
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  
+
                   // Timeline Box
                   Expanded(
                     child: Container(
@@ -172,29 +212,43 @@ class QuickDetailCard extends StatelessWidget {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(Icons.location_on, color: Colors.blue.shade600, size: 20),
+                              Icon(
+                                Icons.location_on,
+                                color: Colors.blue.shade600,
+                                size: 20,
+                              ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text(
                                           "Llegada a destino actual",
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
                                         ),
                                         Text(
                                           "En curso",
-                                          style: TextStyle(color: Colors.blue.shade600, fontSize: 11),
+                                          style: TextStyle(
+                                            color: Colors.blue.shade600,
+                                            fontSize: 11,
+                                          ),
                                         ),
                                       ],
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       "Estimado de llegada: 09:30 AM",
-                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                     const SizedBox(height: 8),
                                     LinearProgressIndicator(
@@ -213,20 +267,31 @@ class QuickDetailCard extends StatelessWidget {
                           // Actividad previa
                           Row(
                             children: [
-                              const Icon(Icons.check_circle, color: Colors.grey, size: 20),
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.grey,
+                                size: 20,
+                              ),
                               const SizedBox(width: 12),
                               const Expanded(
                                 child: Text(
                                   "Check-in Completado",
-                                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.black87),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
+                                    color: Colors.black87,
+                                  ),
                                 ),
                               ),
                               Text(
                                 "06:15 AM",
-                                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -235,7 +300,7 @@ class QuickDetailCard extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Bottom Actions
           Container(
             padding: const EdgeInsets.all(16),
@@ -268,7 +333,7 @@ class QuickDetailCard extends StatelessWidget {
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

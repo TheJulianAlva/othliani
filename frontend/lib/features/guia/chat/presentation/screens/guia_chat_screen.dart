@@ -94,7 +94,10 @@ class _GuiaChatScreenState extends State<GuiaChatScreen> {
         subtitle: '24 participantes · 19 en línea',
         icon: Icons.chat_bubble_outline_rounded,
         actions: [
-          IconButton(icon: const Icon(Icons.people_rounded, color: Colors.white), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.people_rounded, color: Colors.white),
+            onPressed: () {},
+          ),
         ],
       ),
       body: Column(

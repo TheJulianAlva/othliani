@@ -96,12 +96,19 @@ class _UsersScreenState extends State<UsersScreen> {
                         children: [
                           const Text(
                             "Directorio y Estado de Guías",
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF004A75)),
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF004A75),
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             "Consola de disponibilidad, rendimiento y cumplimiento.",
-                            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
                           ),
                         ],
                       ),
@@ -112,10 +119,18 @@ class _UsersScreenState extends State<UsersScreen> {
                           foregroundColor: const Color(0xFF1B3B6F),
                           elevation: 0,
                           side: BorderSide(color: Colors.grey.shade300),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 18,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                        child: const Text("Configurar Metas", style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          "Configurar Metas",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
@@ -145,11 +160,11 @@ class _UsersScreenState extends State<UsersScreen> {
                             child: GuideMasterList(
                               guias: _mockGuias,
                               selectedGuiaId: _selectedGuia?.id,
-                                onGuiaSelected: (g) {
-                                  setState(() => _selectedGuia = g);
-                                  // Al seleccionar, mandamos abajo a su evaluación completa
-                                  _scrollToBottom();
-                                },
+                              onGuiaSelected: (g) {
+                                setState(() => _selectedGuia = g);
+                                // Al seleccionar, mandamos abajo a su evaluación completa
+                                _scrollToBottom();
+                              },
                             ),
                           ),
                         ),
@@ -157,12 +172,15 @@ class _UsersScreenState extends State<UsersScreen> {
                         // Detalle Rápido (Derecha)
                         Expanded(
                           flex: 3,
-                          child: _selectedGuia != null
-                              ? GuideQuickDetail(
-                                  guia: _selectedGuia!,
-                                  onVerEvaluacion: _scrollToBottom,
-                                )
-                              : const Center(child: Text("Seleccione un guía")),
+                          child:
+                              _selectedGuia != null
+                                  ? GuideQuickDetail(
+                                    guia: _selectedGuia!,
+                                    onVerEvaluacion: _scrollToBottom,
+                                  )
+                                  : const Center(
+                                    child: Text("Seleccione un guía"),
+                                  ),
                         ),
                       ],
                     ),
@@ -175,8 +193,7 @@ class _UsersScreenState extends State<UsersScreen> {
             Container(height: 8, color: Colors.grey.shade200),
 
             // PARTE INFERIOR: PERFIL COMPLETO (Imagen 3)
-            if (_selectedGuia != null)
-              GuideFullProfile(guia: _selectedGuia!),
+            if (_selectedGuia != null) GuideFullProfile(guia: _selectedGuia!),
 
             const SizedBox(height: 60),
           ],
@@ -190,19 +207,46 @@ class _UsersScreenState extends State<UsersScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildStatCard("DISPONIBLES", "8", Colors.green, Icons.check_circle_outline),
+          _buildStatCard(
+            "DISPONIBLES",
+            "8",
+            Colors.green,
+            Icons.check_circle_outline,
+          ),
           const SizedBox(width: 16),
-          _buildStatCard("EN VIAJE ACTIVO", "4", Colors.blue, Icons.directions_bus_outlined),
+          _buildStatCard(
+            "EN VIAJE ACTIVO",
+            "4",
+            Colors.blue,
+            Icons.directions_bus_outlined,
+          ),
           const SizedBox(width: 16),
-          _buildStatCard("DESCANSO / PERMISO", "2", Colors.orange, Icons.pause_circle_outline),
+          _buildStatCard(
+            "DESCANSO / PERMISO",
+            "2",
+            Colors.orange,
+            Icons.pause_circle_outline,
+          ),
           const SizedBox(width: 16),
-          _buildStatCard("CAPACIDAD DE CUENTAS (PLAN)", "18 / 20", Colors.indigo, Icons.person_add_alt_outlined, subtitle: "Guías Registrados"),
+          _buildStatCard(
+            "CAPACIDAD DE CUENTAS (PLAN)",
+            "18 / 20",
+            Colors.indigo,
+            Icons.person_add_alt_outlined,
+            subtitle: "Guías Registrados",
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(String title, String value, Color color, IconData icon, {String? subtitle}) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    Color color,
+    IconData icon, {
+    String? subtitle,
+  }) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -217,16 +261,40 @@ class _UsersScreenState extends State<UsersScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1B3B6F))),
-                  if (subtitle != null) Text(subtitle, style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1B3B6F),
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
                 ],
               ),
             ),
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.05), shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
               child: Icon(icon, color: color, size: 20),
             ),
           ],
@@ -253,7 +321,10 @@ class _UsersScreenState extends State<UsersScreen> {
                 hintStyle: const TextStyle(fontSize: 13),
                 prefixIcon: const Icon(Icons.search, size: 20),
                 isDense: true,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
               ),
             ),
           ),

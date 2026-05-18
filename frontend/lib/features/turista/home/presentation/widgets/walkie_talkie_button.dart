@@ -18,7 +18,7 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
   late io.Socket socket;
   final record = AudioRecorder();
   final _player = FlutterSoundPlayer();
-  
+
   StreamSubscription<Uint8List>? _micSubscription;
   bool isRecording = false;
   bool isChannelBusy = false;
@@ -44,7 +44,10 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
   }
 
   void _initSocket() {
-    String serverIp = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://127.0.0.1:3000';
+    String serverIp =
+        Platform.isAndroid
+            ? 'http://192.168.100.108:3000'
+            : 'http://192.168.100.108:3000';
     socket = io.io(serverIp, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
@@ -56,11 +59,14 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
     socket.on('estadoCanal', (data) {
       if (mounted) setState(() => isChannelBusy = data['ocupado']);
     });
-    
+
     socket.on('canalDenegado', (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('El canal está ocupado...'), duration: Duration(milliseconds: 800)),
+          const SnackBar(
+            content: Text('El canal está ocupado...'),
+            duration: Duration(milliseconds: 800),
+          ),
         );
       }
     });
@@ -93,30 +99,29 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
 
   Future<void> _startStreaming() async {
     // En lugar de guardar en un archivo, abrimos un stream de bytes PCM
-    final stream = await record.startStream(const RecordConfig(
-      encoder: AudioEncoder.pcm16bits,
-      sampleRate: 16000,
-      numChannels: 1,
-    ));
+    final stream = await record.startStream(
+      const RecordConfig(
+        encoder: AudioEncoder.pcm16bits,
+        sampleRate: 16000,
+        numChannels: 1,
+      ),
+    );
 
     if (mounted) setState(() => isRecording = true);
 
     // Escuchamos el micrófono y aventamos cada pedacito de voz al backend inmediatamente
     _micSubscription = stream.listen((data) {
-      socket.emit('audioStream', {
-        'tripId': widget.tripId,
-        'chunk': data,
-      });
+      socket.emit('audioStream', {'tripId': widget.tripId, 'chunk': data});
     });
   }
 
   Future<void> _stopStreaming() async {
     if (!isRecording) return;
-    
+
     await record.stop();
     await _micSubscription?.cancel();
     if (mounted) setState(() => isRecording = false);
-    
+
     socket.emit('liberarCanal', widget.tripId);
   }
 
@@ -131,27 +136,39 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 32,
-      right: 32,
-      child: GestureDetector(
-        onLongPress: _requestToSpeak,
-        onLongPressEnd: (_) => _stopStreaming(),
-        child: Material(
-          elevation: isRecording ? 12 : 6,
-          shape: const CircleBorder(),
-          child: Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              color: isChannelBusy ? Colors.grey : (isRecording ? Colors.red : Colors.orange),
-              shape: BoxShape.circle,
-              boxShadow: isRecording
-                  ? [BoxShadow(color: Colors.red.withValues(alpha: 0.5), blurRadius: 20, spreadRadius: 5)]
-                  : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
-            ),
-            child: const Icon(Icons.radio, color: Colors.white, size: 32),
+    return GestureDetector(
+      onLongPress: _requestToSpeak,
+      onLongPressEnd: (_) => _stopStreaming(),
+      child: Material(
+        elevation: isRecording ? 12 : 6,
+        shape: const CircleBorder(),
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color:
+                isChannelBusy
+                    ? Colors.grey
+                    : (isRecording ? Colors.red : Colors.orange),
+            shape: BoxShape.circle,
+            boxShadow:
+                isRecording
+                    ? [
+                      BoxShadow(
+                        color: Colors.red.withValues(alpha: 0.5),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ]
+                    : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
           ),
+          child: const Icon(Icons.radio, color: Colors.white, size: 28),
         ),
       ),
     );

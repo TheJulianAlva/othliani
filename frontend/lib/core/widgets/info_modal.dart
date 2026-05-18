@@ -70,17 +70,16 @@ class _AnimatedInfoSheetState extends State<_AnimatedInfoSheet>
       reverseCurve: Curves.easeInQuad,
     );
 
-    _slide =
-        Tween<Offset>(
-          begin: const Offset(0, 0.06), // un poquito desde abajo
-          end: Offset.zero,
-        ).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
-          ),
-        );
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.06), // un poquito desde abajo
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      ),
+    );
 
     // Dispara la animación de entrada
     _controller.forward();

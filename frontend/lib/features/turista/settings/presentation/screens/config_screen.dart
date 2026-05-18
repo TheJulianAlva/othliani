@@ -22,7 +22,8 @@ class ConfigScreen extends StatelessWidget {
               icon: Icons.language_rounded,
               iconColor: const Color(0xFF3B82F6),
               title: l10n.language,
-              subtitle: locale.languageCode == 'es' ? l10n.spanish : l10n.english,
+              subtitle:
+                  locale.languageCode == 'es' ? l10n.spanish : l10n.english,
               trailing: const Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 15,
@@ -85,7 +86,9 @@ class ConfigScreen extends StatelessWidget {
               onChanged: (_) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('Configurar notificaciones próximamente'),
+                    content: const Text(
+                      'Configurar notificaciones próximamente',
+                    ),
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -103,37 +106,38 @@ class ConfigScreen extends StatelessWidget {
   void _showLanguageDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: Text(l10n.language),
-        children: [
-          SimpleDialogOption(
-            onPressed: () {
-              context.read<LocaleCubit>().setLocale(const Locale('es'));
-              Navigator.pop(dialogContext);
-            },
-            child: Row(
-              children: [
-                const Icon(Icons.language),
-                const SizedBox(width: 8),
-                Text(l10n.spanish),
-              ],
-            ),
+      builder:
+          (dialogContext) => SimpleDialog(
+            title: Text(l10n.language),
+            children: [
+              SimpleDialogOption(
+                onPressed: () {
+                  context.read<LocaleCubit>().setLocale(const Locale('es'));
+                  Navigator.pop(dialogContext);
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.language),
+                    const SizedBox(width: 8),
+                    Text(l10n.spanish),
+                  ],
+                ),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  context.read<LocaleCubit>().setLocale(const Locale('en'));
+                  Navigator.pop(dialogContext);
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.language),
+                    const SizedBox(width: 8),
+                    Text(l10n.english),
+                  ],
+                ),
+              ),
+            ],
           ),
-          SimpleDialogOption(
-            onPressed: () {
-              context.read<LocaleCubit>().setLocale(const Locale('en'));
-              Navigator.pop(dialogContext);
-            },
-            child: Row(
-              children: [
-                const Icon(Icons.language),
-                const SizedBox(width: 8),
-                Text(l10n.english),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -175,14 +179,17 @@ class _SettingCardState extends State<_SettingCard> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: widget.onTap != null ? (_) => setState(() => _pressed = true) : null,
-      onTapUp: widget.onTap != null
-          ? (_) {
-              setState(() => _pressed = false);
-              widget.onTap!();
-            }
-          : null,
-      onTapCancel: widget.onTap != null ? () => setState(() => _pressed = false) : null,
+      onTapDown:
+          widget.onTap != null ? (_) => setState(() => _pressed = true) : null,
+      onTapUp:
+          widget.onTap != null
+              ? (_) {
+                setState(() => _pressed = false);
+                widget.onTap!();
+              }
+              : null,
+      onTapCancel:
+          widget.onTap != null ? () => setState(() => _pressed = false) : null,
       child: AnimatedScale(
         scale: _pressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 120),

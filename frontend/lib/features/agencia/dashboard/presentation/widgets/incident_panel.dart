@@ -50,7 +50,11 @@ class IncidentPanel extends StatelessWidget {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(Icons.list_alt_rounded, size: 20, color: Color(0xFF1B3B6F)),
+                      const Icon(
+                        Icons.list_alt_rounded,
+                        size: 20,
+                        color: Color(0xFF1B3B6F),
+                      ),
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text(
@@ -69,7 +73,10 @@ class IncidentPanel extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE8EEFF),
                     borderRadius: BorderRadius.circular(6),
@@ -90,36 +97,48 @@ class IncidentPanel extends StatelessWidget {
 
           // LISTA DE VIAJES
           Expanded(
-            child: sortedTrips.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.directions_bus_filled_outlined, size: 40, color: Colors.grey.shade300),
-                        const SizedBox(height: 8),
-                        const Text("No hay viajes para mostrar", style: TextStyle(color: Colors.grey)),
-                      ],
+            child:
+                sortedTrips.isEmpty
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.directions_bus_filled_outlined,
+                            size: 40,
+                            color: Colors.grey.shade300,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "No hay viajes para mostrar",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    )
+                    : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: sortedTrips.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final viaje = sortedTrips[index];
+                        return _buildTripCard(context, viaje, alerts);
+                      },
                     ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: sortedTrips.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final viaje = sortedTrips[index];
-                      return _buildTripCard(context, viaje, alerts);
-                    },
-                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTripCard(BuildContext context, Viaje viaje, List<Alerta> alerts) {
+  Widget _buildTripCard(
+    BuildContext context,
+    Viaje viaje,
+    List<Alerta> alerts,
+  ) {
     // Determinar estilo en base al estado y alertas
     final bool hasAlerts = viaje.alertasActivas > 0;
-    
+
     // Obtener alertas de este viaje
     final tripAlerts = alerts.where((a) => a.viajeId == viaje.id).toList();
     final topAlert = tripAlerts.isNotEmpty ? tripAlerts.first : null;
@@ -135,7 +154,11 @@ class IncidentPanel extends StatelessWidget {
       dotColor = const Color(0xFFE53935);
       statusText = topAlert?.mensaje ?? "Alerta Activa";
       statusTextColor = const Color(0xFFE53935);
-      extraIcon = const Icon(Icons.warning_rounded, color: Color(0xFFE53935), size: 14);
+      extraIcon = const Icon(
+        Icons.warning_rounded,
+        color: Color(0xFFE53935),
+        size: 14,
+      );
     } else if (viaje.estado == 'EN_CURSO') {
       borderColor = const Color(0xFF4CAF50); // Green
       dotColor = const Color(0xFF4CAF50);
@@ -150,9 +173,10 @@ class IncidentPanel extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        final focusParam = topAlert?.turistaId != null
-            ? '?alert_focus=${topAlert!.turistaId}&return_to=dashboard'
-            : '?return_to=dashboard';
+        final focusParam =
+            topAlert?.turistaId != null
+                ? '?alert_focus=${topAlert!.turistaId}&return_to=dashboard'
+                : '?return_to=dashboard';
         context.push('/viajes/${viaje.id}$focusParam');
       },
       borderRadius: BorderRadius.circular(8),
@@ -161,7 +185,10 @@ class IncidentPanel extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1.5),
+          border: Border.all(
+            color: borderColor.withValues(alpha: 0.5),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
               color: borderColor.withValues(alpha: 0.05),
@@ -200,19 +227,20 @@ class IncidentPanel extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            
+
             // Row 2: Guía y Estatus
             Row(
               children: [
-                Icon(Icons.badge_outlined, size: 14, color: Colors.grey.shade500),
+                Icon(
+                  Icons.badge_outlined,
+                  size: 14,
+                  color: Colors.grey.shade500,
+                ),
                 const SizedBox(width: 4),
                 Flexible(
                   child: Text(
                     viaje.guiaNombre,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -221,10 +249,7 @@ class IncidentPanel extends StatelessWidget {
                   "  |  ",
                   style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
                 ),
-                if (extraIcon != null) ...[
-                  extraIcon,
-                  const SizedBox(width: 4),
-                ],
+                if (extraIcon != null) ...[extraIcon, const SizedBox(width: 4)],
                 Expanded(
                   child: Text(
                     statusText,
@@ -239,7 +264,7 @@ class IncidentPanel extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             // Row 3 (Optional): Hora o info extra
             if (!hasAlerts) ...[
               const SizedBox(height: 8),
@@ -256,12 +281,16 @@ class IncidentPanel extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       viaje.horaInicio,
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
               ),
-            ]
+            ],
           ],
         ),
       ),

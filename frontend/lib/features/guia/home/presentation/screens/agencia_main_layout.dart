@@ -511,15 +511,23 @@ class _BadgeContador extends StatelessWidget {
   Widget build(BuildContext context) {
     if (count == 0) return const SizedBox.shrink();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reducido padding
+      padding: const EdgeInsets.symmetric(
+        horizontal: 6,
+        vertical: 2,
+      ), // Reducido padding
       decoration: BoxDecoration(
         color: color.withAlpha(180),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row( // Agregamos un row pequeño
+      child: Row(
+        // Agregamos un row pequeño
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.warning_amber_rounded, size: 12, color: Colors.white),
+          const Icon(
+            Icons.warning_amber_rounded,
+            size: 12,
+            color: Colors.white,
+          ),
           const SizedBox(width: 4),
           Text(
             '$count', // Solo el número para ahorrar espacio
