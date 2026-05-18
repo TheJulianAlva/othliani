@@ -1,0 +1,14 @@
+{
+  "name": "othliani-backend",
+  "version": "1.0.0",
+  "description": "Backend de Sockets para Walkie-Talkie de Othliani",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}

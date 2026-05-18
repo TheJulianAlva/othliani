@@ -6,10 +6,12 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   emoji_picker_flutter
   file_selector_windows
+  flutter_sound
   flutter_tts
   geolocator_windows
   permission_handler_windows
   printing
+  record_windows
   screen_retriever_windows
   speech_to_text_windows
   window_manager

@@ -5,7 +5,9 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   emoji_picker_flutter
   file_selector_linux
+  flutter_sound
   printing
+  record_linux
   screen_retriever_linux
   window_manager
 )
