@@ -133,7 +133,7 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
             bottom: 16,
             right: 16,
             child: FloatingActionButton.small(
-              heroTag: 'recenter_map',
+              heroTag: null,
               backgroundColor: Colors.white,
               foregroundColor: Colors.blue[800],
               elevation: 4,

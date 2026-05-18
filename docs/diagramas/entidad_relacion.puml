@@ -1,0 +1,155 @@
+@startuml Veltur
+
+skinparam linetype ortho
+skinparam class {
+    BackgroundColor White
+    ArrowColor #1E407D
+    BorderColor #1E407D
+}
+
+entity "agencias" as agencias {
+  * id : UUID <<PK>>
+  --
+  nombre_comercial : VARCHAR
+  razon_social : VARCHAR
+  rfc : VARCHAR
+  direccion_matriz : TEXT
+  telefono_contacto : VARCHAR
+  created_at : TIMESTAMP
+}
+
+entity "planes" as planes {
+  * id : UUID <<PK>>
+  --
+  nombre_plan : VARCHAR
+  limite_guias_activos : INT
+  limite_turistas_viaje : INT
+}
+
+entity "suscripciones" as suscripciones {
+  * id : UUID <<PK>>
+  --
+  agencia_id : UUID <<FK>>
+  plan_id : UUID <<FK>>
+  estado_suscripcion : VARCHAR // ACTIVE, EXPIRED, GRACE_PERIOD
+  fecha_vencimiento : TIMESTAMP
+}
+
+entity "usuarios" as usuarios {
+  * id : UUID <<PK>>
+  --
+  id_agencia : UUID <<FK>>
+  nombre_completo : VARCHAR
+  correo : VARCHAR
+  telefono : VARCHAR
+  especialidad_idiomas : VARCHAR
+  rol : VARCHAR // ADMIN, OPERADOR, GUIA
+  password_hash : VARCHAR
+  estado : VARCHAR // ACTIVO, INACTIVO
+  deleted_at : TIMESTAMP // Soft delete
+}
+
+entity "turistas" as turistas {
+  * id : UUID <<PK>>
+  --
+  nombre : VARCHAR
+  correo : VARCHAR
+  telefono : VARCHAR
+  riesgos_medicos : TEXT
+  tipo_sangre : VARCHAR
+  contacto_emergencia : VARCHAR
+}
+
+entity "viajes" as viajes {
+  * id : UUID <<PK>>
+  --
+  agencia_id : UUID <<FK>>
+  nombre_viaje : VARCHAR
+  estado : VARCHAR // PROGRAMADO, EN_CURSO, FINALIZADO
+  distancia_max_global : INT // Metros
+  tiempo_desconexion_global : INT // Minutos
+  created_at : TIMESTAMP
+}
+
+entity "participantes_viaje" as participantes_viaje {
+  * id : UUID <<PK>>
+  --
+  viaje_id : UUID <<FK>>
+  usuario_id : UUID <<FK>> <<Nullable>> // Solo si es Guía/Staff
+  turista_id : UUID <<FK>> <<Nullable>> // Solo si es Turista
+  rol_en_viaje : VARCHAR // GUIA_LIDER, GUIA_APOYO, TURISTA
+  folio_acceso : VARCHAR // UUID o Código Corto
+  dispositivo_vinculado : VARCHAR // Device ID (Binding)
+  estado_digital : VARCHAR // PENDING, CLAIMED
+  estado_conexion : VARCHAR // ONLINE, OFFLINE
+  tiempo_ultima_conexion : TIMESTAMP
+  estado_fisico : VARCHAR // A_BORDO
+}
+
+entity "actividad_instancias" as actividad_instancias {
+  * id : UUID <<PK>>
+  --
+  viaje_id : UUID <<FK>>
+  nombre_actividad : VARCHAR
+  direccion : TEXT
+  lat : DOUBLE
+  lng : DOUBLE
+  fecha_programada : DATE
+  hora_programada : TIME
+  hora_fin : TIME
+  estado : VARCHAR // PROGRAMADO, EN_CURSO, COMPLETADO, SOLICITUD_OMISION, OMITIDO
+  radio_geocerca_mts : INT
+  es_rigido : BOOLEAN
+  codigo_vestimenta : TEXT
+  equipo_recomendado : JSONB // Array de strings
+  minutos_desviacion : INT
+  motivo_retraso_id : VARCHAR // Tráfico, Clima, etc.
+}
+
+entity "incidents_log" as incidents_log {
+  * id : UUID <<PK>>
+  --
+  trip_id : UUID <<FK>>
+  tourist_id : UUID <<FK>> <<Nullable>>
+  guide_id : UUID <<FK>>
+  incident_type : VARCHAR // MEDICAL, PANIC, SECURITY, LOGISTICS
+  lat : DOUBLE
+  lng : DOUBLE
+  audio_payload : VARCHAR // URL to S3
+  resolucion : TEXT // Historial de chat JSONB
+  estado : VARCHAR // ABIERTO, RESUELTO
+  timestamp : TIMESTAMP
+}
+
+entity "reviews" as reviews {
+  * id : UUID <<PK>>
+  --
+  viaje_id : UUID <<FK>>
+  guide_id : UUID <<FK>>
+  tourist_id : UUID <<FK>>
+  rating : INT // 1-5
+  comment : TEXT
+  timestamp : TIMESTAMP
+}
+
+' Relaciones
+agencias ||--o{ usuarios : "emplea"
+agencias ||--|| suscripciones : "posee"
+suscripciones }o--|| planes : "basado en"
+agencias ||--o{ viajes : "organiza"
+
+viajes ||--o{ participantes_viaje : "tiene"
+usuarios ||--o{ participantes_viaje : "es asignado como staff"
+turistas ||--o{ participantes_viaje : "es asignado como turista"
+
+viajes ||--o{ actividad_instancias : "contiene hitos"
+
+viajes ||--o{ incidents_log : "registra emergencias"
+usuarios ||--o{ incidents_log : "reporta/atiende"
+turistas ||--o{ incidents_log : "involucra"
+
+viajes ||--o{ reviews : "recibe calificaciones"
+usuarios ||--o{ reviews : "evaluado (Guía)"
+turistas ||--o{ reviews : "escribe"
+
+@enduml
