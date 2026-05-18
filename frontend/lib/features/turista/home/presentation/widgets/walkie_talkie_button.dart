@@ -1,90 +1,157 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:record/record.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class WalkieTalkieButton extends StatefulWidget {
-  const WalkieTalkieButton({super.key});
+  final String tripId;
+  const WalkieTalkieButton({super.key, required this.tripId});
 
   @override
   State<WalkieTalkieButton> createState() => _WalkieTalkieButtonState();
 }
 
 class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
-  Offset _position = const Offset(20, 100);
+  late io.Socket socket;
+  final record = AudioRecorder();
+  final _player = FlutterSoundPlayer();
+  
+  StreamSubscription<Uint8List>? _micSubscription;
+  bool isRecording = false;
+  bool isChannelBusy = false;
 
-  void _activateWalkieTalkie(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Walkie-Talkie activado'),
-        duration: Duration(seconds: 2),
-      ),
+  @override
+  void initState() {
+    super.initState();
+    _initAudioPlayer();
+    _initSocket();
+  }
+
+  Future<void> _initAudioPlayer() async {
+    // Abrimos la sesión de audio
+    await _player.openPlayer();
+    // Configuramos el reproductor para que espere un flujo constante de bytes (PCM)
+    await _player.startPlayerFromStream(
+      codec: Codec.pcm16,
+      numChannels: 1,
+      sampleRate: 16000,
+      interleaved: true,
+      bufferSize: 4096,
     );
+  }
+
+  void _initSocket() {
+    String serverIp = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://127.0.0.1:3000';
+    socket = io.io(serverIp, <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': true,
+    });
+
+    socket.onConnect((_) => socket.emit('joinTrip', widget.tripId));
+
+    // Control de canal
+    socket.on('estadoCanal', (data) {
+      if (mounted) setState(() => isChannelBusy = data['ocupado']);
+    });
+    
+    socket.on('canalDenegado', (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('El canal está ocupado...'), duration: Duration(milliseconds: 800)),
+        );
+      }
+    });
+
+    socket.on('canalConcedido', (_) => _startStreaming());
+
+    // --- RECEPCIÓN EN TIEMPO REAL ---
+    socket.on('audioStream', (chunk) {
+      // Recibimos los bytes del servidor e inmediatamente los inyectamos a la bocina
+      if (_player.isOpen()) {
+        Uint8List bytes;
+        if (chunk is Uint8List) {
+          bytes = chunk;
+        } else if (chunk is List) {
+          bytes = Uint8List.fromList(chunk.cast<int>());
+        } else {
+          return;
+        }
+        _player.feedUint8FromStream(bytes);
+      }
+    });
+  }
+
+  Future<void> _requestToSpeak() async {
+    if (isChannelBusy) return;
+    if (await record.hasPermission()) {
+      socket.emit('solicitarCanal', widget.tripId);
+    }
+  }
+
+  Future<void> _startStreaming() async {
+    // En lugar de guardar en un archivo, abrimos un stream de bytes PCM
+    final stream = await record.startStream(const RecordConfig(
+      encoder: AudioEncoder.pcm16bits,
+      sampleRate: 16000,
+      numChannels: 1,
+    ));
+
+    if (mounted) setState(() => isRecording = true);
+
+    // Escuchamos el micrófono y aventamos cada pedacito de voz al backend inmediatamente
+    _micSubscription = stream.listen((data) {
+      socket.emit('audioStream', {
+        'tripId': widget.tripId,
+        'chunk': data,
+      });
+    });
+  }
+
+  Future<void> _stopStreaming() async {
+    if (!isRecording) return;
+    
+    await record.stop();
+    await _micSubscription?.cancel();
+    if (mounted) setState(() => isRecording = false);
+    
+    socket.emit('liberarCanal', widget.tripId);
+  }
+
+  @override
+  void dispose() {
+    socket.dispose();
+    record.dispose();
+    _player.closePlayer();
+    _micSubscription?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
-
-    return Stack(
-      children: [
-        Positioned(
-          left: _position.dx,
-          top: _position.dy,
-          child: Draggable(
-            feedback: _buildButton(context, isDragging: true),
-            childWhenDragging: Container(),
-            onDragEnd: (details) {
-              final RenderBox renderBox = context.findRenderObject() as RenderBox;
-              final localOffset = renderBox.globalToLocal(details.offset);
-              
-              setState(() {
-                // Keep button within screen bounds
-                double newX = localOffset.dx;
-                double newY = localOffset.dy;
-
-                // Constrain to widget bounds (with padding)
-                newX = newX.clamp(0.0, renderBox.size.width - 56); // 56 is button width
-                newY = newY.clamp(0.0, renderBox.size.height - 56);
-
-                _position = Offset(newX, newY);
-              });
-            },
-            child: _buildButton(context),
+    return Positioned(
+      bottom: 32,
+      right: 32,
+      child: GestureDetector(
+        onLongPress: _requestToSpeak,
+        onLongPressEnd: (_) => _stopStreaming(),
+        child: Material(
+          elevation: isRecording ? 12 : 6,
+          shape: const CircleBorder(),
+          child: Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              color: isChannelBusy ? Colors.grey : (isRecording ? Colors.red : Colors.orange),
+              shape: BoxShape.circle,
+              boxShadow: isRecording
+                  ? [BoxShadow(color: Colors.red.withValues(alpha: 0.5), blurRadius: 20, spreadRadius: 5)]
+                  : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
+            ),
+            child: const Icon(Icons.radio, color: Colors.white, size: 32),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildButton(BuildContext context, {bool isDragging = false}) {
-    return Material(
-      elevation: isDragging ? 8 : 6,
-      shape: const CircleBorder(),
-      color: Colors.transparent,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: Colors.orange,
-          shape: BoxShape.circle,
-          boxShadow: isDragging
-              ? [
-                  BoxShadow(
-                    color: Colors.orange.withValues(alpha: 0.5),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-        ),
-        child: InkWell(
-          onTap: () => _activateWalkieTalkie(context),
-          customBorder: const CircleBorder(),
-          child: const Icon(Icons.radio, color: Colors.white, size: 28),
         ),
       ),
     );

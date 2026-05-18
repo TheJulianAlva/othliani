@@ -62,7 +62,7 @@ class _ItineraryView extends StatelessWidget {
               return const SizedBox.shrink();
             },
           ),
-          const WalkieTalkieButton(),
+          const WalkieTalkieButton(tripId: 'current_trip'),
         ],
       ),
     );
