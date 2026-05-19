@@ -9,22 +9,55 @@ abstract class ItineraryRemoteDataSource {
 class ItineraryMockDataSource implements ItineraryRemoteDataSource {
   @override
   Future<List<ItineraryItemModel>> getItinerary(String tripId) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 600));
 
-    // Mock data
-    final now = DateTime.now();
-    return List.generate(5, (index) {
-      final startTime = now.add(Duration(hours: 9 + index));
-      return ItineraryItemModel(
-        id: 'event_$index',
-        title: 'Evento del itinerario ${index + 1}',
-        description: 'Descripción breve del lugar o actividad a realizar.',
-        startTime: startTime,
-        endTime: startTime.add(const Duration(hours: 1)),
-        location: 'Lugar Turístico $index',
-      );
-    });
+    final today = DateTime.now();
+    final base = DateTime(today.year, today.month, today.day);
+
+    return [
+      ItineraryItemModel(
+        id: 'event_1',
+        title: 'Desayuno de bienvenida',
+        description: 'Buffet de especialidades yucatecas incluido.',
+        startTime: base.add(const Duration(hours: 8, minutes: 0)),
+        endTime: base.add(const Duration(hours: 9, minutes: 30)),
+        location: 'Hotel Akumal Bay, Tulum',
+      ),
+      ItineraryItemModel(
+        id: 'event_2',
+        title: 'Zona Arqueológica de Tulum',
+        description:
+            'Recorrido guiado por la ciudad amurallada maya frente al mar Caribe.',
+        startTime: base.add(const Duration(hours: 10, minutes: 0)),
+        endTime: base.add(const Duration(hours: 12, minutes: 30)),
+        location: 'Zona Arqueológica de Tulum, Q.R.',
+      ),
+      ItineraryItemModel(
+        id: 'event_3',
+        title: 'Almuerzo en cenote',
+        description: 'Comida tradicional en restaurante junto a cenote natural.',
+        startTime: base.add(const Duration(hours: 13, minutes: 0)),
+        endTime: base.add(const Duration(hours: 14, minutes: 30)),
+        location: 'Restaurante La Selva, Tulum',
+      ),
+      ItineraryItemModel(
+        id: 'event_4',
+        title: 'Tiempo libre en Playa Paraíso',
+        description:
+            'Disfruta la playa considerada una de las más bellas del Caribe. Punto de reunión: palapa central.',
+        startTime: base.add(const Duration(hours: 15, minutes: 0)),
+        endTime: base.add(const Duration(hours: 18, minutes: 0)),
+        location: 'Playa Paraíso, Tulum',
+      ),
+      ItineraryItemModel(
+        id: 'event_5',
+        title: 'Cena de cierre y brindis',
+        description: 'Mariscos y cocina mexicana en el restaurante del grupo.',
+        startTime: base.add(const Duration(hours: 20, minutes: 0)),
+        endTime: base.add(const Duration(hours: 22, minutes: 0)),
+        location: 'El Camello Jr., Tulum',
+      ),
+    ];
   }
 }
 

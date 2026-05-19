@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/demo/demo_config.dart';
 import 'package:frontend/core/di/service_locator.dart' as di_shared;
 import 'package:frontend/core/di/turista_locator.dart' as di_turista;
 import 'package:frontend/core/di/service_locator.dart';
@@ -22,6 +23,11 @@ void main() async {
   await di_turista.initTuristaDependencies();
 
   final prefs = await SharedPreferences.getInstance();
+
+  if (kDemoMode) {
+    await prefs.setBool(_kHasAccount, true);
+  }
+
   final hasAccount = prefs.getBool(_kHasAccount) ?? false;
 
   runApp(MyApp(hasAccount: hasAccount));
@@ -63,8 +69,11 @@ class _AppView extends StatelessWidget {
     // Create Router with AuthBloc — pass hasAccount so returning users go to
     // /login instead of /folio after logout.
     final authBloc = context.read<AuthBloc>();
+    final String initialLocation = kDemoMode
+        ? RoutesTurista.home
+        : (hasAccount ? RoutesTurista.login : RoutesTurista.folio);
     final router = EnrutadorAppTurista.createRouter(
-      hasAccount ? RoutesTurista.login : RoutesTurista.folio,
+      initialLocation,
       authBloc,
       hasAccount: hasAccount,
     );

@@ -26,6 +26,7 @@ import 'package:frontend/core/navigation/go_router_refresh_stream.dart';
 
 import 'routes_turista.dart';
 import 'transitions.dart';
+import 'package:frontend/core/demo/demo_config.dart';
 
 class EnrutadorAppTurista {
   static GoRouter createRouter(
@@ -41,6 +42,9 @@ class EnrutadorAppTurista {
       initialLocation: initialLocation,
       refreshListenable: GoRouterRefreshStream(authBloc.stream),
       redirect: (context, state) {
+        // En modo demo se omite cualquier guard de autenticación.
+        if (kDemoMode) return null;
+
         final authState = authBloc.state;
 
         // While the auth check is still running, don't redirect.

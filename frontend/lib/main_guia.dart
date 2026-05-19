@@ -5,6 +5,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
+import 'dart:convert';
+
+import 'core/demo/demo_config.dart';
 import 'core/di/service_locator.dart';
 import 'core/di/guia_locator.dart';
 import 'core/navigation/enrutador_app_guia.dart';
@@ -23,6 +26,23 @@ void main() async {
   await initGuiaDependencies();
 
   final prefs = await SharedPreferences.getInstance();
+
+  if (kDemoMode) {
+    await prefs.setBool('GUIA_ONBOARDING_DONE', true);
+    await prefs.setString(
+      'CACHED_GUIA_USER',
+      json.encode({
+        'id': 'guia-demo-001',
+        'email': 'carlos.mendoza@veltur.com',
+        'name': 'Carlos Mendoza',
+        'phone': null,
+        'emergencyContact': null,
+        'permissionLevel': 2,
+        'authStatus': 'authenticated',
+      }),
+    );
+  }
+
   final onboardingCompletado = prefs.getBool('GUIA_ONBOARDING_DONE') ?? false;
   // El LocalDataSource guarda el usuario con esta llave
   final isLoggedIn = prefs.getString('CACHED_GUIA_USER') != null;

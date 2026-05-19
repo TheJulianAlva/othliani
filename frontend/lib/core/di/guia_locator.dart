@@ -1,5 +1,4 @@
 import 'package:frontend/core/di/service_locator.dart';
-import 'package:frontend/core/network/dio_client.dart';
 import 'package:frontend/features/guia/auth/data/datasources/guia_auth_local_data_source.dart';
 import 'package:frontend/features/guia/auth/data/datasources/guia_auth_remote_data_source.dart';
 import 'package:frontend/features/guia/auth/data/datasources/guia_subscription_remote_data_source.dart';
@@ -26,7 +25,6 @@ import 'package:frontend/features/guia/auth/domain/usecases/verify_agency_phone_
 import 'package:frontend/features/guia/home/presentation/blocs/agencia_home_bloc/agencia_home_cubit.dart';
 import 'package:frontend/features/guia/home/presentation/blocs/personal_home_bloc/personal_home_cubit.dart';
 import 'package:frontend/features/guia/home/data/datasources/guia_home_mock_datasource.dart';
-import 'package:frontend/features/guia/home/data/datasources/guia_home_remote_datasource.dart';
 import 'package:frontend/features/guia/home/data/repositories/guia_home_repository_impl.dart';
 import 'package:frontend/features/guia/home/domain/repositories/guia_home_repository.dart';
 import 'package:frontend/features/guia/home/domain/usecases/get_agencia_home_data_usecase.dart';
@@ -52,7 +50,7 @@ Future<void> initGuiaDependencies() async {
   // ====================================================
 
   sl.registerLazySingleton<GuiaAuthRemoteDataSource>(
-    () => GuiaAuthRemoteDataSourceImpl(dio: sl<DioClient>().dio),
+    () => GuiaAuthMockDataSource(),
   );
   sl.registerLazySingleton<GuiaAuthLocalDataSource>(
     () => GuiaAuthLocalDataSourceImpl(sharedPreferences: sl()),
@@ -64,7 +62,7 @@ Future<void> initGuiaDependencies() async {
     () => CajaNegraLocalDataSource(sl()),
   );
   sl.registerLazySingleton<GuiaHomeRemoteDataSource>(
-    () => GuiaHomeRemoteDataSourceImpl(dio: sl<DioClient>().dio),
+    () => GuiaHomeMockDataSource(),
   );
   sl.registerLazySingleton<SucesionMandoDataSource>(
     () => SucesionMandoLocalService(),
