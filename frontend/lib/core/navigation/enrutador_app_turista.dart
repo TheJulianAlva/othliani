@@ -18,6 +18,7 @@ import 'package:frontend/features/turista/settings/presentation/screens/config_s
 import 'package:frontend/features/turista/profile/presentation/screens/profile_screen.dart';
 import 'package:frontend/core/tools/presentation/screens/currency_converter_screen.dart';
 import 'package:frontend/features/turista/settings/presentation/screens/accessibility_screen.dart';
+import 'package:frontend/features/turista/home/presentation/screens/pantalla_emergencia_turista.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
@@ -236,6 +237,16 @@ class EnrutadorAppTurista {
               (context, state) => CustomTransitionPage(
                 key: state.pageKey,
                 child: const AccessibilityScreen(),
+                transitionsBuilder: fadeSlideTransition,
+              ),
+        ),
+        GoRoute(
+          path: RoutesTurista.emergencia,
+          name: 'turista_emergencia',
+          pageBuilder:
+              (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const PantallaEmergenciaTurista(),
                 transitionsBuilder: fadeSlideTransition,
               ),
         ),

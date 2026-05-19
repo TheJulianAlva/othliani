@@ -5,7 +5,7 @@
 | Fase | Descripción | Estado |
 |---|---|---|
 | Fase 1 | Auth bypass + datos mock + demo_config | ✅ Completada |
-| Fase 2 | Servidor Railway + Socket.IO service | ⏳ Pendiente |
+| Fase 2 | Servidor Railway + Socket.IO service | ✅ Completada |
 | Fase 3 | Pánico, walkie-talkie, trigger respaldo | ⏳ Pendiente |
 | Fase 4 | Documentación y ensayos | ⏳ Pendiente |
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/demo/demo_config.dart';
+import 'package:frontend/core/demo/demo_socket_service.dart';
 import 'package:frontend/core/di/service_locator.dart' as di_shared;
 import 'package:frontend/core/di/turista_locator.dart' as di_turista;
 import 'package:frontend/core/di/service_locator.dart';
@@ -29,6 +30,8 @@ void main() async {
   }
 
   final hasAccount = prefs.getBool(_kHasAccount) ?? false;
+
+  DemoSocketService.instance.connect();
 
   runApp(MyApp(hasAccount: hasAccount));
 }

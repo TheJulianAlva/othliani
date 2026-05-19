@@ -15,6 +15,7 @@ class RoutesTurista {
   static const String profile = '/profile';
   static const String currencyConverter = '/currency-converter';
   static const String accessibility = '/accessibility';
+  static const String emergencia = '/emergencia';
 
   static String tripDetails(String tripId) => '/trip/$tripId';
 }

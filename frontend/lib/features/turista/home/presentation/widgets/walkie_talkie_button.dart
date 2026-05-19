@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
+import 'package:frontend/core/demo/demo_config.dart';
 
 class WalkieTalkieButton extends StatefulWidget {
   final String tripId;
@@ -44,11 +44,9 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
   }
 
   void _initSocket() {
-    String serverIp =
-        Platform.isAndroid
-            ? 'http://10.170.6.0:3000'
-            : 'http://10.170.6.0:3000';
-    socket = io.io(serverIp, <String, dynamic>{
+    final serverUrl =
+        kDemoMode ? kDemoServerUrl : 'http://10.170.6.0:3000';
+    socket = io.io(serverUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
     });

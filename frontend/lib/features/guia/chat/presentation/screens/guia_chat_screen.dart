@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/demo/demo_config.dart';
 import 'package:frontend/features/turista/chat/presentation/widgets/chat_bubble.dart';
 import 'package:frontend/features/turista/chat/presentation/widgets/message_input_field.dart';
+import 'package:frontend/features/turista/home/presentation/widgets/walkie_talkie_button.dart';
 import 'package:frontend/features/guia/shared/widgets/guia_custom_app_bar.dart';
 
 /// Chat grupal del guía.
@@ -112,7 +114,7 @@ class _GuiaChatScreenState extends State<GuiaChatScreen> {
             ),
           ),
 
-          // Botón de anuncio
+          // Barra de acciones rápidas: Anuncio + Walkie-talkie
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
@@ -136,6 +138,10 @@ class _GuiaChatScreenState extends State<GuiaChatScreen> {
                     ),
                   ),
                 ),
+                if (kDemoMode) ...[
+                  const SizedBox(width: 10),
+                  WalkieTalkieButton(tripId: kDemoTripId),
+                ],
               ],
             ),
           ),

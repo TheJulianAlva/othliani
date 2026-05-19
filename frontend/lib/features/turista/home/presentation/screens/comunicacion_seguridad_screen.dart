@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:frontend/core/demo/demo_config.dart';
+import 'package:frontend/core/demo/demo_socket_service.dart';
+import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/theme/app_constants.dart';
 import 'package:frontend/features/turista/home/presentation/widgets/walkie_talkie_button.dart';
 
@@ -60,12 +64,17 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.lg),
                 GestureDetector(
                   onLongPress: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('🚨 Alerta de emergencia enviada.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    if (kDemoMode) {
+                      DemoSocketService.instance.emitPanic();
+                      context.push(RoutesTurista.emergencia);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('🚨 Alerta de emergencia enviada.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   },
                   child: Container(
                     height: 80,
@@ -166,12 +175,14 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 // Botón Walkie-Talkie (ampliado visualmente o centrado)
-                const Center(
+                Center(
                   child: SizedBox(
                     width: 100,
                     height: 100,
                     child: FittedBox(
-                      child: WalkieTalkieButton(tripId: 'current_trip'),
+                      child: WalkieTalkieButton(
+                        tripId: kDemoMode ? kDemoTripId : 'current_trip',
+                      ),
                     ),
                   ),
                 ),

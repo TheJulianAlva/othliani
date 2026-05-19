@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'dart:convert';
 
 import 'core/demo/demo_config.dart';
+import 'core/demo/demo_socket_service.dart';
 import 'core/di/service_locator.dart';
 import 'core/di/guia_locator.dart';
 import 'core/navigation/enrutador_app_guia.dart';
@@ -58,6 +59,8 @@ void main() async {
     // Sesión activa → pantalla principal
     initialRoute = RoutesGuia.home;
   }
+
+  DemoSocketService.instance.connect();
 
   runApp(MainAppGuia(initialRoute: initialRoute));
 }

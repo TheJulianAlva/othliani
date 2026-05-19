@@ -19,6 +19,7 @@ import 'package:frontend/features/guia/shared/theme/guia_theme.dart';
 import 'package:frontend/features/guia/shared/widgets/guia_custom_app_bar.dart';
 import 'package:frontend/features/guia/shared/widgets/weather_widget.dart'
     show WeatherWidget;
+import 'package:frontend/features/guia/home/presentation/widgets/demo_panic_trigger.dart';
 
 class AgenciaMainLayout extends StatefulWidget {
   final String nombreGuia;
@@ -75,7 +76,7 @@ class _AgenciaMainLayoutState extends State<AgenciaMainLayout>
   }
 
   Widget _buildContent(BuildContext context, AgenciaHomeLoaded state) {
-    return Scaffold(
+    return DemoPanicTrigger(child: Scaffold(
       backgroundColor: const Color(0xFFF0F3FF),
       appBar: _buildAppBar(context, state),
       body: Column(
@@ -173,7 +174,7 @@ class _AgenciaMainLayoutState extends State<AgenciaMainLayout>
           ),
         ],
       ),
-    );
+    ));
   }
 
   PreferredSizeWidget _buildAppBar(
