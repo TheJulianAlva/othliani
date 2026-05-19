@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:frontend/features/guia/auth/data/models/guia_user_model.dart';
 
 abstract class GuiaAuthRemoteDataSource {
@@ -24,8 +26,13 @@ class GuiaAuthRemoteDataSourceImpl implements GuiaAuthRemoteDataSource {
         'password': password,
       });
 
-      final data = response.data['usuario'] as Map<String, dynamic>;
+      var responseData = response.data;
+      if (responseData is String) {
+        responseData = json.decode(responseData);
+      }
 
+      final data = responseData['usuario'] as Map<String, dynamic>;
+      
       return GuiaUserModel(
         id: data['id'] as String,
         email: data['correo'] as String,
@@ -57,12 +64,20 @@ class GuiaAuthRemoteDataSourceImpl implements GuiaAuthRemoteDataSource {
   @override
   Future<GuiaUserModel> loginWithAgencyAccess(String folio, String phone) async {
     try {
+      debugPrint('GuiaAuthRemote: Enviando login-agencia con folio: $folio, telefono: $phone');
       final response = await dio.post('/usuarios/login-agencia', data: {
         'folio': folio,
         'telefono': phone,
       });
 
-      final data = response.data['usuario'] as Map<String, dynamic>;
+      debugPrint('GuiaAuthRemote: Respuesta recibida: ${response.data}');
+
+      var responseData = response.data;
+      if (responseData is String) {
+        responseData = json.decode(responseData);
+      }
+
+      final data = responseData['usuario'] as Map<String, dynamic>;
 
       return GuiaUserModel(
         id: data['id'] as String,
@@ -70,8 +85,10 @@ class GuiaAuthRemoteDataSourceImpl implements GuiaAuthRemoteDataSource {
         name: data['nombre_completo'] as String,
         permissionLevel: 2, // Agencia B2B access
       );
-    } catch (e) {
-      throw Exception('Folio o teléfono incorrectos');
+    } catch (e, stack) {
+      debugPrint('GuiaAuthRemote: Error en login B2B: $e');
+      debugPrint('GuiaAuthRemote: StackTrace: $stack');
+      throw Exception('Folio o teléfono incorrectos: $e');
     }
   }
 }

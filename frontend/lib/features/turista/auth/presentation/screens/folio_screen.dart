@@ -7,6 +7,9 @@ import 'package:frontend/features/turista/auth/presentation/cubit/verification_c
 import 'package:frontend/features/turista/auth/presentation/cubit/verification_state.dart';
 // ignore: unused_import
 import 'package:frontend/core/l10n/app_localizations.dart';
+import 'package:frontend/features/turista/auth/data/models/user_model.dart';
+import 'package:frontend/features/turista/auth/presentation/bloc/auth_event.dart';
+import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
 
 class FolioScreen extends StatelessWidget {
   const FolioScreen({super.key});
@@ -53,7 +56,14 @@ class _FolioViewState extends State<_FolioView> {
       body: BlocListener<VerificationCubit, VerificationState>(
         listener: (context, state) {
           if (state is FolioVerified && state.isValid) {
-            context.push(RoutesTurista.phoneConfirm);
+            // Autenticar al usuario en el AuthBloc para que el router permita el acceso a /home
+            const user = UserModel(
+              id: 'turista-gto4',
+              email: 'turista@veltur.com',
+              name: 'Turista Veltur',
+            );
+            context.read<AuthBloc>().add(const AuthLoggedIn(user));
+            context.go(RoutesTurista.home);
           } else if (state is VerificationError) {
             ScaffoldMessenger.of(
               context,

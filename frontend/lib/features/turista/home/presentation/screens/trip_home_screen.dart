@@ -8,8 +8,9 @@ import 'package:frontend/features/turista/home/presentation/bloc/trip_bloc.dart'
 import 'package:frontend/features/turista/home/presentation/bloc/trip_event.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/trip_state.dart';
 import 'package:frontend/features/turista/home/presentation/screens/activity_detail_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class TripHomeScreen extends StatelessWidget {
   const TripHomeScreen({super.key});
@@ -39,7 +40,7 @@ class _TripHomeViewState extends State<_TripHomeView>
     -87.4654,
   );
 
-  IO.Socket? socket;
+  io.Socket? socket;
 
   @override
   void initState() {
@@ -48,19 +49,30 @@ class _TripHomeViewState extends State<_TripHomeView>
   }
 
   void _conectarAlWebSocket() {
-    socket = IO.io('http://10.170.6.0:3000', <String, dynamic>{
+    socket = io.io('http://10.170.6.0:3000', <String, dynamic>{
       'transports': ['websocket'],
-      'autoConnect': false,
+      'autoConnect': true,
     });
 
-    socket!.connect();
-
     socket!.onConnect((_) {
-      print('Turista conectado a la Torre de Control 🗼');
+      debugPrint('Turista conectado a la Torre de Control 🗼');
       socket!.emit('unirseAlViaje', {'viaje_id': 'viaje_123', 'folio': 'GTO-4'});
     });
 
+    socket!.onConnectError((err) {
+      debugPrint('Turista socket connect error: $err');
+    });
+
+    socket!.onError((err) {
+      debugPrint('Turista socket error: $err');
+    });
+
+    socket!.onDisconnect((_) {
+      debugPrint('Turista desconectado del socket');
+    });
+
     socket!.on('alertaAmarilla', (data) {
+      debugPrint('Turista recibió alertaAmarilla: $data');
       _mostrarAlertaEnPantalla(data['mensaje']);
     });
   }
