@@ -115,7 +115,7 @@ class _PantallaEmergenciaTuristaState extends State<PantallaEmergenciaTurista>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              WalkieTalkieButton(tripId: kDemoTripId),
+              WalkieTalkieButton(tripId: kDemoPanicChannelId),
 
               const Spacer(),
 

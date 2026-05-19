@@ -11,11 +11,11 @@ class GuiaHomeMockDataSource implements GuiaHomeRemoteDataSource {
     await Future.delayed(const Duration(milliseconds: 700));
 
     return AgenciaHomeData(
-      nombreViaje: 'Tour Teotihuacán 2026',
+      nombreViaje: 'Cancún-Tulum',
       folio: folio,
-      destino: 'Teotihuacán, Estado de México',
+      destino: 'Tulum, Quintana Roo',
       totalParticipantes: 24,
-      geocercaRadio: '300 m · Zona Arqueológica',
+      geocercaRadio: '1.5 km · Zona Arqueológica de Tulum',
       participantes: const [
         Participante(
           nombre: 'María García',
@@ -60,176 +60,155 @@ class GuiaHomeMockDataSource implements GuiaHomeRemoteDataSource {
           hora: '11:03',
         ),
       ],
-      // ── Actividades mock (Teotihuacán) ──────────────────────────────────
+      // ── Actividades mock (Cancún-Tulum) ─────────────────────────────────
       actividades: [
         // DÍA 1 (Hoy)
         ActividadItinerarioModel(
-          nombre: 'Salida del hotel hacia Teotihuacán',
+          nombre: 'Desayuno de bienvenida',
           horaInicio: DateTime(
-            DateTime.now().year,
-            DateTime.now().month,
-            DateTime.now().day,
-            7,
-            0,
-          ),
-          horaFin: DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day,
             8,
-            30,
+            0,
           ),
-          completada: true,
-          descripcion:
-              'Traslado en autobús institucional. Pase de lista obligatorio antes de abordar.',
-          puntoReunion: 'Lobby del Hotel Fiesta Inn Perinorte',
-        ),
-        ActividadItinerarioModel(
-          nombre: 'Recorrido Pirámide del Sol',
-          horaInicio: DateTime(
+          horaFin: DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day,
             9,
-            0,
-          ),
-          horaFin: DateTime(
-            DateTime.now().year,
-            DateTime.now().month,
-            DateTime.now().day,
-            11,
-            0,
+            30,
           ),
           completada: true,
           descripcion:
-              'Visita guiada con explicación histórica. Subida opcional a la cima (248 escalones).',
-          puntoReunion: 'Puerta 1 de la Zona Arqueológica',
+              'Buffet de especialidades yucatecas incluido. Pase de lista antes de salir.',
+          puntoReunion: 'Hotel Akumal Bay, Tulum',
         ),
         ActividadItinerarioModel(
-          nombre: 'Almuerzo en La Gruta',
+          nombre: 'Zona Arqueológica de Tulum',
           horaInicio: DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
+            10,
+            0,
+          ),
+          horaFin: DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day,
             12,
-            0,
+            30,
           ),
-          horaFin: DateTime(
+          completada: false,
+          descripcion:
+              'Recorrido guiado por la ciudad amurallada maya frente al mar Caribe.',
+          puntoReunion: 'Entrada principal de la Zona Arqueológica',
+        ),
+        ActividadItinerarioModel(
+          nombre: 'Almuerzo en cenote',
+          horaInicio: DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day,
             13,
-            30,
+            0,
           ),
-          completada: false,
-          descripcion:
-              'Restaurante dentro de una cueva natural. Menú regional incluido.',
-          puntoReunion: 'Restaurante La Gruta (300m de Puerta 5)',
-        ),
-        ActividadItinerarioModel(
-          nombre: 'Calzada de los Muertos + Pirámide de la Luna',
-          horaInicio: DateTime(
+          horaFin: DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day,
             14,
-            0,
-          ),
-          horaFin: DateTime(
-            DateTime.now().year,
-            DateTime.now().month,
-            DateTime.now().day,
-            16,
-            0,
-          ),
-          completada: false,
-          descripcion:
-              'Caminata por la avenida principal y visita a la segunda pirámide más grande.',
-          puntoReunion: 'Plaza de la Luna',
-        ),
-        ActividadItinerarioModel(
-          nombre: 'Taller de obsidiana',
-          horaInicio: DateTime(
-            DateTime.now().year,
-            DateTime.now().month,
-            DateTime.now().day,
-            16,
-            30,
-          ),
-          horaFin: DateTime(
-            DateTime.now().year,
-            DateTime.now().month,
-            DateTime.now().day,
-            17,
             30,
           ),
           completada: false,
           descripcion:
-              'Demostración artesanal de tallado de obsidiana y tiempo para compras.',
-          puntoReunion: 'Centro Artesanal San Martín',
+              'Comida tradicional en restaurante junto a cenote natural.',
+          puntoReunion: 'Restaurante La Selva, Tulum',
         ),
         ActividadItinerarioModel(
-          nombre: 'Regreso al hotel',
+          nombre: 'Tiempo libre en Playa Paraíso',
           horaInicio: DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
+            15,
+            0,
+          ),
+          horaFin: DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day,
             18,
             0,
           ),
+          completada: false,
+          descripcion:
+              'Playa considerada una de las más bellas del Caribe. Punto de reunión: palapa central.',
+          puntoReunion: 'Playa Paraíso, Tulum',
+        ),
+        ActividadItinerarioModel(
+          nombre: 'Cena de cierre y brindis',
+          horaInicio: DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
+            20,
+            0,
+          ),
           horaFin: DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day,
-            19,
-            30,
-          ),
-          completada: false,
-          descripcion: 'Traslado de vuelta. Pase de lista antes de abordar.',
-          puntoReunion: 'Estacionamiento Puerta 1',
-        ),
-        // DÍA 2 (Mañana)
-        ActividadItinerarioModel(
-          nombre: 'Museo de Sitio de Teotihuacán',
-          horaInicio: DateTime(
-            DateTime.now().year,
-            DateTime.now().month,
-            DateTime.now().day + 1,
-            9,
-            0,
-          ),
-          horaFin: DateTime(
-            DateTime.now().year,
-            DateTime.now().month,
-            DateTime.now().day + 1,
-            11,
+            22,
             0,
           ),
           completada: false,
           descripcion:
-              'Visita al museo con piezas originales y maquetas a escala.',
-          puntoReunion: 'Entrada del Museo de Sitio',
+              'Mariscos y cocina mexicana en el restaurante del grupo.',
+          puntoReunion: 'El Camello Jr., Tulum',
         ),
+        // DÍA 2 (Mañana)
         ActividadItinerarioModel(
-          nombre: 'Globo aerostático',
+          nombre: 'Yoga en la playa',
           horaInicio: DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day + 1,
-            6,
-            30,
+            7,
+            0,
           ),
           horaFin: DateTime(
             DateTime.now().year,
             DateTime.now().month,
             DateTime.now().day + 1,
             8,
+            30,
+          ),
+          completada: false,
+          descripcion: 'Sesión matutina de yoga frente al mar Caribe.',
+          puntoReunion: 'Playa frente al hotel',
+        ),
+        ActividadItinerarioModel(
+          nombre: 'Tour en cenote',
+          horaInicio: DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day + 1,
+            11,
+            0,
+          ),
+          horaFin: DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day + 1,
+            14,
             0,
           ),
           completada: false,
           descripcion:
-              'Vuelo en globo al amanecer sobre las pirámides. Incluye brindis.',
-          puntoReunion: 'Campo de despegue (km 23.5 carretera)',
+              'Explora los místicos cenotes mayas de la Riviera Maya.',
+          puntoReunion: 'Cenote Dos Ojos, entrada principal',
         ),
       ],
       // ── Turistas mock ──────────────────────────────────────────────────
@@ -237,7 +216,7 @@ class GuiaHomeMockDataSource implements GuiaHomeRemoteDataSource {
         Turista(
           id: 'ta_001',
           nombre: 'María García',
-          viajeId: 'v_teo',
+          viajeId: 'demo-trip-cancun-2026',
           status: 'OK',
           bateria: 0.92,
           enCampo: true,
@@ -245,7 +224,7 @@ class GuiaHomeMockDataSource implements GuiaHomeRemoteDataSource {
         Turista(
           id: 'ta_002',
           nombre: 'Carlos López',
-          viajeId: 'v_teo',
+          viajeId: 'demo-trip-cancun-2026',
           status: 'OK',
           bateria: 0.85,
           enCampo: true,
@@ -253,7 +232,7 @@ class GuiaHomeMockDataSource implements GuiaHomeRemoteDataSource {
         Turista(
           id: 'ta_003',
           nombre: 'Ana Martínez',
-          viajeId: 'v_teo',
+          viajeId: 'demo-trip-cancun-2026',
           status: 'OFFLINE',
           bateria: 0.15,
           enCampo: false,
@@ -261,7 +240,7 @@ class GuiaHomeMockDataSource implements GuiaHomeRemoteDataSource {
         Turista(
           id: 'ta_004',
           nombre: 'Roberto Silva',
-          viajeId: 'v_teo',
+          viajeId: 'demo-trip-cancun-2026',
           status: 'OK',
           bateria: 0.78,
           enCampo: true,
@@ -269,7 +248,7 @@ class GuiaHomeMockDataSource implements GuiaHomeRemoteDataSource {
         Turista(
           id: 'ta_005',
           nombre: 'Sofía Ramírez',
-          viajeId: 'v_teo',
+          viajeId: 'demo-trip-cancun-2026',
           status: 'ADVERTENCIA',
           bateria: 0.08,
           enCampo: true,
@@ -278,7 +257,7 @@ class GuiaHomeMockDataSource implements GuiaHomeRemoteDataSource {
         Turista(
           id: 'ta_006',
           nombre: 'Luis Hernández',
-          viajeId: 'v_teo',
+          viajeId: 'demo-trip-cancun-2026',
           status: 'OK',
           bateria: 0.95,
           enCampo: true,
@@ -286,7 +265,7 @@ class GuiaHomeMockDataSource implements GuiaHomeRemoteDataSource {
         Turista(
           id: 'ta_007',
           nombre: 'Paola Torres',
-          viajeId: 'v_teo',
+          viajeId: 'demo-trip-cancun-2026',
           status: 'OFFLINE',
           bateria: 0.0,
           enCampo: false,

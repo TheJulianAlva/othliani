@@ -1,15 +1,19 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/demo/demo_config.dart';
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
+import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/theme/app_constants.dart';
 import 'package:frontend/features/turista/home/domain/entities/activity.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/trip_bloc.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/trip_event.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/trip_state.dart';
 import 'package:frontend/features/turista/home/presentation/screens/activity_detail_screen.dart';
-import 'package:flutter/foundation.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class TripHomeScreen extends StatelessWidget {
@@ -45,11 +49,13 @@ class _TripHomeViewState extends State<_TripHomeView>
   @override
   void initState() {
     super.initState();
+    _requestLocationPermission();
     _conectarAlWebSocket();
   }
 
   void _conectarAlWebSocket() {
-    socket = io.io('http://10.170.6.0:3000', <String, dynamic>{
+    final serverUrl = kDemoMode ? kDemoServerUrl : 'http://10.170.6.0:3000';
+    socket = io.io(serverUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
     });
@@ -107,6 +113,13 @@ class _TripHomeViewState extends State<_TripHomeView>
         ],
       ),
     );
+  }
+
+  Future<void> _requestLocationPermission() async {
+    final status = await Permission.locationWhenInUse.request();
+    if (status.isDenied || status.isPermanentlyDenied) {
+      debugPrint('TripHomeScreen: location permission denied');
+    }
   }
 
   @override
@@ -226,8 +239,7 @@ class _TripHomeViewState extends State<_TripHomeView>
                     zoom: 14.0,
                   ),
                   myLocationEnabled: true,
-                  myLocationButtonEnabled:
-                      false, // Desactivado para no chocar con la UI
+                  myLocationButtonEnabled: false,
                   zoomControlsEnabled: false,
                   markers: {
                     Marker(
@@ -629,6 +641,44 @@ class _TripHomeViewState extends State<_TripHomeView>
                               ),
 
                               const SizedBox(height: AppSpacing.md),
+
+                              // Encabezado + botón de mapa
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Actividades',
+                                      style: theme.textTheme.titleSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    TextButton.icon(
+                                      onPressed: () => context.push(
+                                        RoutesTurista.itineraryMap,
+                                      ),
+                                      icon: const Icon(
+                                        Icons.map_outlined,
+                                        size: 16,
+                                      ),
+                                      label: const Text('Ver en mapa'),
+                                      style: TextButton.styleFrom(
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
 
                               // Filtros
                               Container(

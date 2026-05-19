@@ -206,17 +206,6 @@ class _HomeTabsState extends State<_HomeTabs> {
           return IndexedStack(index: currentIndex, children: _screens);
         },
       ),
-      // Floating Action Button de SOS sugerido globalmente
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'home_sos_fab',
-        onPressed: () {
-          // Lanza la pantalla base de SOS
-          context.push(RoutesGuia.sos);
-        },
-        backgroundColor: Colors.red.shade700,
-        elevation: 4,
-        child: const Icon(Icons.sos_rounded, color: Colors.white, size: 32),
-      ),
       bottomNavigationBar: ValueListenableBuilder<int>(
         valueListenable: _currentIndexNotifier,
         builder: (context, currentIndex, _) {

@@ -1,4 +1,5 @@
 import 'package:frontend/core/di/service_locator.dart';
+import 'package:frontend/core/demo/demo_config.dart';
 import 'package:frontend/core/network/dio_client.dart';
 import 'package:frontend/features/turista/auth/data/datasources/auth_local_data_source.dart';
 import 'package:frontend/features/turista/auth/data/datasources/auth_remote_data_source.dart';
@@ -63,7 +64,9 @@ Future<void> initTuristaDependencies() async {
   // Auth
   // Data Sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(dio: sl<DioClient>().dio),
+    () => kDemoMode
+        ? AuthMockDataSource()
+        : AuthRemoteDataSourceImpl(dio: sl<DioClient>().dio),
   );
   sl.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(sharedPreferences: sl()),
@@ -72,10 +75,14 @@ Future<void> initTuristaDependencies() async {
   // Home
   // Home
   sl.registerLazySingleton<TripRemoteDataSource>(
-    () => TripRemoteDataSourceImpl(dio: sl<DioClient>().dio),
+    () => kDemoMode
+        ? TripMockDataSource()
+        : TripRemoteDataSourceImpl(dio: sl<DioClient>().dio),
   );
   sl.registerLazySingleton<ItineraryRemoteDataSource>(
-    () => ItineraryRemoteDataSourceImpl(dio: sl<DioClient>().dio),
+    () => kDemoMode
+        ? ItineraryMockDataSource()
+        : ItineraryRemoteDataSourceImpl(dio: sl<DioClient>().dio),
   );
 
   // Profile

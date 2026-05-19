@@ -22,6 +22,8 @@ class ItineraryMockDataSource implements ItineraryRemoteDataSource {
         startTime: base.add(const Duration(hours: 8, minutes: 0)),
         endTime: base.add(const Duration(hours: 9, minutes: 30)),
         location: 'Hotel Akumal Bay, Tulum',
+        latitude: 20.3941,
+        longitude: -87.3168,
       ),
       ItineraryItemModel(
         id: 'event_2',
@@ -31,6 +33,8 @@ class ItineraryMockDataSource implements ItineraryRemoteDataSource {
         startTime: base.add(const Duration(hours: 10, minutes: 0)),
         endTime: base.add(const Duration(hours: 12, minutes: 30)),
         location: 'Zona Arqueológica de Tulum, Q.R.',
+        latitude: 20.2116,
+        longitude: -87.4291,
       ),
       ItineraryItemModel(
         id: 'event_3',
@@ -39,6 +43,8 @@ class ItineraryMockDataSource implements ItineraryRemoteDataSource {
         startTime: base.add(const Duration(hours: 13, minutes: 0)),
         endTime: base.add(const Duration(hours: 14, minutes: 30)),
         location: 'Restaurante La Selva, Tulum',
+        latitude: 20.2230,
+        longitude: -87.4500,
       ),
       ItineraryItemModel(
         id: 'event_4',
@@ -48,6 +54,8 @@ class ItineraryMockDataSource implements ItineraryRemoteDataSource {
         startTime: base.add(const Duration(hours: 15, minutes: 0)),
         endTime: base.add(const Duration(hours: 18, minutes: 0)),
         location: 'Playa Paraíso, Tulum',
+        latitude: 20.1971,
+        longitude: -87.4337,
       ),
       ItineraryItemModel(
         id: 'event_5',
@@ -56,6 +64,8 @@ class ItineraryMockDataSource implements ItineraryRemoteDataSource {
         startTime: base.add(const Duration(hours: 20, minutes: 0)),
         endTime: base.add(const Duration(hours: 22, minutes: 0)),
         location: 'El Camello Jr., Tulum',
+        latitude: 20.2100,
+        longitude: -87.4658,
       ),
     ];
   }

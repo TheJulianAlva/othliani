@@ -45,7 +45,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => sl<AuthBloc>()..add(AuthCheckRequested())),
+        BlocProvider(create: (_) {
+          final bloc = sl<AuthBloc>();
+          if (!kDemoMode) bloc.add(AuthCheckRequested());
+          return bloc;
+        }),
         BlocProvider(create: (_) => sl<ThemeCubit>()),
         BlocProvider(create: (_) => sl<LocaleCubit>()),
         BlocProvider(create: (_) => sl<AccessibilityCubit>()),

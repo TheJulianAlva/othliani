@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
@@ -16,36 +17,26 @@ class WalkieTalkieButton extends StatefulWidget {
 
 class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
   late io.Socket socket;
-  final record = AudioRecorder();
+  final _recorder = AudioRecorder();
   final _player = FlutterSoundPlayer();
 
   StreamSubscription<Uint8List>? _micSubscription;
+
+  // Buffer de chunks recibidos — se ensamblan en WAV al soltar el canal
+  final List<int> _audioBuffer = [];
+
   bool isRecording = false;
   bool isChannelBusy = false;
 
   @override
   void initState() {
     super.initState();
-    _initAudioPlayer();
+    _player.openPlayer();
     _initSocket();
   }
 
-  Future<void> _initAudioPlayer() async {
-    // Abrimos la sesión de audio
-    await _player.openPlayer();
-    // Configuramos el reproductor para que espere un flujo constante de bytes (PCM)
-    await _player.startPlayerFromStream(
-      codec: Codec.pcm16,
-      numChannels: 1,
-      sampleRate: 16000,
-      interleaved: true,
-      bufferSize: 4096,
-    );
-  }
-
   void _initSocket() {
-    final serverUrl =
-        kDemoMode ? kDemoServerUrl : 'http://10.170.6.0:3000';
+    final serverUrl = kDemoMode ? kDemoServerUrl : 'http://10.170.6.0:3000';
     socket = io.io(serverUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
@@ -53,9 +44,15 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
 
     socket.onConnect((_) => socket.emit('joinTrip', widget.tripId));
 
-    // Control de canal
-    socket.on('estadoCanal', (data) {
-      if (mounted) setState(() => isChannelBusy = data['ocupado']);
+    socket.on('estadoCanal', (data) async {
+      final ocupado = data['ocupado'] as bool;
+      if (mounted) setState(() => isChannelBusy = ocupado);
+
+      // Canal liberado por el emisor → reproducir lo que se acumuló
+      if (!ocupado && _audioBuffer.isNotEmpty && !isRecording) {
+        await _playBuffer();
+        _audioBuffer.clear();
+      }
     });
 
     socket.on('canalDenegado', (_) {
@@ -71,62 +68,117 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
 
     socket.on('canalConcedido', (_) => _startStreaming());
 
-    // --- RECEPCIÓN EN TIEMPO REAL ---
+    // Acumular chunks PCM en buffer — vienen como Base64 para evitar corrupción binaria
     socket.on('audioStream', (chunk) {
-      // Recibimos los bytes del servidor e inmediatamente los inyectamos a la bocina
-      if (_player.isOpen()) {
-        Uint8List bytes;
-        if (chunk is Uint8List) {
-          bytes = chunk;
-        } else if (chunk is List) {
-          bytes = Uint8List.fromList(chunk.cast<int>());
-        } else {
-          return;
-        }
-        _player.feedUint8FromStream(bytes);
+      try {
+        final String b64 = chunk is String ? chunk : chunk.toString();
+        final bytes = base64Decode(b64);
+        _audioBuffer.addAll(bytes);
+      } catch (e) {
+        debugPrint('WalkieTalkie: decode error: $e');
       }
     });
   }
 
+  // Ensambla el buffer PCM en un WAV válido y lo reproduce con la API estable de flutter_sound
+  Future<void> _playBuffer() async {
+    try {
+      final wavBytes = _buildWav(Uint8List.fromList(_audioBuffer));
+      await _player.startPlayer(
+        fromDataBuffer: wavBytes,
+        codec: Codec.pcm16WAV,
+        whenFinished: () => debugPrint('WalkieTalkie: playback finished'),
+      );
+    } catch (e) {
+      debugPrint('WalkieTalkie: playBuffer error: $e');
+    }
+  }
+
+  // Construye cabecera WAV de 44 bytes + datos PCM
+  Uint8List _buildWav(Uint8List pcm) {
+    const sampleRate = 16000;
+    const numChannels = 1;
+    const bitsPerSample = 16;
+    const byteRate = sampleRate * numChannels * bitsPerSample ~/ 8;
+    const blockAlign = numChannels * bitsPerSample ~/ 8;
+    final dataSize = pcm.length;
+
+    final header = ByteData(44);
+    void setStr(int offset, String s) {
+      for (var i = 0; i < s.length; i++) {
+        header.setUint8(offset + i, s.codeUnitAt(i));
+      }
+    }
+
+    setStr(0, 'RIFF');
+    header.setUint32(4, 36 + dataSize, Endian.little);
+    setStr(8, 'WAVE');
+    setStr(12, 'fmt ');
+    header.setUint32(16, 16, Endian.little);
+    header.setUint16(20, 1, Endian.little); // PCM
+    header.setUint16(22, numChannels, Endian.little);
+    header.setUint32(24, sampleRate, Endian.little);
+    header.setUint32(28, byteRate, Endian.little);
+    header.setUint16(32, blockAlign, Endian.little);
+    header.setUint16(34, bitsPerSample, Endian.little);
+    setStr(36, 'data');
+    header.setUint32(40, dataSize, Endian.little);
+
+    final result = Uint8List(44 + dataSize);
+    result.setRange(0, 44, header.buffer.asUint8List());
+    result.setRange(44, 44 + dataSize, pcm);
+    return result;
+  }
+
   Future<void> _requestToSpeak() async {
     if (isChannelBusy) return;
-    if (await record.hasPermission()) {
-      socket.emit('solicitarCanal', widget.tripId);
+    try {
+      if (await _recorder.hasPermission()) {
+        socket.emit('solicitarCanal', widget.tripId);
+      }
+    } catch (e) {
+      debugPrint('WalkieTalkie: requestToSpeak error: $e');
     }
   }
 
   Future<void> _startStreaming() async {
-    // En lugar de guardar en un archivo, abrimos un stream de bytes PCM
-    final stream = await record.startStream(
-      const RecordConfig(
-        encoder: AudioEncoder.pcm16bits,
-        sampleRate: 16000,
-        numChannels: 1,
-      ),
-    );
+    try {
+      final stream = await _recorder.startStream(
+        const RecordConfig(
+          encoder: AudioEncoder.pcm16bits,
+          sampleRate: 16000,
+          numChannels: 1,
+        ),
+      );
+      if (mounted) setState(() => isRecording = true);
 
-    if (mounted) setState(() => isRecording = true);
-
-    // Escuchamos el micrófono y aventamos cada pedacito de voz al backend inmediatamente
-    _micSubscription = stream.listen((data) {
-      socket.emit('audioStream', {'tripId': widget.tripId, 'chunk': data});
-    });
+      _micSubscription = stream.listen(
+        (data) => socket.emit('audioStream', {'tripId': widget.tripId, 'chunk': base64Encode(data)}),
+        onError: (e) => debugPrint('WalkieTalkie: mic error: $e'),
+      );
+    } catch (e) {
+      debugPrint('WalkieTalkie: startStreaming error: $e');
+      if (mounted) setState(() => isRecording = false);
+    }
   }
 
   Future<void> _stopStreaming() async {
     if (!isRecording) return;
-
-    await record.stop();
-    await _micSubscription?.cancel();
-    if (mounted) setState(() => isRecording = false);
-
-    socket.emit('liberarCanal', widget.tripId);
+    try {
+      await _recorder.stop();
+      await _micSubscription?.cancel();
+      _micSubscription = null;
+      if (mounted) setState(() => isRecording = false);
+      socket.emit('liberarCanal', widget.tripId);
+    } catch (e) {
+      debugPrint('WalkieTalkie: stopStreaming error: $e');
+    }
   }
 
   @override
   void dispose() {
     socket.dispose();
-    record.dispose();
+    _recorder.dispose();
     _player.closePlayer();
     _micSubscription?.cancel();
     super.dispose();
@@ -144,27 +196,25 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color:
-                isChannelBusy
-                    ? Colors.grey
-                    : (isRecording ? Colors.red : Colors.orange),
+            color: isChannelBusy
+                ? Colors.grey
+                : (isRecording ? Colors.red : Colors.orange),
             shape: BoxShape.circle,
-            boxShadow:
-                isRecording
-                    ? [
-                      BoxShadow(
-                        color: Colors.red.withValues(alpha: 0.5),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ]
-                    : [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+            boxShadow: isRecording
+                ? [
+                    BoxShadow(
+                      color: Colors.red.withValues(alpha: 0.5),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
           ),
           child: const Icon(Icons.radio, color: Colors.white, size: 28),
         ),
