@@ -1,6 +1,6 @@
-# Análisis de Costos y Arquitectura de Hosting para OhtliAni
+# Análisis de Costos y Arquitectura de Hosting para Veltur
 
-Este documento proporciona un análisis detallado sobre las opciones de infraestructura para el despliegue del ecosistema **OhtliAni** (Frontend en Flutter, Backend en Node.js, Base de Datos PostgreSQL con PostGIS y Caché en Redis). 
+Este documento proporciona un análisis detallado sobre las opciones de infraestructura para el despliegue del ecosistema **Veltur** (Frontend en Flutter, Backend en Node.js, Base de Datos PostgreSQL con PostGIS y Caché en Redis). 
 
 La decisión arquitectónica clave del sistema consiste en **no guardar el registro histórico** de las coordenadas de los usuarios (time-series), sino **mantener únicamente la última ubicación conocida en memoria caché (Redis)**, reduciendo drásticamente la carga sobre la base de datos relacional (PostgreSQL).
 
@@ -108,4 +108,4 @@ Esto abre la puerta a planes comerciales sumamente rentables:
 ***
 
 **Conclusión Estratégica:**
-Eliminar la base de datos de tiempo real para ubicaciones y optar por memoria volátil en Redis es la mejor decisión económica que podías tomar para OhtliAni. Afecta positivamente el costo logístico de la operación y evita multas de privacidad de la información, dándole un margen bruto excepcional a cada agencia contratada.
+Eliminar la base de datos de tiempo real para ubicaciones y optar por memoria volátil en Redis es la mejor decisión económica que podías tomar para Veltur. Afecta positivamente el costo logístico de la operación y evita multas de privacidad de la información, dándole un margen bruto excepcional a cada agencia contratada.

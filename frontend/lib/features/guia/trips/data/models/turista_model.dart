@@ -3,7 +3,7 @@ import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
 /// Model de [Turista] para la capa de datos del feature Guía.
 ///
 /// Extiende la entidad base y agrega el factory [fromJson] para cuando
-/// se conecte con el API real de OhtliAni.
+/// se conecte con el API real de Veltur.
 class TuristaModel extends Turista {
   const TuristaModel({
     required super.id,

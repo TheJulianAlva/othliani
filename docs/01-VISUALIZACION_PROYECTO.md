@@ -2,7 +2,7 @@
 
 ## ¿Qué es este Proyecto?
 
-Este repositorio contiene el código fuente de todo el ecosistema OhtliAni. Nuestro objetivo es construir un sistema de seguridad y logística para agencias de viajes, compuesto por tres aplicaciones cliente y un servidor central:
+Este repositorio contiene el código fuente de todo el ecosistema Veltur. Nuestro objetivo es construir un sistema de seguridad y logística para agencias de viajes, compuesto por tres aplicaciones cliente y un servidor central:
 
 1.  **App Turista (Flutter):** Aplicación móvil para el cliente final, enfocada en seguridad, itinerario y comunicación.
 2.  **App Guía (Flutter):** Aplicación móvil para el guía, enfocada en la gestión de participantes, alertas y trazabilidad.
@@ -22,7 +22,7 @@ Se ha elegido un enfoque de un solo repositorio para todo el código por varias 
 Así es como se organiza el repositorio en su nivel más alto:
 
 ```
-/ohtliani-mvp/
+/veltur-mvp/
 │
 ├── .github/          <-- (CI/CD) Configuración de GitHub Actions para pruebas automáticas.
 ├── .gitignore        <-- Ignora archivos globales de SO e IDEs.

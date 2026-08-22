@@ -1,4 +1,4 @@
-# Contributing to OhtliAni
+# Contributing to Veltur
 
 First off, thank you for taking the time to contribute! 🎉
 

@@ -1,7 +1,7 @@
 # Documentación de Historias de Usuario: Portal de Agencia (Escritorio)
 
 ## Introducción
-Este documento contiene las historias de usuario correspondientes al **Portal de Agencia (Escritorio)** del sistema OthliAni. Aquí se detalla la funcionalidad que permite a los administradores y operadores logísticos de las agencias de turismo gestionar viajes, configurar parámetros de seguridad, monitorear a los grupos en tiempo real y acceder a herramientas de análisis y control de personal.
+Este documento contiene las historias de usuario correspondientes al **Portal de Agencia (Escritorio)** del sistema Veltur. Aquí se detalla la funcionalidad que permite a los administradores y operadores logísticos de las agencias de turismo gestionar viajes, configurar parámetros de seguridad, monitorear a los grupos en tiempo real y acceder a herramientas de análisis y control de personal.
 
 ## Roles
 * **Administrador de Agencia:** Usuario con privilegios completos para configurar cuestiones administrativas, de facturación, suscripciones, y personal (guías).
@@ -537,7 +537,7 @@ Este documento contiene las historias de usuario correspondientes al **Portal de
 * **Y** al confirmar, el backend invalida inmediatamente el Token de Sesión (JWT) de ese dispositivo específico.
 
 > [!CAUTION]
-> Esta acción es destructiva e inmediata. Desconecta permanentemente el dispositivo afectado de la red de telemetría de OthliAni.
+> Esta acción es destructiva e inmediata. Desconecta permanentemente el dispositivo afectado de la red de telemetría de Veltur.
 
 * **Y** el servidor envía una notificación Push silenciosa al dispositivo robado que, de ser recibida, ejecuta un borrado local (Wipe) de la base de datos Isar DB y expulsa al usuario a la pantalla de login.
 

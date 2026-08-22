@@ -1,7 +1,7 @@
 # Documentación de Historias de Usuario: App Guía (Móvil)
 
 ## Introducción
-Este documento contiene las historias de usuario correspondientes a la **App Guía (Móvil)** del sistema OthliAni. Aquí se detalla la funcionalidad que permite a los guías de turistas (Líderes y de Apoyo) operar la logística en campo, llevar el control de los pasajeros, comunicarse con la agencia, y responder a incidentes en tiempo real o en modo offline.
+Este documento contiene las historias de usuario correspondientes a la **App Guía (Móvil)** del sistema Veltur. Aquí se detalla la funcionalidad que permite a los guías de turistas (Líderes y de Apoyo) operar la logística en campo, llevar el control de los pasajeros, comunicarse con la agencia, y responder a incidentes en tiempo real o en modo offline.
 
 ## Roles
 * **Guía Líder:** Principal responsable del grupo en campo. Tiene permisos para arrancar el viaje, omitir hitos, reportar alertas clave, y emitir el cierre oficial del tour.
@@ -450,7 +450,7 @@ Este documento contiene las historias de usuario correspondientes a la **App Gu�
   - Usar el paquete `record` para capturar el audio en baja tasa de bits (Bitrate) y evitar saturar los datos móviles.
   - Usar `audioplayers` o `just_audio` para reproducir las respuestas o notas de voz de la agencia.
 * **Permisos Nativos:**
-  - El primer día de uso, la App Guía debe solicitar el permiso nativo de `RECORD_AUDIO` en Android/iOS de forma explícita, explicando: *"OhtliAni necesita acceso al micrófono para que puedas usar el megáfono digital y comunicarte con tu grupo"*. Si se niega, los escenarios A y C se bloquean elegantemente.
+  - El primer día de uso, la App Guía debe solicitar el permiso nativo de `RECORD_AUDIO` en Android/iOS de forma explícita, explicando: *"Veltur necesita acceso al micrófono para que puedas usar el megáfono digital y comunicarte con tu grupo"*. Si se niega, los escenarios A y C se bloquean elegantemente.
 
 [⬆️ Volver al Índice](#indice)
 
@@ -477,7 +477,7 @@ Este documento contiene las historias de usuario correspondientes a la **App Gu�
 * **Y** debajo del QR, se muestra un PIN numérico de 6 dígitos (Ej. `482-910`) como método alternativo, junto con un temporizador de expiración (Ej. 5 minutos).
 
 #### Escenario B: Re-vinculación Exitosa (El Turista)
-* **Dado que** el turista ha descargado la App OhtliAni en su nuevo dispositivo y está en la pantalla inicial (sin iniciar sesión),
+* **Dado que** el turista ha descargado la App Veltur en su nuevo dispositivo y está en la pantalla inicial (sin iniciar sesión),
 * **Cuando** el turista presiona el botón **"Tengo un QR de mi Guía"** y escanea la pantalla de mi teléfono,
 * **Entonces** su dispositivo consume el token de un solo uso.
 * **Y** el backend autoriza el acceso, le inyecta un nuevo JWT a ese nuevo dispositivo, y vincula este nuevo hardware al identificador único del turista (`tourist_id`).
@@ -507,8 +507,8 @@ Este documento contiene las historias de usuario correspondientes a la **App Gu�
 
 * **Estructura del Payload (Deep Linking / QR):**
   - El QR generado debe ser una URL de enlace profundo (Deep Link) encriptada. 
-  - Ejemplo: `ohtliani://rescue?tId=uuid-carlos&token=aB9x...&exp=1716223000`
-  - Esto permite que, si en el futuro el turista escanea el QR con la cámara nativa de iOS/Android, el sistema operativo abra la app de OhtliAni automáticamente y procese el login.
+  - Ejemplo: `veltur://rescue?tId=uuid-carlos&token=aB9x...&exp=1716223000`
+  - Esto permite que, si en el futuro el turista escanea el QR con la cámara nativa de iOS/Android, el sistema operativo abra la app de Veltur automáticamente y procese el login.
 * **Arquitectura de Rescate Offline (Criptografía Asimétrica):**
   - Si el guía y el turista están en una zona sin internet celular, el backend no puede generar el token.
   - **Solución Edge:** Durante la sincronización de madrugada ([GUIA-US01](#guia-us01)), el servidor le entrega a la App del Guía una llave privada temporal del viaje. El Guía genera el QR firmado localmente. El celular nuevo del turista lee el QR, confía en la firma, y guarda su estado en como `A_BORDO`. Al recuperar ambos la señal de internet, el celular del turista se autentica formalmente con el backend usando ese token firmado por el guía.
@@ -671,7 +671,7 @@ Este documento contiene las historias de usuario correspondientes a la **App Gu�
 * **Dado que** he confirmado el cierre del viaje,
 * **Cuando** la app cambia el estado del viaje localmente a `FINALIZADO`,
 * **Entonces** el sistema operativo de mi móvil (Flutter a través de canales nativos) **detiene y destruye** el Servicio en Segundo Plano (Foreground/Background Task) que lee el hardware del GPS.
-* **Y** la notificación fija en mi barra de estado (Ej. "OhtliAni está usando tu ubicación") desaparece instantáneamente.
+* **Y** la notificación fija en mi barra de estado (Ej. "Veltur está usando tu ubicación") desaparece instantáneamente.
 * **Y** mi dispositivo se desconecta de la sala de telemetría de WebSockets.
 
 #### Escenario C: Sincronización de Bitácora (El Cierre de Caja)
@@ -704,7 +704,7 @@ Este documento contiene las historias de usuario correspondientes a la **App Gu�
     2. Emitir un WebSocket/Push a las apps de los Turistas con el comando `FORCE_STOP_TRACKING`.
     
     > [!CAUTION]  
-    > Aunque el turista nunca abra su app al llegar a su hotel, su teléfono obedecerá la orden remota de matar el proceso del GPS en segundo plano inmediatamente. Esto previene ilegalidades de rastreo post-viaje y protege la batería personal del turista para que OhtliAni la consuma por error.
+    > Aunque el turista nunca abra su app al llegar a su hotel, su teléfono obedecerá la orden remota de matar el proceso del GPS en segundo plano inmediatamente. Esto previene ilegalidades de rastreo post-viaje y protege la batería personal del turista para que Veltur la consuma por error.
 * **Limpieza de Datos Sensibles:**
   - Una vez confirmado el cierre (Escenario C), el desarrollador móvil debe hacer un `db.pasajerosLocales.clear()`. Un guía NO debe retener en su dispositivo personal información.
 
@@ -719,6 +719,6 @@ Este documento contiene las historias de usuario correspondientes a la **App Gu�
 * **Geocerca (Geo-fence):** Un perímetro de seguridad virtual alrededor del guía o del punto de reunión. Quien traspase su límite activa la telemetría excepcional.
 * **Kill Switch:** Orden de ejecución destructiva para revocar control a móviles comprometidos. En turistas desactiva tracking por completo y mata su acceso. En Guías, purga todos los datos offline del tour para que si le roban el celular en un asalto, los ladrones no expongan ni vendan la información de las personas (los turistas).
 * **Botones PTT (Push To Talk):** Paradigma de interfaz que activa el "Walkie-talkie", grabando el micrófono SÓLO mientras el usuario aplaste su dedo en un área central. Esto minimiza reportar y mandar por accidente audios vacíos.
-* **Deep Link:** URL incrustada en un QR (Ej. `ohtliani://rescue?id=X`) o Mensaje que elude el navegador; abriéndose de lleno sobre nuestra App. Útil para re-vincular de regreso a un turista al circuito si pierde su hardware logrando esquivar su login tradicional.
+* **Deep Link:** URL incrustada en un QR (Ej. `veltur://rescue?id=X`) o Mensaje que elude el navegador; abriéndose de lleno sobre nuestra App. Útil para re-vincular de regreso a un turista al circuito si pierde su hardware logrando esquivar su login tradicional.
 
 [⬆️ Volver al Índice](#indice)

@@ -1,4 +1,4 @@
-# Entendiendo Redis para OhtliAni: Guía Práctica
+# Entendiendo Redis para Veltur: Guía Práctica
 
 Si nunca has trabajado con Redis, ¡no te preocupes! Es mucho más sencillo de entender que una base de datos tradicional como PostgreSQL.
 
@@ -25,7 +25,7 @@ Redis significa **Re**mote **Di**ctionary **S**erver (Servidor de Diccionario Re
 En Redis, no haces comandos complejos como `SELECT * FROM turistas WHERE id = 5`.
 En su lugar, le pones una **"etiqueta" (Llave)** a las cosas y le asignas un **"contenido" (Valor)**.
 
-### Ejemplo aplicado a OhtliAni:
+### Ejemplo aplicado a Veltur:
 
 **La Llave:** `turista_102_ubicacion`
 **El Valor:** `{ "lat": 19.432, "lng": -99.133 }`

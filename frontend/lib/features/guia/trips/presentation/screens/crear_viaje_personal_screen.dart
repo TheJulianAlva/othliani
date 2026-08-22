@@ -149,7 +149,7 @@ class _CrearViajePersonalScreenState extends State<CrearViajePersonalScreen> {
                   child: const Text(
                     '✅ Viaje guardado localmente.\n'
                     'La protección inteligente funcionará aunque pierdas la señal.\n'
-                    'Se sincronizará con OhtliAni cuando haya red.',
+                    'Se sincronizará con Veltur cuando haya red.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 11,

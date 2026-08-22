@@ -1,4 +1,4 @@
-# OhtliAni
+# Veltur
 
 <p align="left">
   <img src="https://img.shields.io/badge/Flutter-3.7.0%2B-02569B?logo=flutter&logoColor=white" alt="Flutter">
@@ -9,7 +9,7 @@
 
 **Smart Management for Travel Safety & Logistics**
 
-OhtliAni is a comprehensive ecosystem designed to revolutionize how travel agencies manage safety, logistics, and communication. It connects tourists, guides, and agency staff through a unified platform, ensuring safer and more organized travel experiences.
+Veltur is a comprehensive ecosystem designed to revolutionize how travel agencies manage safety, logistics, and communication. It connects tourists, guides, and agency staff through a unified platform, ensuring safer and more organized travel experiences.
 
 ---
 
@@ -43,7 +43,7 @@ The project consists of three integrated client applications and a central serve
 
 ## 🏗️ Architecture
 
-OhtliAni is built using a **Clean Architecture** approach to ensure scalability, testability, and maintainability.
+Veltur is built using a **Clean Architecture** approach to ensure scalability, testability, and maintainability.
 
 *   **Monorepo:** A single source of truth for all frontend and backend code.
 *   **Shared Core:** The three Flutter applications share 100% of the **Domain** (Business Logic) and **Data** (Repository/API) layers, ensuring consistency across the platform. Only the Presentation layer (UI) is specific to each app.
@@ -69,8 +69,8 @@ Follow these instructions to set up the project locally.
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/ohtliani-mvp.git
-    cd ohtliani-mvp
+    git clone https://github.com/your-username/veltur-mvp.git
+    cd veltur-mvp
     ```
 
 2.  **Install dependencies:**
@@ -109,10 +109,10 @@ Since this project contains multiple entry points, you must specify the target f
 
 ## 🤝 Contributing
 
-This is a collaborative project. Please refer to the [Contributing Guidelines](CONTRIBUTING.md) and follow the coding standards outlined in the `docs/` folder before submitting Pull Requests.
+This is a collaborative project. Please refer to the [Contributing Guidelines](CONTRIBUTING.md) and the [documentation index](docs/README.md) — which covers coding standards, architecture, and product requirements — before submitting Pull Requests.
 
 ## 📄 License
 
-**Copyright © 2024 OhtliAni. All Rights Reserved.**
+**Copyright © 2024 Veltur. All Rights Reserved.**
 
 This project is proprietary software. Unauthorized copying, modification, distribution, or use of this software, in whole or in part, is strictly prohibited.

@@ -10,7 +10,7 @@ class ActividadItinerarioModel extends ActividadItinerario {
     super.puntoReunion,
   });
 
-  // Esto te servirá cuando conectes la API de OhtliAni
+  // Esto te servirá cuando conectes la API de Veltur
   factory ActividadItinerarioModel.fromJson(Map<String, dynamic> json) {
     return ActividadItinerarioModel(
       nombre: json['nombre'],

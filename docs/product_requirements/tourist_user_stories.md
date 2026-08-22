@@ -1,7 +1,7 @@
 # Documentación de Historias de Usuario: App Turista (Móvil)
 
 ## Introducción
-Este documento contiene las historias de usuario correspondientes a la **App Turista (Móvil)** del sistema OthliAni. Esta aplicación está diseñada bajo una filosofía logística de "cero fricción", permitiendo a los turistas acceder a su itinerario, comunicarse en emergencias con su guía, recibir instrucciones, y ser monitoreados sin necesidad de crear cuentas complejas ni sacrificar la privacidad de sus datos. 
+Este documento contiene las historias de usuario correspondientes a la **App Turista (Móvil)** del sistema Veltur. Esta aplicación está diseñada bajo una filosofía logística de "cero fricción", permitiendo a los turistas acceder a su itinerario, comunicarse en emergencias con su guía, recibir instrucciones, y ser monitoreados sin necesidad de crear cuentas complejas ni sacrificar la privacidad de sus datos. 
 
 ## Roles
 * **Turista / Pasajero:** Usuario final del servicio. Su interacción con la app es principalmente de "solo lectura" para el itinerario, "activa" en las integraciones tipo Calculadora OCR, y "reactiva" para ser encontrado y resguardado en la geocerca de seguridad.
@@ -129,7 +129,7 @@ Este documento contiene las historias de usuario correspondientes a la **App Tur
 * **Dado que** el guía está a punto de iniciar el viaje,
 * **Cuando** la app necesita solicitar el acceso al GPS por primera vez,
 * **Entonces** NO se lanza inmediatamente el cuadro de diálogo nativo del sistema operativo (iOS/Android).
-* **Y** en su lugar, se muestra una pantalla educativa a pantalla completa, amigable y con ilustraciones, explicando: *"Para asegurarnos de que no te quedes atrás, OhtliAni necesita saber dónde estás, incluso si guardas el teléfono en tu bolsillo"*.
+* **Y** en su lugar, se muestra una pantalla educativa a pantalla completa, amigable y con ilustraciones, explicando: *"Para asegurarnos de que no te quedes atrás, Veltur necesita saber dónde estás, incluso si guardas el teléfono en tu bolsillo"*.
 * **Y** la pantalla incluye un botón grande que dice: *"Entendido, configurar permisos"*.
 
 #### Escenario B: El Contrato de Privacidad
@@ -264,7 +264,7 @@ Este documento contiene las historias de usuario correspondientes a la **App Tur
 * **Cuando** mi teléfono detecta que NO hay conexión a internet (ni Wi-Fi ni Datos Móviles) pero sí tengo señal de red celular tradicional,
 * **Entonces** la app me muestra un aviso instantáneo: *"Sin internet. Redirigiendo a SMS de emergencia"*.
 * **Y** la app abre automáticamente mi aplicación nativa de mensajes de texto.
-* **Y** pre-llena un mensaje con el formato: `[EMERGENCIA OHTLIANI] Soy Carlos. Necesito ayuda. Mi última ubicación: https://maps.google.com/?q=20.684,-88.567`
+* **Y** pre-llena un mensaje con el formato: `[EMERGENCIA VELTUR] Soy Carlos. Necesito ayuda. Mi última ubicación: https://maps.google.com/?q=20.684,-88.567`
 * **Y** el destinatario ya está pre-configurado con el número telefónico local del Guía Líder, listo para que yo solo presione "Enviar".
 
 #### Escenario D: Last Known Location
@@ -433,7 +433,7 @@ Este documento contiene las historias de usuario correspondientes a la **App Tur
 * **Dado que** el Guía Líder ha presionado "Finalizar Viaje de Hoy" en su aplicación ([GUIA-US10](guide_user_stories.md#guia-us10)),
 * **Cuando** mi teléfono móvil (tenga la app abierta o bloqueada en el bolsillo) recibe el evento silencioso de finalización,
 * **Entonces** el sistema operativo de mi teléfono detiene **inmediata y permanentemente** el servicio de geolocalización en segundo plano.
-* **Y** la notificación fija en mi barra de tareas ("OhtliAni está usando tu ubicación") desaparece por completo.
+* **Y** la notificación fija en mi barra de tareas ("Veltur está usando tu ubicación") desaparece por completo.
 * **Y** el ícono del GPS en la barra de estado de mi celular se apaga, dándome la certeza física de que ya no estoy siendo monitoreado.
 
 #### Escenario B: Cumplimiento de Privacidad II [Pendiente de Confirmar]
@@ -526,7 +526,7 @@ Este documento contiene las historias de usuario correspondientes a la **App Tur
 ### 3. Diseño y UX
 
 > [!CAUTION]  
-> **Disclaimer Legal Financiero:** Debe haber un texto pequeño visible debajo del resultado pre-calculado que exprese: *"Tipo de cambio de referencia orientativo para el turista (1 USD = 17.5 MXN). No representa una tasa bancaria oficial ni constituye obligación legal para OhtliAni o la Agencia."*
+> **Disclaimer Legal Financiero:** Debe haber un texto pequeño visible debajo del resultado pre-calculado que exprese: *"Tipo de cambio de referencia orientativo para el turista (1 USD = 17.5 MXN). No representa una tasa bancaria oficial ni constituye obligación legal para Veltur o la Agencia."*
 
 ---
 
@@ -534,7 +534,7 @@ Este documento contiene las historias de usuario correspondientes a la **App Tur
 
 * **Consumo de API de Divisas (Backend vs Mobile):**
   - Para ahorrar costos de llamadas a APIs de terceros, los teléfonos móviles **NO** deben consultar la API externa directamente. 
-  - El Backend de OhtliAni (NestJS) debe ejecutar un *Cron Job* diario a las 00:00 UTC para descargar las tasas globales y guardarlas en Redis. Luego, la App Móvil del turista simplemente descarga esa tasa desde nuestro propio backend durante el *Fetch* del itinerario.
+  - El Backend de Veltur (NestJS) debe ejecutar un *Cron Job* diario a las 00:00 UTC para descargar las tasas globales y guardarlas en Redis. Luego, la App Móvil del turista simplemente descarga esa tasa desde nuestro propio backend durante el *Fetch* del itinerario.
 * **Motor OCR On-Device:**
   - Se debe instanciar el modelo de reconocimiento `TextRecognitionScript.latin` en modo *On-Device*. NUNCA usar la versión *Cloud API* de ML Kit, ya que rompería nuestra promesa de funcionalidad Offline e incurriría en costos por cada escaneo del turista.
 * **Almacenamiento Local:**

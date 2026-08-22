@@ -70,7 +70,7 @@ Compartimos toda la lógica de `Data` y `Domain` y solo separamos la `Presentaci
 ├── core/               <-- 100% COMPARTIDO (Temas, Navegación, Widgets comunes)
 │   ├── theme/
 │   ├── navigation/
-│   └── widgets/        (Ej. LogoOhtliAni, BotonPrimario)
+│   └── widgets/        (Ej. LogoVeltur, BotonPrimario)
 │
 ├── data/               <-- 100% COMPARTIDO (Toda la lógica de API y Modelos)
 │   ├── datasources/

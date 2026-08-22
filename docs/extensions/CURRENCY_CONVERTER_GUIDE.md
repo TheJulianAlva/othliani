@@ -186,7 +186,7 @@ Future<Map<String, double>> fetchExchangeRates(String baseCurrency) async {
 - Prueba con diferentes ángulos
 
 **2. Permisos de cámara denegados**
-- Ve a Configuración > Apps > OthliAni > Permisos
+- Ve a Configuración > Apps > Veltur > Permisos
 - Habilita Cámara y Almacenamiento
 
 **3. Error al procesar imagen**
