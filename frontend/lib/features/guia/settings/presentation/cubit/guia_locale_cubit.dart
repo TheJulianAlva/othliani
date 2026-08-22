@@ -10,7 +10,7 @@ class GuiaLocaleCubit extends Cubit<Locale> {
   final SharedPreferences sharedPreferences;
 
   GuiaLocaleCubit({required this.sharedPreferences})
-      : super(const Locale('es')) {
+    : super(const Locale('es')) {
     _loadLocale();
   }
 

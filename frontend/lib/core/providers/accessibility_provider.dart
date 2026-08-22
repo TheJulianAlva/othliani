@@ -47,7 +47,7 @@ class AccessibilityProvider extends ChangeNotifier {
   Future<void> setFontSize(FontSizeOption size) async {
     _fontSize = size;
     notifyListeners();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('fontSize', size.index);
   }
@@ -55,7 +55,7 @@ class AccessibilityProvider extends ChangeNotifier {
   Future<void> setHighContrast(bool value) async {
     _highContrast = value;
     notifyListeners();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('highContrast', value);
   }
@@ -63,7 +63,7 @@ class AccessibilityProvider extends ChangeNotifier {
   Future<void> setScreenReader(bool value) async {
     _screenReader = value;
     notifyListeners();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('screenReader', value);
   }
@@ -71,7 +71,7 @@ class AccessibilityProvider extends ChangeNotifier {
   Future<void> setReduceAnimations(bool value) async {
     _reduceAnimations = value;
     notifyListeners();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('reduceAnimations', value);
   }
@@ -79,7 +79,7 @@ class AccessibilityProvider extends ChangeNotifier {
   Future<void> setHapticFeedback(bool value) async {
     _hapticFeedback = value;
     notifyListeners();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hapticFeedback', value);
   }

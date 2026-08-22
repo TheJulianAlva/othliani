@@ -43,6 +43,7 @@ class _Actividad {
     completada: completada,
   );
 }
+
 class GuiaItineraryScreen extends StatefulWidget {
   const GuiaItineraryScreen({super.key});
 

@@ -8,6 +8,8 @@ class ItineraryItemModel extends ItineraryItem {
     required super.startTime,
     required super.endTime,
     required super.location,
+    super.latitude,
+    super.longitude,
   });
 
   factory ItineraryItemModel.fromJson(Map<String, dynamic> json) {
@@ -18,6 +20,8 @@ class ItineraryItemModel extends ItineraryItem {
       startTime: DateTime.parse(json['startTime']),
       endTime: DateTime.parse(json['endTime']),
       location: json['location'],
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
     );
   }
 
@@ -29,6 +33,8 @@ class ItineraryItemModel extends ItineraryItem {
       'startTime': startTime.toIso8601String(),
       'endTime': endTime.toIso8601String(),
       'location': location,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
     };
   }
 }

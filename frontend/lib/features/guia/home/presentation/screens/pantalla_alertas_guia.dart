@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend/core/demo/demo_config.dart';
 import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
 import 'package:frontend/features/guia/shared/widgets/critical_medical_card.dart';
 import 'package:frontend/features/guia/sos/presentation/widgets/swipe_to_action_widget.dart';
 import 'package:frontend/features/guia/trips/domain/services/caja_negra_service.dart';
+import 'package:frontend/features/turista/home/presentation/widgets/walkie_talkie_button.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PantallaAlertasGuia
@@ -96,32 +98,6 @@ class _PantallaAlertasGuiaState extends State<PantallaAlertasGuia>
     return d >= 1000
         ? '${(d / 1000).toStringAsFixed(1)} km'
         : '${d.toInt()} metros';
-  }
-
-  // ── Llamar al turista (teléfono) ─────────────────────────────────────────
-
-  Future<void> _llamar(BuildContext ctx) async {
-    final tel = widget.turista.contactoEmergenciaTelefono;
-    if (tel == null || tel.isEmpty) {
-      if (ctx.mounted) {
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          const SnackBar(
-            content: Text('No hay teléfono de emergencia registrado.'),
-          ),
-        );
-      }
-      return;
-    }
-    // Copia el número al portapapeles como fallback confiable
-    await Clipboard.setData(ClipboardData(text: tel));
-    if (ctx.mounted) {
-      ScaffoldMessenger.of(ctx).showSnackBar(
-        SnackBar(
-          content: Text('Número copiado: $tel — Abre el marcador'),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    }
   }
 
   @override
@@ -229,27 +205,18 @@ class _PantallaAlertasGuiaState extends State<PantallaAlertasGuia>
 
               const Spacer(),
 
-              // ── Botón de llamada ────────────────────────────────────────
-              OutlinedButton.icon(
-                onPressed: () => _llamar(context),
-                icon: const Icon(Icons.phone_rounded, color: Colors.white),
-                label: Text(
-                  widget.turista.contactoEmergenciaNombre != null
-                      ? 'Llamar contacto: ${widget.turista.contactoEmergenciaNombre}'
-                      : 'Llamar contacto de emergencia',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.white70, width: 1.5),
-                  minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              // ── Walkie-talkie unicast con el turista ────────────────────
+              const Text(
+                'MANTÉN PRESIONADO PARA HABLAR',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.5,
                 ),
               ),
+              const SizedBox(height: 8),
+              Center(child: WalkieTalkieButton(tripId: kDemoPanicChannelId)),
               const SizedBox(height: 12),
 
               // ── Confirmar resolución (anti-nervios) ─────────────────────

@@ -81,8 +81,13 @@ class AgenciaHomeLoaded extends AgenciaHomeState {
 
   @override
   List<Object?> get props => [
-    nombreViaje, folio, destino, totalParticipantes, filtroActivo,
-    actividades, listaTuristas,
+    nombreViaje,
+    folio,
+    destino,
+    totalParticipantes,
+    filtroActivo,
+    actividades,
+    listaTuristas,
   ];
 }
 
@@ -123,4 +128,3 @@ class AgenciaHomeCubit extends Cubit<AgenciaHomeState> {
     }
   }
 }
-

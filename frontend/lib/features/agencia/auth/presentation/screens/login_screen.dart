@@ -99,18 +99,22 @@ class _LoginFormState extends State<_LoginForm> {
                 Align(
                   alignment: Alignment.center,
                   child: Column(
-                    children: const [
-                      Icon(Icons.business, size: 40, color: Color(0xFF0F4C75)),
-                      SizedBox(height: 12),
-                      Text(
-                        'Bienvenido al Panel',
+                    children: [
+                      Image.asset(
+                        'assets/logos/logo_agencia.png',
+                        height: 100,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Veltur Agencias',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
-                        'Ingresa tus credenciales',
+                      const Text(
+                        'Acceso al panel de control operativo',
                         style: TextStyle(color: Colors.grey),
                       ),
                     ],
@@ -124,8 +128,8 @@ class _LoginFormState extends State<_LoginForm> {
                   textInputAction: TextInputAction.next,
                   enabled: !isLoading,
                   decoration: const InputDecoration(
-                    labelText: 'Correo Electrónico',
-                    hintText: 'usuario@dominio.com',
+                    labelText: 'Correo Electrónico Corporativo',
+                    hintText: 'operaciones@miagencia.com',
                     filled: false,
                     border: UnderlineInputBorder(
                       borderSide: BorderSide(color: Color(0xFFD1D5DB)),
@@ -165,8 +169,8 @@ class _LoginFormState extends State<_LoginForm> {
                     _passwordMaskFormatter,
                   ],
                   decoration: InputDecoration(
-                    labelText: 'Contraseña',
-                    hintText: 'Ej. AB-1234-CD',
+                    labelText: 'Clave de Acceso (XX-XXXX-XX)',
+                    hintText: 'Ej. VE-2026-MX',
                     filled: false,
                     border: const UnderlineInputBorder(
                       borderSide: BorderSide(color: Color(0xFFD1D5DB)),

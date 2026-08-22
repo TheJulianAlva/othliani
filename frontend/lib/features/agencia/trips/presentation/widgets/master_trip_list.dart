@@ -66,7 +66,9 @@ class MasterTripList extends StatelessWidget {
           child: ListView.separated(
             padding: EdgeInsets.zero,
             itemCount: viajes.length,
-            separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade200),
+            separatorBuilder:
+                (context, index) =>
+                    Divider(height: 1, color: Colors.grey.shade200),
             itemBuilder: (context, index) {
               final viaje = viajes[index];
               final isSelected = viaje.id == selectedViajeId;
@@ -75,7 +77,10 @@ class MasterTripList extends StatelessWidget {
                 onTap: () => onViajeSelected(viaje),
                 child: Container(
                   color: isSelected ? Colors.blue.shade50 : Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
                   child: Row(
                     children: [
                       // Destino y Horario
@@ -92,7 +97,10 @@ class MasterTripList extends StatelessWidget {
                                     style: TextStyle(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 14,
-                                      color: isSelected ? Colors.blue.shade900 : const Color(0xFF2C3E50),
+                                      color:
+                                          isSelected
+                                              ? Colors.blue.shade900
+                                              : const Color(0xFF2C3E50),
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -101,14 +109,21 @@ class MasterTripList extends StatelessWidget {
                                 if (viaje.alertasActivas > 0) ...[
                                   const SizedBox(width: 8),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.orange.shade50,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       "-20m retraso", // dummy
-                                      style: TextStyle(fontSize: 10, color: Colors.orange.shade900, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.orange.shade900,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -117,7 +132,10 @@ class MasterTripList extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               "08 Mar ${viaje.horaInicio} - 18:30 PM", // Dummy date format for now
-                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
                             ),
                           ],
                         ),
@@ -131,15 +149,26 @@ class MasterTripList extends StatelessWidget {
                               radius: 12,
                               backgroundColor: Colors.grey.shade200,
                               child: Text(
-                                viaje.guiaNombre.isNotEmpty ? viaje.guiaNombre.substring(0, 2).toUpperCase() : '?',
-                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade700),
+                                viaje.guiaNombre.isNotEmpty
+                                    ? viaje.guiaNombre
+                                        .substring(0, 2)
+                                        .toUpperCase()
+                                    : '?',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade700,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Flexible(
                               child: Text(
                                 viaje.guiaNombre,
-                                style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade800,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -150,7 +179,10 @@ class MasterTripList extends StatelessWidget {
                       Expanded(
                         flex: 1,
                         child: Center(
-                          child: _buildStateBadge(viaje.estado, viaje.alertasActivas > 0),
+                          child: _buildStateBadge(
+                            viaje.estado,
+                            viaje.alertasActivas > 0,
+                          ),
                         ),
                       ),
                     ],
@@ -195,7 +227,11 @@ class MasterTripList extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: textColor),
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
         textAlign: TextAlign.center,
       ),
     );

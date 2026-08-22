@@ -5,6 +5,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
+import 'dart:convert';
+
+import 'core/demo/demo_config.dart';
+import 'core/demo/demo_socket_service.dart';
 import 'core/di/service_locator.dart';
 import 'core/di/guia_locator.dart';
 import 'core/navigation/enrutador_app_guia.dart';
@@ -23,8 +27,26 @@ void main() async {
   await initGuiaDependencies();
 
   final prefs = await SharedPreferences.getInstance();
+
+  if (kDemoMode) {
+    await prefs.setBool('GUIA_ONBOARDING_DONE', true);
+    await prefs.setString(
+      'CACHED_GUIA_USER',
+      json.encode({
+        'id': 'guia-demo-001',
+        'email': 'carlos.mendoza@veltur.com',
+        'name': 'Carlos Mendoza',
+        'phone': null,
+        'emergencyContact': null,
+        'permissionLevel': 2,
+        'authStatus': 'authenticated',
+      }),
+    );
+  }
+
   final onboardingCompletado = prefs.getBool('GUIA_ONBOARDING_DONE') ?? false;
-  final isLoggedIn = prefs.getBool('isLoggedInGuia') ?? false;
+  // El LocalDataSource guarda el usuario con esta llave
+  final isLoggedIn = prefs.getString('CACHED_GUIA_USER') != null;
 
   String initialRoute;
   if (!onboardingCompletado) {
@@ -37,6 +59,8 @@ void main() async {
     // Sesión activa → pantalla principal
     initialRoute = RoutesGuia.home;
   }
+
+  DemoSocketService.instance.connect();
 
   runApp(MainAppGuia(initialRoute: initialRoute));
 }
@@ -80,7 +104,7 @@ class _MainAppGuiaState extends State<MainAppGuia> {
 /// el MaterialApp cuando el tema, idioma o accesibilidad cambian.
 class _GuiaAppView extends StatelessWidget {
   final GoRouter router;
-  
+
   const _GuiaAppView({required this.router});
 
   @override

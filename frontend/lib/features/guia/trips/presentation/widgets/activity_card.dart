@@ -30,7 +30,8 @@ class ActivityCard extends StatelessWidget {
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
   /// Rango horario listo para mostrar.
-  String get _horarioTexto => '${_hhmm(actividad.horaInicio)} - ${_hhmm(actividad.horaFin)}';
+  String get _horarioTexto =>
+      '${_hhmm(actividad.horaInicio)} - ${_hhmm(actividad.horaFin)}';
 
   // ─── Build ───
 
@@ -41,11 +42,12 @@ class ActivityCard extends StatelessWidget {
     final tarjetaBase = Padding(
       padding: _kCardMargin,
       child: GestureDetector(
-        onTap: () => mostrarDetalleActividad(
-          context,
-          actividad: actividad,
-          horarioTexto: _horarioTexto,
-        ),
+        onTap:
+            () => mostrarDetalleActividad(
+              context,
+              actividad: actividad,
+              horarioTexto: _horarioTexto,
+            ),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -56,41 +58,50 @@ class ActivityCard extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                  actividad.completada ? Icons.check_circle : Icons.circle_outlined,
-                  color: actividad.completada ? _kGreen : Colors.grey,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        actividad.nombre,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
+                actividad.completada
+                    ? Icons.check_circle
+                    : Icons.circle_outlined,
+                color: actividad.completada ? _kGreen : Colors.grey,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      actividad.nombre,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Colors.black87,
                       ),
-                      Text(
-                        _horarioTexto,
-                        style: const TextStyle(color: Colors.grey, fontSize: 11),
-                      ),
-                    ],
-                  ),
+                    ),
+                    Text(
+                      _horarioTexto,
+                      style: const TextStyle(color: Colors.grey, fontSize: 11),
+                    ),
+                  ],
                 ),
-                if (actividad.descripcion != null || actividad.puntoReunion != null)
-                  const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey, size: 20),
-              ],
-            ),
+              ),
+              if (actividad.descripcion != null ||
+                  actividad.puntoReunion != null)
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: Colors.grey,
+                  size: 20,
+                ),
+            ],
           ),
         ),
+      ),
     );
 
     if (!esGestion) return tarjetaBase;
 
     return Dismissible(
-      key: ValueKey('${actividad.nombre}_${actividad.horaInicio.toIso8601String()}'),
+      key: ValueKey(
+        '${actividad.nombre}_${actividad.horaInicio.toIso8601String()}',
+      ),
       dismissThresholds: const {
         DismissDirection.startToEnd: 0.7,
         DismissDirection.endToStart: 0.5,
@@ -118,25 +129,36 @@ class ActivityCard extends StatelessWidget {
 
   // ─── Diálogos ───
 
-  Future<bool?> _mostrarDialogoConfirmacion(BuildContext context, String nombre) {
+  Future<bool?> _mostrarDialogoConfirmacion(
+    BuildContext context,
+    String nombre,
+  ) {
     return showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('¿Eliminar actividad?'),
-        content: Text('Esto quitará "$nombre" del itinerario.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('CANCELAR'),
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text('¿Eliminar actividad?'),
+            content: Text('Esto quitará "$nombre" del itinerario.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('CANCELAR'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent.shade200,
+                ),
+                child: const Text(
+                  'ELIMINAR',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent.shade200),
-            child: const Text('ELIMINAR', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
     );
   }
 }

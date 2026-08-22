@@ -39,9 +39,7 @@ class SosButton extends StatelessWidget {
         backgroundColor: const Color(0xFFD32F2F),
         foregroundColor: Colors.white,
         minimumSize: const Size.fromHeight(52),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 6,
         shadowColor: const Color(0xFFD32F2F).withAlpha(120),
       ),

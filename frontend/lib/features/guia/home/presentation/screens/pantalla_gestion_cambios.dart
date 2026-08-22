@@ -2,6 +2,8 @@ import 'package:flutter/material.dart'; // Mantener si hay otros usos, pero pref
 import 'package:frontend/features/guia/shared/theme/guia_theme.dart';
 import 'package:frontend/features/guia/shared/widgets/guia_custom_app_bar.dart';
 import 'package:frontend/features/guia/shared/widgets/mapa_monitoreo_widget.dart';
+import 'package:flutter/foundation.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 // ────────────────────────────────────────────────────────────────────────────
 // PANTALLA DE GESTIÓN DE CAMBIOS DE ITINERARIO
@@ -35,6 +37,25 @@ class _PantallaGestionCambiosState extends State<PantallaGestionCambios> {
   String? _turistaSeleccionado;
 
   bool _sincronizando = false;
+  io.Socket? socket;
+
+  @override
+  void initState() {
+    super.initState();
+    socket = io.io('http://10.170.6.0:3000', <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': true,
+    });
+    socket!.onConnect((_) {
+      debugPrint('Guía conectado a la Torre de Control 🗼');
+    });
+    socket!.onConnectError((err) {
+      debugPrint('Guía socket connect error: $err');
+    });
+    socket!.onError((err) {
+      debugPrint('Guía socket error: $err');
+    });
+  }
 
   @override
   void dispose() {
@@ -42,12 +63,19 @@ class _PantallaGestionCambiosState extends State<PantallaGestionCambios> {
     _horaFinCtrl.dispose();
     _puntoReunCtrl.dispose();
     _descripcionCtrl.dispose();
+    socket?.disconnect();
     super.dispose();
   }
 
   // ── Simulación de sincronización ISO 31000 ────────────────────────────────
   Future<void> _simularSincronizacion() async {
     setState(() => _sincronizando = true);
+
+    // Emitir alerta en tiempo real a todos los turistas del viaje
+    socket?.emit('emitirAlertaClima', {
+      'viaje_id': 'viaje_123', 
+      'nuevoDestino': 'Nevado de Toluca',
+    });
 
     // Simula latencia de red (~2s)
     await Future.delayed(const Duration(seconds: 2));

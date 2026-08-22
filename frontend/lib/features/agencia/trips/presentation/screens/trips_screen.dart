@@ -17,12 +17,12 @@ class TripsScreen extends StatefulWidget {
 
 class _TripsScreenState extends State<TripsScreen> {
   final ScrollController _scrollController = ScrollController();
-  
+
   String _searchQuery = '';
   final Set<String> _selectedStatuses = {'TODOS'};
   DateTimeRange? _selectedDateRange;
   Timer? _debounce;
-  
+
   Viaje? _selectedViaje; // Viaje seleccionado en la master list
 
   @override
@@ -42,7 +42,7 @@ class _TripsScreenState extends State<TripsScreen> {
       ),
     );
   }
-  
+
   void _onViajeSelected(Viaje viaje) {
     setState(() {
       _selectedViaje = viaje;
@@ -89,31 +89,40 @@ class _TripsScreenState extends State<TripsScreen> {
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // TOOLBAR (Filtros visualmente fieles a la maqueta)
                   _buildToolbar(),
                   const SizedBox(height: 24),
-                  
+
                   // MASTER - DETAIL LAYOUT
                   SizedBox(
                     height: 550, // Altura fija para no explotar el scroll
                     child: BlocBuilder<ViajesBloc, ViajesState>(
                       builder: (context, state) {
                         if (state is ViajesLoading) {
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         } else if (state is ViajesLoaded) {
                           if (state.viajes.isEmpty) {
-                            return const Center(child: Text("No se encontraron viajes."));
+                            return const Center(
+                              child: Text("No se encontraron viajes."),
+                            );
                           }
-                          
+
                           // Autoseleccionar el primero si no hay selección
-                          if (_selectedViaje == null || !state.viajes.any((v) => v.id == _selectedViaje!.id)) {
+                          if (_selectedViaje == null ||
+                              !state.viajes.any(
+                                (v) => v.id == _selectedViaje!.id,
+                              )) {
                             // Usamos Future.microtask para evitar llamar setState durante el build
-                            Future.microtask(() => setState(() {
-                              _selectedViaje = state.viajes.first;
-                            }));
+                            Future.microtask(
+                              () => setState(() {
+                                _selectedViaje = state.viajes.first;
+                              }),
+                            );
                           }
-                          
+
                           return Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -124,7 +133,9 @@ class _TripsScreenState extends State<TripsScreen> {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: Colors.grey.shade300),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                    ),
                                   ),
                                   clipBehavior: Clip.antiAlias,
                                   child: MasterTripList(
@@ -138,12 +149,16 @@ class _TripsScreenState extends State<TripsScreen> {
                               // QUICK DETAIL (Derecha)
                               Expanded(
                                 flex: 4,
-                                child: _selectedViaje != null
-                                  ? QuickDetailCard(
-                                      viaje: _selectedViaje!,
-                                      onAbrirPantallaCompleta: _scrollToBottom,
-                                    )
-                                  : const Center(child: Text("Seleccione un viaje")),
+                                child:
+                                    _selectedViaje != null
+                                        ? QuickDetailCard(
+                                          viaje: _selectedViaje!,
+                                          onAbrirPantallaCompleta:
+                                              _scrollToBottom,
+                                        )
+                                        : const Center(
+                                          child: Text("Seleccione un viaje"),
+                                        ),
                               ),
                             ],
                           );
@@ -157,14 +172,13 @@ class _TripsScreenState extends State<TripsScreen> {
                 ],
               ),
             ),
-            
+
             // Separador visual
             Container(height: 8, color: Colors.grey.shade300),
-            
+
             // --- PARTE INFERIOR: Pantalla Completa del Detalle ---
-            if (_selectedViaje != null)
-              FullDetailGrid(viaje: _selectedViaje!),
-              
+            if (_selectedViaje != null) FullDetailGrid(viaje: _selectedViaje!),
+
             const SizedBox(height: 48), // Padding inferior
           ],
         ),
@@ -182,16 +196,23 @@ class _TripsScreenState extends State<TripsScreen> {
       ),
       child: Row(
         children: [
-          Text("ESTATUS:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey.shade600)),
+          Text(
+            "ESTATUS:",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
+          ),
           const SizedBox(width: 12),
           _buildPill("Todos", true, null),
           const SizedBox(width: 8),
           _buildPill("En Curso", false, 4),
           const SizedBox(width: 8),
           _buildPill("Programados", false, null),
-          
+
           const Spacer(),
-          
+
           // Search box
           Container(
             width: 250,
@@ -219,11 +240,11 @@ class _TripsScreenState extends State<TripsScreen> {
               },
             ),
           ),
-          
+
           const SizedBox(width: 16),
           Container(height: 24, width: 1, color: Colors.grey.shade300),
           const SizedBox(width: 16),
-          
+
           // Date Range
           InkWell(
             onTap: () async {
@@ -239,15 +260,25 @@ class _TripsScreenState extends State<TripsScreen> {
             },
             child: Row(
               children: [
-                Icon(Icons.calendar_today, size: 16, color: Colors.blue.shade800),
+                Icon(
+                  Icons.calendar_today,
+                  size: 16,
+                  color: Colors.blue.shade800,
+                ),
                 const SizedBox(width: 8),
                 Text(
-                  _selectedDateRange == null ? "01/Mar - 15/Mar" : "${_selectedDateRange!.start.day}/${_selectedDateRange!.start.month} - ${_selectedDateRange!.end.day}/${_selectedDateRange!.end.month}",
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900, fontSize: 13),
-                )
+                  _selectedDateRange == null
+                      ? "01/Mar - 15/Mar"
+                      : "${_selectedDateRange!.start.day}/${_selectedDateRange!.start.month} - ${_selectedDateRange!.end.day}/${_selectedDateRange!.end.month}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade900,
+                    fontSize: 13,
+                  ),
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -259,7 +290,9 @@ class _TripsScreenState extends State<TripsScreen> {
       decoration: BoxDecoration(
         color: isSelected ? const Color(0xFF1B3B6F) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isSelected ? Colors.transparent : Colors.grey.shade300),
+        border: Border.all(
+          color: isSelected ? Colors.transparent : Colors.grey.shade300,
+        ),
       ),
       child: Row(
         children: [
@@ -275,10 +308,20 @@ class _TripsScreenState extends State<TripsScreen> {
             const SizedBox(width: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(color: Colors.green.shade100, borderRadius: BorderRadius.circular(4)),
-              child: Text(count.toString(), style: TextStyle(color: Colors.green.shade800, fontSize: 10, fontWeight: FontWeight.bold)),
-            )
-          ]
+              decoration: BoxDecoration(
+                color: Colors.green.shade100,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                count.toString(),
+                style: TextStyle(
+                  color: Colors.green.shade800,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

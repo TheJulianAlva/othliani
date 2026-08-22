@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -5,10 +6,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/core/demo/demo_config.dart';
+import 'package:frontend/core/demo/demo_socket_service.dart';
 import 'package:frontend/core/navigation/routes_guia.dart';
 
+import 'package:frontend/features/agencia/users/domain/entities/turista.dart';
 import 'package:frontend/features/guia/auth/data/models/guia_user_model.dart';
 import 'package:frontend/features/guia/auth/domain/entities/guia_user.dart';
+import 'package:frontend/features/guia/home/presentation/screens/pantalla_alertas_guia.dart';
 
 // [TODO: Arquitectura Clean]
 // Cuando se inyecte el GuiaSessionCubit globalmente, descomentar esta importación.
@@ -45,14 +50,48 @@ class HomeWrapperScreen extends StatefulWidget {
   State<HomeWrapperScreen> createState() => _HomeWrapperScreenState();
 }
 
+// Turista mock usada para mostrar la alerta de pánico en modo demo.
+const _turistaDemoPanico = Turista(
+  id: 'turista-demo-ana',
+  nombre: kDemoTuristaNombre,
+  viajeId: kDemoTripId,
+  status: 'SOS',
+  bateria: 0.65,
+  enCampo: true,
+  vulnerabilidad: NivelVulnerabilidad.estandar,
+  contactoEmergenciaNombre: 'Roberto Martínez',
+  contactoEmergenciaParentesco: 'Esposo',
+  contactoEmergenciaTelefono: '+52 998 234 5678',
+);
+
 class _HomeWrapperScreenState extends State<HomeWrapperScreen> {
   GuiaUserModel? _user;
   bool _cargando = true;
+  StreamSubscription<Map<String, dynamic>>? _panicSub;
 
   @override
   void initState() {
     super.initState();
     _cargarUsuario();
+    if (kDemoMode) {
+      _panicSub = DemoSocketService.instance.onPanic.listen((data) {
+        if (!mounted) return;
+        context.push(
+          RoutesGuia.alertaTurista,
+          extra: const AlertaTuristaParams(
+            turista: _turistaDemoPanico,
+            motivoAlerta: 'Botón de pánico activado',
+            distanciaMetros: 285.0,
+          ),
+        );
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _panicSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _cargarUsuario() async {
@@ -102,11 +141,11 @@ class _HomeWrapperScreenState extends State<HomeWrapperScreen> {
       );
       gestionScreen = const PersonalMainLayout(nombreGuia: 'Guía');
     } else if (user.role == GuiaRole.agencia) {
-      final folio = _folioDesdeId(user.id);
+      // Usamos el ID del usuario real para que la petición red busque por este ID
       layoutCubitProvider = BlocProvider<AgenciaHomeCubit>(
         create: (_) => sl<AgenciaHomeCubit>(),
       );
-      gestionScreen = AgenciaMainLayout(nombreGuia: user.name, folio: folio);
+      gestionScreen = AgenciaMainLayout(nombreGuia: user.name, folio: user.id);
       numTuristas = 15;
     } else {
       layoutCubitProvider = BlocProvider<PersonalHomeCubit>(
@@ -121,12 +160,6 @@ class _HomeWrapperScreenState extends State<HomeWrapperScreen> {
       // Pasamos el contenedor maestro que maneja el IndexedStack
       content: _HomeTabs(gestionScreen: gestionScreen),
     );
-  }
-
-  String _folioDesdeId(String id) {
-    final partes = id.replaceFirst('guia_b2b_', '').toUpperCase().split('_');
-    if (partes.length >= 2) return '${partes[0]}-${partes[1]}';
-    return id.toUpperCase();
   }
 }
 
@@ -172,17 +205,6 @@ class _HomeTabsState extends State<_HomeTabs> {
         builder: (context, currentIndex, _) {
           return IndexedStack(index: currentIndex, children: _screens);
         },
-      ),
-      // Floating Action Button de SOS sugerido globalmente
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'home_sos_fab',
-        onPressed: () {
-          // Lanza la pantalla base de SOS
-          context.push(RoutesGuia.sos);
-        },
-        backgroundColor: Colors.red.shade700,
-        elevation: 4,
-        child: const Icon(Icons.sos_rounded, color: Colors.white, size: 32),
       ),
       bottomNavigationBar: ValueListenableBuilder<int>(
         valueListenable: _currentIndexNotifier,

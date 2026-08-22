@@ -124,7 +124,7 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
                     child: _buildTripCard(viajeSeleccionado, idx),
                   ),
                 );
-              }
+              },
             ),
           ],
 
@@ -133,7 +133,7 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
             bottom: 16,
             right: 16,
             child: FloatingActionButton.small(
-              heroTag: null,
+              heroTag: 'recenter_map',
               backgroundColor: Colors.white,
               foregroundColor: Colors.blue[800],
               elevation: 4,
@@ -150,7 +150,7 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
 
   Widget _buildTripCard(Viaje viaje, int pageIndex) {
     final bool hasAlerts = viaje.alertasActivas > 0;
-    
+
     // In mockup, the top-left card is white with subtle shadow and rounded corners.
     // If it has alerts, there's a red pill at the top left "CON ALERTAS" and "V-102" at top right.
     return GestureDetector(
@@ -180,7 +180,10 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
               children: [
                 if (hasAlerts)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFEBEE),
                       borderRadius: BorderRadius.circular(4),
@@ -196,7 +199,10 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
                   )
                 else
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE8F5E9),
                       borderRadius: BorderRadius.circular(4),
@@ -221,7 +227,7 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Row 2: Titulo Viaje
             Text(
               viaje.destino,
@@ -232,11 +238,15 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
               ),
             ),
             const SizedBox(height: 4),
-            
+
             // Location sub
             Row(
               children: [
-                Icon(Icons.location_on_outlined, size: 14, color: Colors.blue.shade600),
+                Icon(
+                  Icons.location_on_outlined,
+                  size: 14,
+                  color: Colors.blue.shade600,
+                ),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -247,7 +257,7 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Row 3: Staff & Pax
             Row(
               children: [
@@ -257,12 +267,20 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
                     children: [
                       Text(
                         "GUÍA",
-                        style: TextStyle(fontSize: 10, color: Colors.grey.shade500, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         viaje.guiaNombre,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF2C3E50)),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2C3E50),
+                        ),
                       ),
                     ],
                   ),
@@ -273,12 +291,20 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
                     children: [
                       Text(
                         "TURISTAS",
-                        style: TextStyle(fontSize: 10, color: Colors.grey.shade500, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         "${viaje.turistas} pax",
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF2C3E50)),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2C3E50),
+                        ),
                       ),
                     ],
                   ),
@@ -290,7 +316,6 @@ class _AgencyMapWidgetState extends State<AgencyMapWidget> {
       ),
     );
   }
-
 
   Marker _buildMarker(Viaje viaje, int index, List<Viaje> filteredList) {
     final isSelected = _selectedIndex == index;

@@ -34,7 +34,8 @@ class _GrupoTuristasTabState extends State<GrupoTuristasTab> {
   void _filtrar() {
     final q = _searchCtrl.text.toLowerCase();
     setState(() {
-      _filtrados = _todos.where((t) => t.nombre.toLowerCase().contains(q)).toList();
+      _filtrados =
+          _todos.where((t) => t.nombre.toLowerCase().contains(q)).toList();
     });
   }
 
@@ -45,7 +46,11 @@ class _GrupoTuristasTabState extends State<GrupoTuristasTab> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.group_off_rounded, size: 56, color: Colors.grey.shade300),
+            Icon(
+              Icons.group_off_rounded,
+              size: 56,
+              color: Colors.grey.shade300,
+            ),
             const SizedBox(height: 12),
             Text(
               'No hay turistas registrados',
@@ -76,20 +81,32 @@ class _GrupoTuristasTabState extends State<GrupoTuristasTab> {
             decoration: InputDecoration(
               hintText: 'Buscar turista...',
               hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-              prefixIcon: const Icon(Icons.search, size: 20, color: Colors.grey),
-              suffixIcon: _searchCtrl.text.isNotEmpty
-                  ? IconButton(
-                      icon: Icon(Icons.clear, size: 18, color: Colors.grey.shade400),
-                      onPressed: () {
-                        _searchCtrl.clear();
-                        FocusScope.of(context).unfocus();
-                      },
-                    )
-                  : null,
+              prefixIcon: const Icon(
+                Icons.search,
+                size: 20,
+                color: Colors.grey,
+              ),
+              suffixIcon:
+                  _searchCtrl.text.isNotEmpty
+                      ? IconButton(
+                        icon: Icon(
+                          Icons.clear,
+                          size: 18,
+                          color: Colors.grey.shade400,
+                        ),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          FocusScope.of(context).unfocus();
+                        },
+                      )
+                      : null,
               filled: true,
               fillColor: Colors.grey.shade100,
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 10,
+                horizontal: 12,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -119,29 +136,41 @@ class _GrupoTuristasTabState extends State<GrupoTuristasTab> {
 
         // ── Lista ──
         Expanded(
-          child: _filtrados.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search_off_rounded, size: 48, color: Colors.grey.shade300),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Sin coincidencias',
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                      ),
-                    ],
+          child:
+              _filtrados.isEmpty
+                  ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 48,
+                          color: Colors.grey.shade300,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Sin coincidencias',
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                  : ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    itemCount: _filtrados.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 6),
+                    itemBuilder:
+                        (context, i) => _TuristaTile(
+                          turista: _filtrados[i],
+                          onEliminar: () => _eliminar(_filtrados[i]),
+                        ),
                   ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: _filtrados.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 6),
-                  itemBuilder: (context, i) => _TuristaTile(
-                    turista: _filtrados[i],
-                    onEliminar: () => _eliminar(_filtrados[i]),
-                  ),
-                ),
         ),
       ],
     );
@@ -150,29 +179,46 @@ class _GrupoTuristasTabState extends State<GrupoTuristasTab> {
   void _eliminar(Turista turista) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('¿Eliminar turista?',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        content: Text('Se quitará a ${turista.nombre} del monitoreo activo.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancelar',
-                style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.bold)),
+            title: const Text(
+              '¿Eliminar turista?',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            content: Text(
+              'Se quitará a ${turista.nombre} del monitoreo activo.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(
+                  'Cancelar',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  'Eliminar',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     if (ok == true && mounted) {
       setState(() {
@@ -206,7 +252,11 @@ class _TuristaTile extends StatelessWidget {
           color: Colors.red.shade100,
           borderRadius: BorderRadius.circular(14),
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 22),
+        child: const Icon(
+          Icons.delete_outline_rounded,
+          color: Colors.redAccent,
+          size: 22,
+        ),
       ),
       confirmDismiss: (_) async {
         onEliminar();
@@ -223,7 +273,8 @@ class _TuristaTile extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: esCritico ? Colors.red.shade50 : const Color(0xFFF0FDF4),
+              backgroundColor:
+                  esCritico ? Colors.red.shade50 : const Color(0xFFF0FDF4),
               child: Icon(
                 esCritico ? Icons.priority_high_rounded : Icons.person_rounded,
                 color: esCritico ? Colors.red : const Color(0xFF00AE00),
@@ -234,7 +285,10 @@ class _TuristaTile extends StatelessWidget {
             Expanded(
               child: Text(
                 turista.nombre,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

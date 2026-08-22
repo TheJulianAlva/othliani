@@ -55,8 +55,10 @@ class _TripProgressCardWidgetState extends State<TripProgressCardWidget> {
   Widget build(BuildContext context) {
     final state = widget.state;
     final totalActividades = state.data.actividades.length;
-    final completadas = state.data.actividades.where((a) => a.completada).length;
-    final double progreso = totalActividades > 0 ? (completadas / totalActividades) : 0.0;
+    final completadas =
+        state.data.actividades.where((a) => a.completada).length;
+    final double progreso =
+        totalActividades > 0 ? (completadas / totalActividades) : 0.0;
     final destino = state.data.nombreViaje;
     final turistas = state.data.participantes;
 
@@ -89,14 +91,21 @@ class _TripProgressCardWidgetState extends State<TripProgressCardWidget> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.people_outline, size: 14, color: Colors.blue.shade700),
+                      Icon(
+                        Icons.people_outline,
+                        size: 14,
+                        color: Colors.blue.shade700,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '$turistas',
@@ -111,7 +120,9 @@ class _TripProgressCardWidgetState extends State<TripProgressCardWidget> {
                 ),
                 const SizedBox(width: 8),
                 Icon(
-                  _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                  _isExpanded
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
                   color: Colors.grey.shade400,
                   size: 20,
                 ),

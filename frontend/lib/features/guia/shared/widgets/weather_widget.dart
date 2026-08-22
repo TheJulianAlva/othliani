@@ -5,10 +5,7 @@ import 'package:flutter/material.dart';
 class WeatherWidget extends StatelessWidget {
   final bool isCompact;
 
-  const WeatherWidget({
-    super.key,
-    this.isCompact = false,
-  });
+  const WeatherWidget({super.key, this.isCompact = false});
 
   @override
   Widget build(BuildContext context) {

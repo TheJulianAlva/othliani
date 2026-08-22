@@ -35,7 +35,9 @@ class DashboardScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF004A75), // Azul oscuro exacto del mockup
+                        color: Color(
+                          0xFF004A75,
+                        ), // Azul oscuro exacto del mockup
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -59,19 +61,26 @@ class DashboardScreen extends StatelessWidget {
                             icon: Icons.calendar_today_rounded,
                             customIconColor: const Color(0xFF1B3B6F),
                             customIconBgColor: const Color(0xFFE8EEFF),
-                            onTap: () => context.go('${RoutesAgencia.viajes}?filter=en_curso'),
+                            onTap:
+                                () => context.go(
+                                  '${RoutesAgencia.viajes}?filter=en_curso',
+                                ),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: KPICard(
                             title: 'VIAJES EN RUTA',
-                            value: '${data.viajesActivos}', // Using viajesActivos for now
+                            value:
+                                '${data.viajesActivos}', // Using viajesActivos for now
                             subtitle: 'En traslado',
                             icon: Icons.directions_bus_rounded,
                             customIconColor: const Color(0xFF6A1B9A),
                             customIconBgColor: const Color(0xFFF3E5F5),
-                            onTap: () => context.go('${RoutesAgencia.viajes}?filter=en_curso'),
+                            onTap:
+                                () => context.go(
+                                  '${RoutesAgencia.viajes}?filter=en_curso',
+                                ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -83,20 +92,28 @@ class DashboardScreen extends StatelessWidget {
                             icon: Icons.hiking_rounded,
                             customIconColor: const Color(0xFF2E7D32),
                             customIconBgColor: const Color(0xFFE8F5E9),
-                            isAlert: false, // The mockup shows this as a normal green card
-                            onTap: () => context.go('${RoutesAgencia.usuarios}?tab=clientes'),
+                            isAlert:
+                                false, // The mockup shows this as a normal green card
+                            onTap:
+                                () => context.go(
+                                  '${RoutesAgencia.usuarios}?tab=clientes',
+                                ),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: KPICard(
                             title: 'GUÍAS',
-                            value: '${data.guiasTotal}', // Maybe this should be '10 / 14' but keeping dynamic
+                            value:
+                                '${data.guiasTotal}', // Maybe this should be '10 / 14' but keeping dynamic
                             subtitle: 'Ocupados / Disp.',
                             icon: Icons.badge_rounded,
                             customIconColor: const Color(0xFFE65100),
                             customIconBgColor: const Color(0xFFFFF3E0),
-                            onTap: () => context.go('${RoutesAgencia.usuarios}?tab=guias'),
+                            onTap:
+                                () => context.go(
+                                  '${RoutesAgencia.usuarios}?tab=guias',
+                                ),
                           ),
                         ),
                       ],

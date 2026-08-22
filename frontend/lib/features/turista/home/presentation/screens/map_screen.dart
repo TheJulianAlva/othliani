@@ -32,15 +32,14 @@ class _MapScreenState extends State<MapScreen> {
         markerId: const MarkerId('tourist'),
         position: const LatLng(20.2114, -87.4654),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-        infoWindow: const InfoWindow(
-          title: 'Tú',
-          snippet: 'Ubicación actual',
-        ),
+        infoWindow: const InfoWindow(title: 'Tú', snippet: 'Ubicación actual'),
       ),
       Marker(
         markerId: const MarkerId('guide'),
         position: const LatLng(20.2090, -87.4500),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange), // Representing the guide
+        icon: BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueOrange,
+        ), // Representing the guide
         infoWindow: const InfoWindow(
           title: 'Tu Guía',
           snippet: 'Guía del recorrido',
@@ -100,7 +99,11 @@ class _MapScreenState extends State<MapScreen> {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.warning_amber_rounded, color: Colors.white, size: 28),
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     SizedBox(width: 12),
                     Text(
                       'MANTENER PRESIONADO 3 SEG',
@@ -121,4 +124,3 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 }
-

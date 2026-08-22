@@ -36,7 +36,7 @@ class _TraductorScreenState extends State<TraductorScreen> {
   // 📸 1. Capturar o seleccionar la imagen
   Future<void> _capturarImagen(ImageSource source) async {
     final XFile? pickedFile = await _picker.pickImage(source: source);
-    
+
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
@@ -56,18 +56,22 @@ class _TraductorScreenState extends State<TraductorScreen> {
     try {
       // A. Extraer Texto (ML Kit)
       final inputImage = InputImage.fromFile(_image!);
-      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-      
+      final textRecognizer = TextRecognizer(
+        script: TextRecognitionScript.latin,
+      );
+      final RecognizedText recognizedText = await textRecognizer.processImage(
+        inputImage,
+      );
+
       String textoDetectado = recognizedText.text;
-      
+
       // B. Si encontró texto, lo traducimos al idioma destino
       if (textoDetectado.trim().isNotEmpty) {
         var translation = await _translator.translate(
           textoDetectado,
           to: _idiomaDestino,
         );
-        
+
         setState(() {
           _textoExtraido = textoDetectado;
           _textoTraducido = translation.text;
@@ -79,7 +83,7 @@ class _TraductorScreenState extends State<TraductorScreen> {
           _isProcessing = false;
         });
       }
-      
+
       // Cerrar el reconocedor para liberar memoria
       textRecognizer.close();
     } catch (e) {
@@ -138,15 +142,18 @@ class _TraductorScreenState extends State<TraductorScreen> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.grey.shade400),
               ),
-              child: _image != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.file(_image!, fit: BoxFit.cover),
-                    )
-                  : const Center(
-                      child: Text('Toma una foto de un letrero o menú',
-                          style: TextStyle(color: Colors.grey)),
-                    ),
+              child:
+                  _image != null
+                      ? ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.file(_image!, fit: BoxFit.cover),
+                      )
+                      : const Center(
+                        child: Text(
+                          'Toma una foto de un letrero o menú',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
             ),
             // --- SELECTOR DE IDIOMA ---
             Row(
@@ -201,12 +208,18 @@ class _TraductorScreenState extends State<TraductorScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
-                  onPressed: _isProcessing ? null : () => _capturarImagen(ImageSource.camera),
+                  onPressed:
+                      _isProcessing
+                          ? null
+                          : () => _capturarImagen(ImageSource.camera),
                   icon: const Icon(Icons.camera_alt),
                   label: const Text('Cámara'),
                 ),
                 ElevatedButton.icon(
-                  onPressed: _isProcessing ? null : () => _capturarImagen(ImageSource.gallery),
+                  onPressed:
+                      _isProcessing
+                          ? null
+                          : () => _capturarImagen(ImageSource.gallery),
                   icon: const Icon(Icons.photo_library),
                   label: const Text('Galería'),
                 ),
@@ -241,7 +254,7 @@ class _TraductorScreenState extends State<TraductorScreen> {
                 ),
                 child: Text(_textoExtraido),
               ),
-              
+
               if (_textoTraducido.isNotEmpty) ...[
                 Text(
                   'Traducción (${_idiomasSoportados[_idiomaDestino]}):',
@@ -264,7 +277,7 @@ class _TraductorScreenState extends State<TraductorScreen> {
                     style: const TextStyle(fontSize: 18),
                   ),
                 ),
-              ]
+              ],
             ],
           ],
         ),

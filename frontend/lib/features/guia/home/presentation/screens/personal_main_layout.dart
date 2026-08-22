@@ -84,11 +84,14 @@ class _PersonalMainLayoutState extends State<PersonalMainLayout>
           const SizedBox(width: 12),
           Expanded(
             child: BlocSelector<PersonalHomeCubit, PersonalHomeState, String>(
-              selector: (s) => s is PersonalHomeLoaded ? s.data.nombreGuia : widget.nombreGuia,
-              builder: (_, n) => Text(
-                'Bienvenido, $n',
-                style: GuiaTextStyles.appBarTitle,
-              ),
+              selector:
+                  (s) =>
+                      s is PersonalHomeLoaded
+                          ? s.data.nombreGuia
+                          : widget.nombreGuia,
+              builder:
+                  (_, n) =>
+                      Text('Bienvenido, $n', style: GuiaTextStyles.appBarTitle),
             ),
           ),
           IconButton(

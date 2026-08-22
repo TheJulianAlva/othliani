@@ -4,10 +4,9 @@ import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.da
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/features/turista/home/presentation/screens/trip_home_screen.dart';
-
 import 'package:frontend/features/turista/chat/presentation/screens/chat_screen.dart';
 import 'package:frontend/features/turista/settings/presentation/screens/config_screen.dart';
-import 'map_screen.dart';
+import 'comunicacion_seguridad_screen.dart';
 import 'herramientas_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
@@ -26,7 +25,7 @@ class _MainShellScreenState extends State<MainShellScreen>
     Icons.chat_bubble_outline,
     Icons.handyman_outlined,
     Icons.settings_outlined,
-    Icons.map_outlined,
+    Icons.headset_mic_rounded,
   ];
 
   final List<Widget> _screens = [
@@ -34,7 +33,7 @@ class _MainShellScreenState extends State<MainShellScreen>
     const ChatScreen(),
     const HerramientasScreen(),
     const ConfigScreen(),
-    const MapScreen(),
+    const ComunicacionSeguridadScreen(),
   ];
 
   @override
@@ -45,7 +44,7 @@ class _MainShellScreenState extends State<MainShellScreen>
       l10n.chat,
       l10n.tools,
       l10n.config,
-      l10n.map,
+      'Seguridad',
     ];
 
     return Scaffold(
@@ -62,9 +61,7 @@ class _MainShellScreenState extends State<MainShellScreen>
         ],
       ),
       body: Stack(
-        children: [
-          IndexedStack(index: _currentIndex, children: _screens),
-        ],
+        children: [IndexedStack(index: _currentIndex, children: _screens)],
       ),
       bottomNavigationBar: AnimatedBottomNavigationBar.builder(
         itemCount: _iconList.length,
@@ -130,7 +127,7 @@ class _MainShellScreenState extends State<MainShellScreen>
       case 3:
         return l10n.configuration;
       case 4:
-        return l10n.map;
+        return 'Comunicación y Seguridad';
       default:
         return l10n.appTitle;
     }

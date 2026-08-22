@@ -47,7 +47,10 @@ class GuiaCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                           if (onBackPressed != null) ...[
                             GestureDetector(
                               onTap: onBackPressed,
-                              child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                              child: const Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                size: 16,
+                              ),
                             ),
                             const SizedBox(width: 12),
                           ],
