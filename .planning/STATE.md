@@ -1,18 +1,18 @@
 ---
 gsd_state_version: 1.0
 current_phase: 01
-current_phase_name: redise-o-turista
+current_phase_name: Rediseño Turista
 status: executing
-stopped_at: Phase 01 UI-SPEC approved
-last_updated: "2026-08-23T04:33:33.673Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-08-23T04:56:14.083Z"
 last_activity: 2026-08-22
-last_activity_desc: ROADMAP.md creado, 2 fases derivadas de los 5 requisitos v1 (DISENO-TUR-01/02/03, DISENO-GUIA-01/02)
-state_head: c8096bd5be23cb8bc72c4dfd333f58b42d6c9871
+last_activity_desc: Phase 01 execution started
+state_head: d500d1115bf2bf2f563901fe204abce9716e5619
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 6
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-22)
 
 **Core value:** El rediseño cálido y consistente de Turista y Guía debe verse cuidado y creíble en toda la app (no solo en 3 pantallas aisladas), para que la demo se sienta como un producto real cuando llegue el momento de grabar el video de pitch.
-**Current focus:** Phase 1 — Rediseño Turista
+**Current focus:** Phase 01 — Rediseño Turista
 
 ## Current Position
 
-Phase: 01 (redise-o-turista) — READY TO EXECUTE
-Plan: 0 of TBD in current phase
+Phase: 01 (Rediseño Turista) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-08-22 — ROADMAP.md creado, 2 fases derivadas de los 5 requisitos v1 (DISENO-TUR-01/02/03, DISENO-GUIA-01/02)
+Last activity: 2026-08-22 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -54,6 +54,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P01 | 20 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -64,6 +69,8 @@ Recent decisions affecting current work:
 
 - Roadmap: Rediseño se ejecuta como 2 slices verticales (Turista, luego Guía) en vez de una fase horizontal de "sistema de diseño" separada — Turista construye la base compartida en `frontend/lib/core/theme/` como parte de su propio rediseño, Guía la reutiliza sin reimplementarla.
 - PROJECT.md: No se construye backend de producción ni se rediseña Agencia en este milestone; sketches son dirección de diseño, no plantilla literal.
+- [Phase 01]: VelturTokens ThemeExtension contract built app-neutral (no Turista imports) so Phase 2 (Guía) constructs its own instance and reuses core/widgets/ unchanged (D-02). — Mechanically enforced via a portability test that fails if a shared widget re-hardcodes a color.
+- [Phase 01]: MaterialApp wraps theme: in AnimatedTheme — widget tests that pump a second theme need pumpAndSettle() before reading rendered colors, else they read the pre-lerp frame.
 
 ### Pending Todos
 
@@ -85,6 +92,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-23T00:50:56.187Z
-Stopped at: Phase 01 UI-SPEC approved
-Resume file: /home/the_julian_alva/Documentos/Projects/othliani/.planning/phases/01-redise-o-turista/01-UI-SPEC.md
+Last session: 2026-08-23T04:56:14.071Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
