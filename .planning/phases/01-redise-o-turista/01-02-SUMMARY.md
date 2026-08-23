@@ -193,3 +193,7 @@ None - plan executed exactly as written. All `must_haves.truths`, the country-pi
 ---
 *Phase: 01-redise-o-turista*
 *Completed: 2026-08-22*
+
+## Self-Check: PASSED
+
+All created/modified files and referenced commit hashes verified present on disk / in git history.
