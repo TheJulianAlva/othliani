@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
+import 'package:frontend/core/theme/veltur_tokens.dart';
 
 // Since MapBloc would require managing heavy state (Google Map Controller, Markers),
 // and often Maps are very UI heavy, we might keep it as a StatefulWidget but move business logic (like fetching POIs) to a Bloc.
@@ -26,6 +27,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final tokens = VelturTokens.of(context);
 
     final Set<Marker> markers = {
       Marker(
@@ -52,8 +54,8 @@ class _MapScreenState extends State<MapScreen> {
         circleId: const CircleId('safe_zone'),
         center: const LatLng(20.2100, -87.4580),
         radius: 1500, // 1.5 km
-        fillColor: Colors.blue.withValues(alpha: 0.2),
-        strokeColor: Colors.blue.withValues(alpha: 0.5),
+        fillColor: tokens.safe.withValues(alpha: 0.2),
+        strokeColor: tokens.safe.withValues(alpha: 0.5),
         strokeWidth: 2,
       ),
     };
@@ -77,39 +79,32 @@ class _MapScreenState extends State<MapScreen> {
             child: GestureDetector(
               onLongPress: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('¡Emergencia activada!'),
-                    backgroundColor: Colors.red,
+                  SnackBar(
+                    content: const Text('¡Emergencia activada!'),
+                    backgroundColor: tokens.danger,
                   ),
                 );
               },
               child: Container(
                 height: 60,
                 decoration: BoxDecoration(
-                  color: Colors.red.shade700,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withValues(alpha: 0.5),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: tokens.danger,
+                  borderRadius: BorderRadius.circular(tokens.radiusFull),
+                  boxShadow: tokens.shadowGlowDanger,
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.warning_amber_rounded,
                       color: Colors.white,
                       size: 28,
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Text(
                       'MANTENER PRESIONADO 3 SEG',
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Colors.white,
-                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
                       ),

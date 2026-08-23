@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:frontend/core/demo/demo_config.dart';
 import 'package:frontend/core/di/service_locator.dart';
+import 'package:frontend/core/theme/veltur_tokens.dart';
 import 'package:frontend/features/turista/home/domain/entities/itinerary_item.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/itinerary_bloc.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/itinerary_event.dart';
@@ -84,10 +85,14 @@ class _MapaItinerarioViewState extends State<_MapaItinerarioView> {
   void _showEventSheet(BuildContext context, ItineraryItem item) {
     final timeStr =
         '${_fmt(item.startTime)} – ${_fmt(item.endTime)}';
+    final tokens = VelturTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(tokens.radiusLg),
+        ),
       ),
       builder: (_) => Padding(
         padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
@@ -101,51 +106,46 @@ class _MapaItinerarioViewState extends State<_MapaItinerarioView> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(4),
+                  color: tokens.border,
+                  borderRadius: BorderRadius.circular(tokens.radiusFull),
                 ),
               ),
             ),
-            Text(
-              item.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(item.title, style: textTheme.titleLarge),
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                Icon(Icons.access_time, size: 16, color: tokens.textMuted),
                 const SizedBox(width: 6),
                 Text(
                   timeStr,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                  style: textTheme.labelLarge?.copyWith(
+                    color: tokens.textMuted,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 6),
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.place_outlined,
                   size: 16,
-                  color: Colors.grey,
+                  color: tokens.textMuted,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     item.location,
-                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    style: textTheme.labelLarge?.copyWith(
+                      color: tokens.textMuted,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              item.description,
-              style: const TextStyle(fontSize: 14, height: 1.5),
-            ),
+            Text(item.description, style: textTheme.bodyLarge),
           ],
         ),
       ),
@@ -157,6 +157,7 @@ class _MapaItinerarioViewState extends State<_MapaItinerarioView> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = VelturTokens.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Itinerario en mapa'),
@@ -206,24 +207,22 @@ class _MapaItinerarioViewState extends State<_MapaItinerarioView> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 8,
-                      ),
-                    ],
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(tokens.radiusMd),
+                    boxShadow: tokens.shadowSm,
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _LegendItem(color: Colors.green, label: 'Completada'),
-                      SizedBox(height: 4),
-                      _LegendItem(color: Colors.orange, label: 'En curso'),
-                      SizedBox(height: 4),
-                      _LegendItem(color: Colors.blue, label: 'Pendiente'),
+                      _LegendItem(color: tokens.safe, label: 'Completada'),
+                      const SizedBox(height: 4),
+                      _LegendItem(color: tokens.warn, label: 'En curso'),
+                      const SizedBox(height: 4),
+                      _LegendItem(
+                        color: tokens.textMuted,
+                        label: 'Pendiente',
+                      ),
                     ],
                   ),
                 ),
@@ -253,7 +252,7 @@ class _LegendItem extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12)),
+        Text(label, style: Theme.of(context).textTheme.labelLarge),
       ],
     );
   }
