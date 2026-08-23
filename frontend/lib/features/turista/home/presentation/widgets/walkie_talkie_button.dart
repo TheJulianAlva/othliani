@@ -6,6 +6,7 @@ import 'package:record/record.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:frontend/core/demo/demo_config.dart';
+import 'package:frontend/core/theme/veltur_tokens.dart';
 
 class WalkieTalkieButton extends StatefulWidget {
   final String tripId;
@@ -13,6 +14,27 @@ class WalkieTalkieButton extends StatefulWidget {
 
   @override
   State<WalkieTalkieButton> createState() => _WalkieTalkieButtonState();
+
+  /// Mapeo puro estado -> decoración del botón push-to-talk.
+  ///
+  /// Extraído como función estática y sin estado para que el contrato de
+  /// tres estados (idle/recording/busy) sea comprobable sin levantar un
+  /// socket real. `build()` es una única llamada a este helper.
+  static BoxDecoration decorationFor({
+    required bool isRecording,
+    required bool isChannelBusy,
+    required VelturTokens tokens,
+    required ColorScheme scheme,
+  }) {
+    final Color fill = isChannelBusy
+        ? tokens.warn
+        : (isRecording ? tokens.danger : scheme.primary);
+    return BoxDecoration(
+      color: fill,
+      shape: BoxShape.circle,
+      boxShadow: isRecording ? tokens.shadowGlowDanger : tokens.shadowMd,
+    );
+  }
 }
 
 class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
@@ -57,10 +79,15 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
 
     socket.on('canalDenegado', (_) {
       if (mounted) {
+        final tokens = VelturTokens.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('El canal está ocupado...'),
-            duration: Duration(milliseconds: 800),
+          SnackBar(
+            content: Text(
+              'El canal está ocupado...',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
+            backgroundColor: tokens.warn,
+            duration: const Duration(milliseconds: 800),
           ),
         );
       }
@@ -186,7 +213,9 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final tokens = VelturTokens.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final gestureDetector = GestureDetector(
       onLongPress: _requestToSpeak,
       onLongPressEnd: (_) => _stopStreaming(),
       child: Material(
@@ -195,30 +224,20 @@ class _WalkieTalkieButtonState extends State<WalkieTalkieButton> {
         child: Container(
           width: 56,
           height: 56,
-          decoration: BoxDecoration(
-            color: isChannelBusy
-                ? Colors.grey
-                : (isRecording ? Colors.red : Colors.orange),
-            shape: BoxShape.circle,
-            boxShadow: isRecording
-                ? [
-                    BoxShadow(
-                      color: Colors.red.withValues(alpha: 0.5),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+          decoration: WalkieTalkieButton.decorationFor(
+            isRecording: isRecording,
+            isChannelBusy: isChannelBusy,
+            tokens: tokens,
+            scheme: scheme,
           ),
           child: const Icon(Icons.radio, color: Colors.white, size: 28),
         ),
       ),
+    );
+    return Semantics(
+      label: 'Mantén presionado para hablar',
+      button: true,
+      child: gestureDetector,
     );
   }
 }
