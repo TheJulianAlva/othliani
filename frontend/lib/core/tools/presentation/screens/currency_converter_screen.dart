@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:io';
 import 'package:frontend/core/theme/app_constants.dart';
+import 'package:frontend/core/theme/veltur_tokens.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/tools/currency/presentation/cubit/currency_cubit.dart';
@@ -183,6 +184,7 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
 
     return BlocBuilder<CurrencyCubit, CurrencyState>(
       builder: (context, state) {
@@ -219,15 +221,16 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
                             ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(
-                                AppBorderRadius.md,
+                                tokens.radiusMd,
                               ),
                               border: Border.all(
-                                color: theme.colorScheme.primary,
+                                color: tokens.border,
+                                width: 1,
                               ),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(
-                                AppBorderRadius.md,
+                                tokens.radiusMd,
                               ),
                               child: Image.file(
                                 _selectedImage!,
@@ -331,9 +334,13 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
                             },
                             icon: const Icon(Icons.swap_vert, size: 32),
                             style: IconButton.styleFrom(
-                              backgroundColor: theme.colorScheme.primary
-                                  .withValues(alpha: 0.1),
+                              backgroundColor: tokens.primarySoft,
                               foregroundColor: theme.colorScheme.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  tokens.radiusFull,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -358,23 +365,19 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
                         Container(
                           padding: const EdgeInsets.all(AppSpacing.lg),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(
-                              alpha: 0.1,
-                            ),
+                            color: tokens.primarySoft,
                             borderRadius: BorderRadius.circular(
-                              AppBorderRadius.md,
+                              tokens.radiusLg,
                             ),
-                            border: Border.all(
-                              color: theme.colorScheme.primary,
-                              width: 2,
-                            ),
+                            border: Border.all(color: tokens.border, width: 1),
+                            boxShadow: tokens.shadowSm,
                           ),
                           child: Column(
                             children: [
                               Text(
                                 l10n.result,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: tokens.textMuted,
                                 ),
                               ),
                               const SizedBox(height: AppSpacing.sm),
@@ -384,17 +387,18 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
                                     fit: BoxFit.scaleDown,
                                     child: Text(
                                       '${_getCurrencySymbol(toCurrency)} ${result.toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.primary,
-                                      ),
+                                      style: theme.textTheme.displaySmall
+                                          ?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                          ),
                                     ),
                                   ),
                               const SizedBox(height: AppSpacing.xs),
                               Text(
                                 _getCurrencyName(toCurrency),
-                                style: theme.textTheme.bodySmall,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: tokens.textMuted,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -408,9 +412,9 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
                           Container(
                             padding: const EdgeInsets.all(AppSpacing.md),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest,
+                              color: tokens.surfaceWarm,
                               borderRadius: BorderRadius.circular(
-                                AppBorderRadius.sm,
+                                tokens.radiusSm,
                               ),
                             ),
                             child: Row(
@@ -419,16 +423,14 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
                                 Icon(
                                   Icons.info_outline,
                                   size: 16,
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                  color: tokens.textMuted,
                                 ),
                                 const SizedBox(width: AppSpacing.xs),
                                 Flexible(
                                   child: Text(
                                     '1 $fromCurrency = ${(rates[toCurrency] ?? 0).toStringAsFixed(4)} $toCurrency',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
+                                    style: theme.textTheme.labelLarge
+                                        ?.copyWith(color: tokens.textMuted),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -461,6 +463,7 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
     required ValueChanged<String?> onChanged,
   }) {
     final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -478,7 +481,7 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
           ),
           decoration: BoxDecoration(
             border: Border.all(color: theme.colorScheme.outline),
-            borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+            borderRadius: BorderRadius.circular(tokens.radiusSm),
           ),
           child: DropdownButton<String>(
             value: value,
