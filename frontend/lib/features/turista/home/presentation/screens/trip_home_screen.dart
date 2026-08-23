@@ -6,6 +6,7 @@ import 'package:frontend/core/di/service_locator.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/theme/app_constants.dart';
+import 'package:frontend/core/theme/veltur_tokens.dart';
 import 'package:frontend/features/turista/home/domain/entities/activity.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/trip_bloc.dart';
 import 'package:frontend/features/turista/home/presentation/bloc/trip_event.dart';
@@ -84,17 +85,23 @@ class _TripHomeViewState extends State<_TripHomeView>
   }
 
   void _mostrarAlertaEnPantalla(String mensaje) {
+    final tokens = VelturTokens.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: Colors.amber.shade50,
-        title: const Row(
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(tokens.radiusLg),
+        ),
+        backgroundColor: tokens.warnSoft,
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 30),
-            SizedBox(width: 10),
-            Text("¡Aviso Importante!", style: TextStyle(color: Colors.orange)),
+            Icon(Icons.warning_amber_rounded, color: tokens.warn, size: 30),
+            const SizedBox(width: 10),
+            Text(
+              "¡Aviso Importante!",
+              style: TextStyle(color: tokens.warn, fontWeight: FontWeight.w600),
+            ),
           ],
         ),
         content: Text(
@@ -103,9 +110,9 @@ class _TripHomeViewState extends State<_TripHomeView>
         ),
         actions: [
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            style: ElevatedButton.styleFrom(backgroundColor: tokens.warn),
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
               context.read<TripBloc>().add(TripStarted());
             },
             child: const Text("Entendido"),
@@ -183,6 +190,7 @@ class _TripHomeViewState extends State<_TripHomeView>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
 
     return BlocConsumer<TripBloc, TripState>(
       listener: (context, state) {
@@ -270,12 +278,16 @@ class _TripHomeViewState extends State<_TripHomeView>
                   return Container(
                     decoration: BoxDecoration(
                       color: theme.scaffoldBackgroundColor,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(24),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(tokens.radiusLg),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
+                          // Warm shadow tint (shadow-lg) at this panel's
+                          // upward offset — the token list's own offsets
+                          // point downward, so only the tint colour is
+                          // reused here, not the geometry.
+                          color: tokens.shadowLg.first.color,
                           blurRadius: 10,
                           offset: const Offset(0, -5),
                         ),
@@ -292,8 +304,10 @@ class _TripHomeViewState extends State<_TripHomeView>
                               width: 40,
                               height: 5,
                               decoration: BoxDecoration(
-                                color: Colors.grey.withValues(alpha: 0.4),
-                                borderRadius: BorderRadius.circular(10),
+                                color: tokens.border,
+                                borderRadius: BorderRadius.circular(
+                                  tokens.radiusFull,
+                                ),
                               ),
                             ),
                           ),
@@ -309,7 +323,7 @@ class _TripHomeViewState extends State<_TripHomeView>
                                   decoration: BoxDecoration(
                                     color: theme.primaryColor,
                                     borderRadius: BorderRadius.circular(
-                                      AppBorderRadius.md,
+                                      tokens.radiusXl,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
@@ -339,22 +353,22 @@ class _TripHomeViewState extends State<_TripHomeView>
                                             ),
                                           ),
                                           Row(
-                                            children: const [
+                                            children: [
                                               Icon(
                                                 Icons.wb_sunny,
-                                                color: Colors.yellow,
+                                                color: tokens.warn,
                                                 size: 16,
                                               ),
-                                              SizedBox(width: 4),
-                                              Text(
+                                              const SizedBox(width: 4),
+                                              const Text(
                                                 '32°C',
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 12,
                                                 ),
                                               ),
-                                              SizedBox(width: 12),
-                                              Icon(
+                                              const SizedBox(width: 12),
+                                              const Icon(
                                                 Icons.checkroom,
                                                 color: Colors.white,
                                                 size: 16,
@@ -382,7 +396,7 @@ class _TripHomeViewState extends State<_TripHomeView>
                                             alpha: 0.1,
                                           ),
                                           borderRadius: BorderRadius.circular(
-                                            12,
+                                            tokens.radiusMd,
                                           ),
                                         ),
                                         child: const Center(
@@ -420,20 +434,12 @@ class _TripHomeViewState extends State<_TripHomeView>
                                   decoration: BoxDecoration(
                                     color: theme.cardColor,
                                     borderRadius: BorderRadius.circular(
-                                      AppBorderRadius.md,
+                                      tokens.radiusXl,
                                     ),
                                     border: Border.all(
                                       color: theme.dividerColor,
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.05,
-                                        ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
+                                    boxShadow: tokens.shadowSm,
                                   ),
                                   child: Row(
                                     children: [
@@ -441,12 +447,9 @@ class _TripHomeViewState extends State<_TripHomeView>
                                         width: 80,
                                         height: 80,
                                         decoration: BoxDecoration(
-                                          color:
-                                              theme
-                                                  .colorScheme
-                                                  .surfaceContainerHighest,
+                                          color: tokens.surfaceWarm,
                                           borderRadius: BorderRadius.circular(
-                                            AppBorderRadius.sm,
+                                            tokens.radiusMd,
                                           ),
                                         ),
                                         child: Icon(
@@ -470,20 +473,19 @@ class _TripHomeViewState extends State<_TripHomeView>
                                                         vertical: 4,
                                                       ),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.green
-                                                        .withValues(alpha: 0.2),
+                                                    color: tokens.safeSoft,
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          12,
+                                                          tokens.radiusFull,
                                                         ),
                                                   ),
                                                   child: Text(
                                                     l10n.active,
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 11,
-                                                      color: Colors.green,
+                                                      color: tokens.safe,
                                                       fontWeight:
-                                                          FontWeight.bold,
+                                                          FontWeight.w600,
                                                     ),
                                                   ),
                                                 ),
@@ -516,12 +518,9 @@ class _TripHomeViewState extends State<_TripHomeView>
                                     horizontal: AppSpacing.md,
                                   ),
                                   decoration: BoxDecoration(
-                                    color:
-                                        theme
-                                            .colorScheme
-                                            .surfaceContainerHighest,
+                                    color: tokens.surfaceWarm,
                                     borderRadius: BorderRadius.circular(
-                                      AppBorderRadius.sm,
+                                      tokens.radiusMd,
                                     ),
                                   ),
                                   child: TabBar(
@@ -532,7 +531,7 @@ class _TripHomeViewState extends State<_TripHomeView>
                                     indicator: BoxDecoration(
                                       color: theme.colorScheme.primary,
                                       borderRadius: BorderRadius.circular(
-                                        AppBorderRadius.sm,
+                                        tokens.radiusMd,
                                       ),
                                     ),
                                     indicatorSize: TabBarIndicatorSize.tab,
@@ -572,7 +571,7 @@ class _TripHomeViewState extends State<_TripHomeView>
                                 decoration: BoxDecoration(
                                   color: theme.cardColor,
                                   borderRadius: BorderRadius.circular(
-                                    AppBorderRadius.sm,
+                                    tokens.radiusMd,
                                   ),
                                   border: Border.all(color: theme.dividerColor),
                                 ),
@@ -602,14 +601,13 @@ class _TripHomeViewState extends State<_TripHomeView>
                                     ),
                                     const SizedBox(height: 8),
                                     ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(
+                                        tokens.radiusSm,
+                                      ),
                                       child: LinearProgressIndicator(
                                         value: progress,
                                         minHeight: 8,
-                                        backgroundColor:
-                                            theme
-                                                .colorScheme
-                                                .surfaceContainerHighest,
+                                        backgroundColor: tokens.surfaceWarm,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
                                               theme.colorScheme.primary,
@@ -623,16 +621,19 @@ class _TripHomeViewState extends State<_TripHomeView>
                                       alignment: WrapAlignment.spaceAround,
                                       children: [
                                         _buildStatusBadge(
+                                          context,
                                           '✓ ${statusCounts['terminada']}',
-                                          Colors.green,
+                                          tokens.safe,
                                         ),
                                         _buildStatusBadge(
+                                          context,
                                           '⟳ ${statusCounts['en_curso']}',
-                                          Colors.orange,
+                                          tokens.warn,
                                         ),
                                         _buildStatusBadge(
+                                          context,
                                           '○ ${statusCounts['pendiente']}',
-                                          Colors.grey,
+                                          tokens.textMuted,
                                         ),
                                       ],
                                     ),
@@ -780,21 +781,19 @@ class _TripHomeViewState extends State<_TripHomeView>
     );
   }
 
-  Widget _buildStatusBadge(String label, Color color) {
+  Widget _buildStatusBadge(BuildContext context, String label, Color color) {
+    final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(tokens.radiusSm),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
+        style: theme.textTheme.labelLarge?.copyWith(color: color),
       ),
     );
   }
@@ -806,6 +805,7 @@ class _TripHomeViewState extends State<_TripHomeView>
     String selectedFilter,
   ) {
     final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
     final isSelected = selectedFilter == filterKey;
     return FilterChip(
       label: Text(label),
@@ -815,17 +815,19 @@ class _TripHomeViewState extends State<_TripHomeView>
       },
       selectedColor: theme.colorScheme.primary.withValues(alpha: 0.2),
       checkmarkColor: theme.colorScheme.primary,
-      labelStyle: TextStyle(
+      labelStyle: theme.textTheme.labelLarge?.copyWith(
         color:
             isSelected
                 ? theme.colorScheme.primary
                 : theme.colorScheme.onSurface,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-        fontSize: 12,
       ),
       backgroundColor: theme.cardColor,
-      side: BorderSide(
-        color: isSelected ? theme.colorScheme.primary : theme.dividerColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(tokens.radiusFull),
+        side: BorderSide(
+          color: isSelected ? theme.colorScheme.primary : theme.dividerColor,
+        ),
       ),
     );
   }
@@ -846,6 +848,7 @@ class _ActivityCardState extends State<ActivityCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
     final status = widget.activity.status;
     Color statusColor;
@@ -854,17 +857,17 @@ class _ActivityCardState extends State<ActivityCard> {
 
     switch (status) {
       case ActivityStatus.finished:
-        statusColor = Colors.green;
+        statusColor = tokens.safe;
         statusLabel = l10n.finished;
         statusIcon = Icons.check_circle;
         break;
       case ActivityStatus.inProgress:
-        statusColor = Colors.orange;
+        statusColor = tokens.warn;
         statusLabel = l10n.inProgress;
         statusIcon = Icons.play_circle;
         break;
       case ActivityStatus.pending:
-        statusColor = Colors.grey;
+        statusColor = tokens.textMuted;
         statusLabel = l10n.pending;
         statusIcon = Icons.circle_outlined;
         break;
@@ -886,12 +889,12 @@ class _ActivityCardState extends State<ActivityCard> {
             ),
           );
         },
-        borderRadius: BorderRadius.circular(AppBorderRadius.md),
+        borderRadius: BorderRadius.circular(tokens.radiusMd),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: theme.cardColor,
-            borderRadius: BorderRadius.circular(AppBorderRadius.md),
+            borderRadius: BorderRadius.circular(tokens.radiusMd),
             border: Border.all(
               color:
                   status == ActivityStatus.inProgress
@@ -899,13 +902,7 @@ class _ActivityCardState extends State<ActivityCard> {
                       : theme.dividerColor,
               width: status == ActivityStatus.inProgress ? 2 : 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            boxShadow: tokens.shadowSm,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -993,18 +990,18 @@ class _ActivityCardState extends State<ActivityCard> {
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.wb_sunny,
                                 size: 18,
-                                color: Colors.orange,
+                                color: tokens.warn,
                               ),
                               const SizedBox(width: 4),
                               Text('32°C', style: theme.textTheme.bodySmall),
                               const SizedBox(width: 16),
-                              const Icon(
+                              Icon(
                                 Icons.checkroom,
                                 size: 18,
-                                color: Colors.blueGrey,
+                                color: tokens.textMuted,
                               ),
                               const SizedBox(width: 4),
                               Text(
