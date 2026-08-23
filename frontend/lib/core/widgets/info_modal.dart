@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/veltur_tokens.dart';
+
 /// Utilidad para mostrar un modal reutilizable con animación.
 /// - [title]: Título del modal (p. ej. "Aviso de Privacidad").
 /// - [content]: Texto largo a mostrar.
@@ -12,12 +14,13 @@ class InfoModal {
     IconData? icon,
     Color? titleColor,
   }) {
+    final radiusLg = VelturTokens.of(context).radiusLg;
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent, // para esquinas redondeadas bonitas
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(radiusLg)),
       ),
       builder: (context) {
         return _AnimatedInfoSheet(
@@ -100,6 +103,7 @@ class _AnimatedInfoSheetState extends State<_AnimatedInfoSheet>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
 
     // Usamos SafeArea + Draggable (opcional) + contenido con scroll
     return SafeArea(
@@ -109,9 +113,12 @@ class _AnimatedInfoSheetState extends State<_AnimatedInfoSheet>
         child: SlideTransition(
           position: _slide,
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            key: const Key('infoModalSheet'),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(tokens.radiusLg),
+              ),
             ),
             padding: const EdgeInsets.only(
               left: 16,
@@ -124,11 +131,12 @@ class _AnimatedInfoSheetState extends State<_AnimatedInfoSheet>
               children: [
                 // Indicador de arrastre (estético)
                 Container(
+                  key: const Key('infoModalDragHandle'),
                   width: 36,
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
-                    color: Colors.black12,
+                    color: tokens.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -141,7 +149,7 @@ class _AnimatedInfoSheetState extends State<_AnimatedInfoSheet>
                       if (widget.icon != null) ...[
                         Icon(
                           widget.icon,
-                          color: widget.titleColor ?? Colors.black,
+                          color: widget.titleColor ?? theme.colorScheme.primary,
                         ),
                         const SizedBox(width: 8),
                       ],
@@ -149,7 +157,6 @@ class _AnimatedInfoSheetState extends State<_AnimatedInfoSheet>
                         child: Text(
                           widget.title,
                           style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
                             color: widget.titleColor,
                           ),
                         ),

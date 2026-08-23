@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 
+import '../../core/theme/veltur_tokens.dart';
+
 /// Cortina de carga elegante con blur que bloquea la UI durante el guardado.
 /// Uso:
 ///   await SavingOverlay.showAndWait(context, mensaje: "Guardando...");
@@ -17,10 +19,16 @@ class SavingOverlay extends StatelessWidget {
     BuildContext context, {
     String mensaje = "Guardando progreso...",
   }) {
+    // El tinte cálido de la barrera se toma del token de sombra (D-02): se
+    // fuerza la opacidad a 35% para preservar el comportamiento actual,
+    // reemplazando solo el color neutro por el warm brown de la marca.
+    final barrierColor = VelturTokens.of(
+      context,
+    ).shadowMd.first.color.withValues(alpha: 0.35);
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.35),
+      barrierColor: barrierColor,
       useRootNavigator: true,
       builder: (_) => SavingOverlay(mensaje: mensaje),
     );
@@ -48,6 +56,9 @@ class SavingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
+
     return PopScope(
       canPop: false, // El usuario no puede cerrar tocando atrás
       child: BackdropFilter(
@@ -60,23 +71,18 @@ class SavingOverlay extends StatelessWidget {
             children: [
               // Círculo con la rueda giratoria
               Container(
+                key: const Key('savingOverlaySpinnerCircle'),
                 padding: const EdgeInsets.all(28),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: theme.colorScheme.surface,
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.18),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
+                  boxShadow: tokens.shadowMd,
                 ),
-                child: const SizedBox(
+                child: SizedBox(
                   width: 40,
                   height: 40,
                   child: CircularProgressIndicator(
-                    color: Color(0xFF1565C0), // blue[800]
+                    color: theme.colorScheme.primary,
                     strokeWidth: 3.5,
                   ),
                 ),
@@ -86,16 +92,15 @@ class SavingOverlay extends StatelessWidget {
               Text(
                 mensaje,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 17,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.surface,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
                   shadows: [
                     Shadow(
-                      color: Colors.black45,
+                      color: tokens.shadowMd.first.color,
                       blurRadius: 8,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
