@@ -2,11 +2,11 @@
 
 ## What This Is
 
-Veltur es un ecosistema de tres apps Flutter (Turista, Guía, Agencia) que acompaña digitalmente a turistas en viajes grupales: comunicación privada (walkie-talkie), alertas de alejamiento sobre mapa, itinerario offline-first y herramientas como conversor de divisas. Este milestone no construye el backend de producción (NestJS/Redis/PostGIS descrito en las historias de usuario sigue siendo aspiracional) — el foco es preparar un video de pitch de 3 minutos, creíble y bien producido, para un concurso de prototipos ("Reto Prototipo"), con Turista y Guía luciendo un rediseño visual cálido y consistente.
+Veltur es un ecosistema de tres apps Flutter (Turista, Guía, Agencia) que acompaña digitalmente a turistas en viajes grupales: comunicación privada (walkie-talkie), alertas de alejamiento sobre mapa, itinerario offline-first y herramientas como conversor de divisas. Este milestone no construye el backend de producción (NestJS/Redis/PostGIS descrito en las historias de usuario sigue siendo aspiracional) — el foco inmediato es rediseñar Turista y Guía hacia un look cálido y consistente, en preparación para un video de pitch de 3 minutos para un concurso de prototipos ("Reto Prototipo"). El guion del video aún se está ajustando, así que la grabación y el ensamblaje del video quedan para después de este milestone de diseño.
 
 ## Core Value
 
-El video de pitch debe convencer al jurado de que Veltur es un producto real y funcional: las 3 tomas de demo (alerta de lejanía, walkie-talkie, conversor de divisas) deben grabarse desde la app real corriendo, con un diseño cálido y simple que se sienta cuidado, no como un prototipo a medio hacer.
+El rediseño cálido y consistente de Turista y Guía debe verse cuidado y creíble en toda la app (no solo en 3 pantallas aisladas), para que cuando llegue el momento de grabar el video de pitch, la demo se sienta como un producto real.
 
 ## Business Context
 
@@ -30,13 +30,11 @@ El video de pitch debe convencer al jurado de que Veltur es un producto real y f
 
 - [ ] Rediseño visual cálido/simple (dirección de `.planning/sketches/`: terracota+teal, tipografía redondeada, radios grandes) aplicado de forma consistente en toda la app Turista
 - [ ] Mismo rediseño aplicado de forma consistente en toda la app Guía
-- [ ] Las 3 pantallas de demo (alerta de lejanía, walkie-talkie, conversor de divisas) pulidas y grabables en pantalla completa, sin marcos de navegador
-- [ ] Grabación de las 3 tomas de pantalla completa (`pitch/video/public/footage/*.mp4`)
-- [ ] Video renderizado 1920x1080, 30fps, 3:00 exactos vía Remotion (composición `VelturPitch`)
 
 ### Out of Scope
 
-- Backend de producción (NestJS, Redis, PostgreSQL/PostGIS, FCM/APNs) — las historias de usuario en `docs/product_requirements/` lo describen pero no se construye en este milestone; el demo Socket.IO actual basta para grabar la demo
+- Grabación de pantalla y ensamblaje del video de pitch — el guion (`pitch/script/guion-video.md`) todavía se está ajustando; grabar ahora arriesgaría rehacer el trabajo. Se retoma en un milestone posterior una vez el diseño y el guion estén estables
+- Backend de producción (NestJS, Redis, PostgreSQL/PostGIS, FCM/APNs) — las historias de usuario en `docs/product_requirements/` lo describen pero no se construye en este milestone; el demo Socket.IO actual basta para la demo
 - Rediseño de la app Agencia (portal de escritorio) — no aparece en el video de pitch, se pospone
 - Demo en vivo ante jurado — el entregable es el video grabado, no una demo interactiva
 - Registro legal (INDAUTOR, IMPI, ISO 31000, certificaciones) — mencionado en `pitch/memoria-tecnica-veltur.md` pero fuera del alcance de desarrollo de software
@@ -51,7 +49,7 @@ El video de pitch debe convencer al jurado de que Veltur es un producto real y f
 
 ## Constraints
 
-- **Timeline**: Video listo en 2 semanas — el roadmap debe acotarse a lo indispensable para esa entrega
+- **Timeline**: Video de pitch listo en 2 semanas en total; este milestone (rediseño de Turista/Guía) es la primera parte de esa ventana, antes de que grabación/ensamblaje empiecen
 - **Tech stack**: Flutter/Dart para frontend, sin introducir backend nuevo en este milestone
 - **Idioma**: identificadores de código en inglés, UI y documentación en español (convención del proyecto, ver CLAUDE.md)
 
