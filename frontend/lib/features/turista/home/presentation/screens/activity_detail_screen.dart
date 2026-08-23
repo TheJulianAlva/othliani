@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_constants.dart';
-import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/veltur_tokens.dart';
 
 class ActivityDetailScreen extends StatelessWidget {
   final String activityTitle;
@@ -16,6 +16,9 @@ class ActivityDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Detalles de Actividad')),
       body: SingleChildScrollView(
@@ -28,10 +31,10 @@ class ActivityDetailScreen extends StatelessWidget {
               width: double.infinity,
               height: 250,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                color: tokens.surfaceWarm,
+                borderRadius: BorderRadius.circular(tokens.radiusMd),
               ),
-              child: const Icon(Icons.image, size: 80, color: Colors.grey),
+              child: Icon(Icons.image, size: 80, color: tokens.textMuted),
             ),
 
             const SizedBox(height: AppSpacing.lg),
@@ -39,14 +42,12 @@ class ActivityDetailScreen extends StatelessWidget {
             // Time
             Row(
               children: [
-                const Icon(Icons.access_time, color: AppColors.primary),
+                Icon(Icons.access_time, color: theme.colorScheme.primary),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   activityTime,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primary,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.primary,
                   ),
                 ),
               ],
@@ -55,26 +56,19 @@ class ActivityDetailScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
 
             // Title
-            Text(
-              activityTitle,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+            Text(activityTitle, style: theme.textTheme.headlineSmall),
 
             const SizedBox(height: AppSpacing.lg),
 
             // Description section
-            const Text(
-              'Descripción',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text('Descripción', style: theme.textTheme.titleLarge),
 
             const SizedBox(height: AppSpacing.sm),
 
             Text(
               activityDescription,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[700],
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: tokens.textMuted,
                 height: 1.5,
               ),
             ),
@@ -82,27 +76,27 @@ class ActivityDetailScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
 
             // Location section
-            const Text(
-              'Ubicación',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text('Ubicación', style: theme.textTheme.titleLarge),
 
             const SizedBox(height: AppSpacing.sm),
 
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+                color: tokens.surfaceWarm,
+                borderRadius: BorderRadius.circular(tokens.radiusSm),
+                border: Border.all(color: tokens.border),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.location_on, color: AppColors.primary),
+                  Icon(Icons.location_on, color: theme.colorScheme.primary),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       'Zona arqueológica de Tulum',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: tokens.textMuted,
+                      ),
                     ),
                   ),
                 ],
@@ -112,18 +106,19 @@ class ActivityDetailScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
 
             // Additional info
-            const Text(
-              'Información Adicional',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text('Información Adicional', style: theme.textTheme.titleLarge),
+
+            const SizedBox(height: AppSpacing.sm),
+
+            _buildInfoRow(context, Icons.people, 'Grupo completo'),
+            const SizedBox(height: AppSpacing.sm),
+            _buildInfoRow(context, Icons.restaurant, 'Comida incluida'),
+            const SizedBox(height: AppSpacing.sm),
+            _buildInfoRow(
+              context,
+              Icons.directions_bus,
+              'Transporte incluido',
             ),
-
-            const SizedBox(height: AppSpacing.sm),
-
-            _buildInfoRow(Icons.people, 'Grupo completo'),
-            const SizedBox(height: AppSpacing.sm),
-            _buildInfoRow(Icons.restaurant, 'Comida incluida'),
-            const SizedBox(height: AppSpacing.sm),
-            _buildInfoRow(Icons.directions_bus, 'Transporte incluido'),
 
             const SizedBox(height: AppSpacing.xl),
           ],
@@ -132,12 +127,17 @@ class ActivityDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
+    final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
     return Row(
       children: [
-        Icon(icon, size: 20, color: AppColors.primary),
+        Icon(icon, size: 20, color: theme.colorScheme.primary),
         const SizedBox(width: AppSpacing.sm),
-        Text(text, style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+        Text(
+          text,
+          style: theme.textTheme.bodyLarge?.copyWith(color: tokens.textMuted),
+        ),
       ],
     );
   }

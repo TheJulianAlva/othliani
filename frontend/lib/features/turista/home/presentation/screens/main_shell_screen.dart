@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
+import 'package:frontend/core/theme/veltur_tokens.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
@@ -39,6 +40,7 @@ class _MainShellScreenState extends State<MainShellScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final tokens = VelturTokens.of(context);
     final labelList = [
       l10n.itinerary,
       l10n.chat,
@@ -99,8 +101,8 @@ class _MainShellScreenState extends State<MainShellScreen>
         activeIndex: _currentIndex,
         gapLocation: GapLocation.none,
         notchSmoothness: NotchSmoothness.softEdge,
-        leftCornerRadius: 16,
-        rightCornerRadius: 16,
+        leftCornerRadius: tokens.radiusLg,
+        rightCornerRadius: tokens.radiusLg,
         onTap: (index) => setState(() => _currentIndex = index),
         backgroundColor:
             Theme.of(context).bottomNavigationBarTheme.backgroundColor,
@@ -110,7 +112,7 @@ class _MainShellScreenState extends State<MainShellScreen>
         shadow: BoxShadow(
           offset: const Offset(0, -2),
           blurRadius: 12,
-          color: Colors.black.withValues(alpha: 0.1),
+          color: tokens.shadowMd.first.color,
         ),
       ),
     );
