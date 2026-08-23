@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/core/demo/demo_config.dart';
+import 'package:frontend/core/theme/veltur_tokens.dart';
 import 'package:frontend/features/turista/home/presentation/widgets/walkie_talkie_button.dart';
 
 /// Pantalla de emergencia mostrada al turista después de activar el botón SOS.
@@ -40,10 +41,12 @@ class _PantallaEmergenciaTuristaState extends State<PantallaEmergenciaTurista>
 
   @override
   Widget build(BuildContext context) {
+    final tokens = VelturTokens.of(context);
+    final textTheme = Theme.of(context).textTheme;
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: const Color(0xFFB71C1C),
+        backgroundColor: tokens.danger,
         body: SafeArea(
           child: Column(
             children: [
@@ -69,7 +72,10 @@ class _PantallaEmergenciaTuristaState extends State<PantallaEmergenciaTurista>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withValues(alpha: 0.15),
-                      border: Border.all(color: Colors.white38, width: 3),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        width: 3,
+                      ),
                     ),
                     child: const Icon(
                       Icons.emergency_rounded,
@@ -83,11 +89,10 @@ class _PantallaEmergenciaTuristaState extends State<PantallaEmergenciaTurista>
               const SizedBox(height: 36),
 
               // Mensaje principal
-              const Text(
+              Text(
                 'Señal enviada al guía',
-                style: TextStyle(
+                style: textTheme.headlineSmall?.copyWith(
                   color: Colors.white,
-                  fontSize: 26,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.5,
                 ),
@@ -96,11 +101,10 @@ class _PantallaEmergenciaTuristaState extends State<PantallaEmergenciaTurista>
 
               const SizedBox(height: 14),
 
-              const Text(
+              Text(
                 'Quédate donde estás',
-                style: TextStyle(
+                style: textTheme.titleLarge?.copyWith(
                   color: Colors.white70,
-                  fontSize: 18,
                   fontWeight: FontWeight.w400,
                 ),
                 textAlign: TextAlign.center,
@@ -109,9 +113,12 @@ class _PantallaEmergenciaTuristaState extends State<PantallaEmergenciaTurista>
               const SizedBox(height: 48),
 
               // Walkie-talkie para escuchar respuesta del guía
-              const Text(
+              Text(
                 'Mantén presionado para hablar con el guía',
-                style: TextStyle(color: Colors.white60, fontSize: 13),
+                style: textTheme.labelLarge?.copyWith(
+                  color: Colors.white60,
+                  fontWeight: FontWeight.w400,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -123,9 +130,9 @@ class _PantallaEmergenciaTuristaState extends State<PantallaEmergenciaTurista>
                 padding: const EdgeInsets.only(bottom: 24),
                 child: Text(
                   'El guía ya fue notificado y está en camino',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.55),
-                    fontSize: 12,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.68),
+                    fontWeight: FontWeight.w400,
                   ),
                   textAlign: TextAlign.center,
                 ),
