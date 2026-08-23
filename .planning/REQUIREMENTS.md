@@ -62,17 +62,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DISENO-TUR-01 | TBD | Pending |
-| DISENO-TUR-02 | TBD | Pending |
-| DISENO-TUR-03 | TBD | Pending |
-| DISENO-GUIA-01 | TBD | Pending |
-| DISENO-GUIA-02 | TBD | Pending |
+| DISENO-TUR-01 | Phase 1 | Pending |
+| DISENO-TUR-02 | Phase 1 | Pending |
+| DISENO-TUR-03 | Phase 1 | Pending |
+| DISENO-GUIA-01 | Phase 2 | Pending |
+| DISENO-GUIA-02 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 5 total
-- Mapped to phases: 0 (pendiente de roadmap)
-- Unmapped: 5 ⚠️
+- Mapped to phases: 5 (Phase 1: 3, Phase 2: 2)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-08-22*
-*Last updated: 2026-08-22 after scope narrowed to design-only*
+*Last updated: 2026-08-22 after roadmap creation (2 phases, full v1 coverage)*
