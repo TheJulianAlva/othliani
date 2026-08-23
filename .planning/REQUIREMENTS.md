@@ -11,7 +11,7 @@ Requisitos para este milestone. Cada uno mapea a una fase del roadmap.
 
 - [ ] **DISENO-TUR-01**: La app Turista aplica un sistema de diseño cálido consistente (paleta terracota/teal, tipografía redondeada, radios grandes, sombras suaves) en todas sus pantallas, no solo en las que salen en el video
 - [x] **DISENO-TUR-02**: La pantalla de walkie-talkie del Turista refleja el nuevo sistema de diseño
-- [ ] **DISENO-TUR-03**: La pantalla de conversor de divisas del Turista refleja el nuevo sistema de diseño
+- [x] **DISENO-TUR-03**: La pantalla de conversor de divisas del Turista refleja el nuevo sistema de diseño
 
 ### Diseño Guía
 
@@ -64,7 +64,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | DISENO-TUR-01 | Phase 1 | Pending |
 | DISENO-TUR-02 | Phase 1 | Complete |
-| DISENO-TUR-03 | Phase 1 | Pending |
+| DISENO-TUR-03 | Phase 1 | Complete |
 | DISENO-GUIA-01 | Phase 2 | Pending |
 | DISENO-GUIA-02 | Phase 2 | Pending |
 
