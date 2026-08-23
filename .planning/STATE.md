@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 current_phase: 01
 current_phase_name: Rediseño Turista
-status: executing
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-08-23T05:53:29.362Z"
+status: verifying
+stopped_at: Completed 01-06-PLAN.md
+last_updated: "2026-08-23T06:01:34.064Z"
 last_activity: 2026-08-22
 last_activity_desc: Phase 01 execution started
-state_head: bb050dadfa3cd4a60e55eef16fb7be32a9466342
+state_head: dbc8757c18ffc35124e326a36e32e430d565787b
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-22)
 
 Phase: 01 (Rediseño Turista) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-22 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P03 | 30 | 3 tasks | 5 files |
 | Phase 01 P04 | 25 | 2 tasks | 1 files |
 | Phase 01 P05 | 35 | 3 tasks | 6 files |
+| Phase 01 P06 | 25 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 01]: [Phase 01, 01-05]: itinerary_event_card.dart's Card shadow attached via an outer Container (borderRadius+shadowSm) rather than overriding the Card's own shape/elevation, since cardTheme forces elevation:0. — Keeps Card semantics intact for future Card-specific theming while still producing the warm shadow token.
 - [Phase 01]: [Phase 01, 01-05]: trip_home_screen.dart's hero-slot containers (in-progress activity card AND Trip Card) both promoted to radiusXl(32) as the section's hero surfaces; their sub-elements (thumbnail, tabs, progress panel) to radiusMd(16) as inner cards. — Follows the plan's explicit action-text override for this one section rather than a naive 1:1 AppBorderRadius mapping.
 - [Phase 01]: [Phase 01, 01-05]: DraggableScrollableSheet panel shadow reuses tokens.shadowLg.first.color at its original upward (0,-5) offset instead of substituting the full token shadow list. — The token's baked-in offset points downward and would have inverted the shadow's visual direction on this upward-floating sheet.
+- [Phase 01]: [Phase 01, 01-06]: map_screen.dart's safe_zone Circle read as the safety/proximity boundary concept (not decoration) -- recolored to tokens.safe, alpha split (0.2/0.5) preserved so it stays legible over live map tiles. — The app's whole premise is group-radius alerting, so tokens.safe fits the semantic better than accentTeal (reserved for decorative/secondary use per the UI spec).
+- [Phase 01]: [Phase 01, 01-06]: pantalla_emergencia_turista.dart's two lightest white-opacity foreground tiers raised (border 0.38->0.5, footnote 0.55->0.68) after moving the ground to the lighter tokens.danger value. — A perceived-luminance estimate showed both tiers losing roughly 25% of their contrast against the new, lighter danger token compared to the old red-900 literal; raised opacity rather than darkening the ground per the plan's explicit instruction.
 
 ### Pending Todos
 
@@ -104,6 +107,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-23T05:53:29.331Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-08-23T06:01:34.035Z
+Stopped at: Completed 01-06-PLAN.md
 Resume file: None
