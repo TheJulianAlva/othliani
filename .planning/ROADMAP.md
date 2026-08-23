@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: TBD
 
 - [x] 01-01-PLAN.md
-- [ ] 01-02-PLAN.md
+- [x] 01-02-PLAN.md
 - [ ] 01-03-PLAN.md
 - [ ] 01-04-PLAN.md
 - [ ] 01-05-PLAN.md
@@ -62,5 +62,5 @@ Phases execute in numeric order: 1 → 2
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Rediseño Turista | 1/6 | In Progress|  |
+| 1. Rediseño Turista | 2/6 | In Progress|  |
 | 2. Rediseño Guía | 0/TBD | Not started | - |
