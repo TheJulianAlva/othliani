@@ -4,6 +4,7 @@ import 'package:frontend/core/demo/demo_config.dart';
 import 'package:frontend/core/demo/demo_socket_service.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/theme/app_constants.dart';
+import 'package:frontend/core/theme/veltur_tokens.dart';
 import 'package:frontend/features/turista/home/presentation/widgets/walkie_talkie_button.dart';
 
 class ComunicacionSeguridadScreen extends StatelessWidget {
@@ -12,6 +13,7 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -22,7 +24,6 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
           Text(
             'Herramientas de Seguridad y Comunicación',
             style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
               color: theme.colorScheme.onSurface,
             ),
             textAlign: TextAlign.center,
@@ -33,26 +34,19 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(AppBorderRadius.lg),
-              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.red.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: tokens.dangerSoft,
+              borderRadius: BorderRadius.circular(tokens.radiusLg),
+              border: Border.all(color: tokens.danger.withValues(alpha: 0.3)),
+              boxShadow: tokens.shadowSm,
             ),
             child: Column(
               children: [
-                const Icon(Icons.security_rounded, color: Colors.red, size: 48),
+                Icon(Icons.security_rounded, color: tokens.danger, size: 48),
                 const SizedBox(height: AppSpacing.md),
                 Text(
                   'Botón de Emergencia (SOS)',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
+                    color: tokens.danger,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -69,9 +63,9 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
                       context.push(RoutesTurista.emergencia);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('🚨 Alerta de emergencia enviada.'),
-                          backgroundColor: Colors.red,
+                        SnackBar(
+                          content: const Text('🚨 Alerta de emergencia enviada.'),
+                          backgroundColor: tokens.danger,
                         ),
                       );
                     }
@@ -80,15 +74,9 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
                     height: 80,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.red.shade700,
-                      borderRadius: BorderRadius.circular(40),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.red.withValues(alpha: 0.5),
-                          blurRadius: 15,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
+                      color: tokens.danger,
+                      borderRadius: BorderRadius.circular(tokens.radiusFull),
+                      boxShadow: tokens.shadowGlowDanger,
                     ),
                     child: const Center(
                       child: Text(
@@ -114,17 +102,11 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               color: theme.cardColor,
-              borderRadius: BorderRadius.circular(AppBorderRadius.lg),
+              borderRadius: BorderRadius.circular(tokens.radiusLg),
               border: Border.all(
                 color: theme.colorScheme.primary.withValues(alpha: 0.3),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              boxShadow: tokens.shadowSm,
             ),
             child: Column(
               children: [
@@ -133,7 +115,6 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
                 Text(
                   'Radio Grupal (Walkie-Talkie)',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary,
                   ),
                 ),
@@ -150,23 +131,19 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.orange.withValues(alpha: 0.5),
-                    ),
+                    color: tokens.warnSoft,
+                    borderRadius: BorderRadius.circular(tokens.radiusSm),
+                    border: Border.all(color: tokens.warn.withValues(alpha: 0.5)),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.info_outline, color: Colors.orange, size: 24),
-                      SizedBox(width: 12),
+                      Icon(Icons.info_outline, color: tokens.warn, size: 24),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Nota: Esta herramienta debe ser habilitada previamente por tu guía para poder transmitir voz.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange,
-                            fontWeight: FontWeight.w600,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: tokens.warn,
                           ),
                         ),
                       ),
@@ -187,9 +164,11 @@ class ComunicacionSeguridadScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                const Text(
+                Text(
                   'Mantén presionado para hablar',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: tokens.textMuted,
+                  ),
                 ),
               ],
             ),
