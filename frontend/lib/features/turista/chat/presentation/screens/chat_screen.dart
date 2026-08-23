@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/widgets/empty_state_widget.dart';
 import 'package:frontend/features/turista/chat/presentation/widgets/chat_bubble.dart';
 import 'package:frontend/features/turista/chat/presentation/widgets/message_input_field.dart';
 import 'package:frontend/core/l10n/app_localizations.dart';
@@ -36,9 +37,14 @@ class _ChatScreenState extends State<ChatScreen> {
     return Column(
       children: [
         Expanded(
+          // Primer consumidor Turista de EmptyStateWidget (antes un Text
+          // suelto): mismo string l10n.typeMessage, tipografía/ícono cálidos.
           child:
               _messages.isEmpty
-                  ? Center(child: Text(l10n.typeMessage))
+                  ? EmptyStateWidget(
+                    icon: Icons.forum_outlined,
+                    message: l10n.typeMessage,
+                  )
                   : ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _messages.length,

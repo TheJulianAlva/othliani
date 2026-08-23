@@ -22,13 +22,11 @@ class MessageInputField extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
+              // Sin `border:` local: hereda el inputDecorationTheme del tema
+              // (radio 10, borde cálido, foco terracota) en vez de sombrearlo
+              // con el radio 24 de la escala de Agencia.
               decoration: InputDecoration(
                 hintText: hintText,
-                border: const OutlineInputBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(AppBorderRadius.xl),
-                  ),
-                ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
                 ),
@@ -40,7 +38,7 @@ class MessageInputField extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.send),
             onPressed: onSend,
-            color: Theme.of(context).primaryColor,
+            color: Theme.of(context).colorScheme.primary,
           ),
         ],
       ),
