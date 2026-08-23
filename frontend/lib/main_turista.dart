@@ -9,6 +9,7 @@ import 'package:frontend/core/l10n/app_localizations.dart';
 import 'package:frontend/core/navigation/enrutador_app_turista.dart';
 import 'package:frontend/core/navigation/routes_turista.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/core/theme/turista_theme.dart';
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_bloc.dart';
 import 'package:frontend/features/turista/auth/presentation/bloc/auth_event.dart';
 import 'package:frontend/features/turista/settings/presentation/cubit/accessibility_cubit.dart';
@@ -87,9 +88,7 @@ class _AppView extends StatelessWidget {
 
     return MaterialApp.router(
       title: 'Turista App',
-      theme:
-          AppTheme
-              .lightTheme, // You might need to adjust AppTheme to accept accessibility params
+      theme: TuristaTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       locale: locale,
