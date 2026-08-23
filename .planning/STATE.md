@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 01
 current_phase_name: Rediseño Turista
 status: executing
-stopped_at: Completed 01-04-PLAN.md
-last_updated: "2026-08-23T05:38:42.231Z"
+stopped_at: Completed 01-05-PLAN.md
+last_updated: "2026-08-23T05:53:29.362Z"
 last_activity: 2026-08-22
 last_activity_desc: Phase 01 execution started
-state_head: 37f4d9144c05de7e1390e5317176b2de82ecfc8f
+state_head: bb050dadfa3cd4a60e55eef16fb7be32a9466342
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-22)
 ## Current Position
 
 Phase: 01 (Rediseño Turista) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-08-22 — Phase 01 execution started
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P02 | 15 | 2 tasks | 4 files |
 | Phase 01 P03 | 30 | 3 tasks | 5 files |
 | Phase 01 P04 | 25 | 2 tasks | 1 files |
+| Phase 01 P05 | 35 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Recent decisions affecting current work:
 - [Phase 01]: message_input_field.dart's local border override (24px, Agencia radius scale) was shadowing TuristaTheme.inputDecorationTheme; removed so the field inherits the theme's 10px terracota-focus border — Local decoration overrides silently defeat theme-level token wiring; found during Task 3's required read_first pass, not assumed
 - [Phase 01]: [Phase 01, 01-04]: OCR scrim tint derived from tokens.shadowLg.first.color at alpha 0.54 instead of a new Color literal — reuses the existing warm shadowTint RGB rather than hardcoding a second warm-brown constant.
 - [Phase 01]: [Phase 01, 01-04]: Currency converter now routes all five SnackBar error sites through a new private _showError(BuildContext, String) helper (danger-token background, onError text) — the pattern other Turista screens in this phase should mirror instead of restyling SnackBars ad hoc.
+- [Phase 01]: [Phase 01, 01-05]: itinerary_event_card.dart's Card shadow attached via an outer Container (borderRadius+shadowSm) rather than overriding the Card's own shape/elevation, since cardTheme forces elevation:0. — Keeps Card semantics intact for future Card-specific theming while still producing the warm shadow token.
+- [Phase 01]: [Phase 01, 01-05]: trip_home_screen.dart's hero-slot containers (in-progress activity card AND Trip Card) both promoted to radiusXl(32) as the section's hero surfaces; their sub-elements (thumbnail, tabs, progress panel) to radiusMd(16) as inner cards. — Follows the plan's explicit action-text override for this one section rather than a naive 1:1 AppBorderRadius mapping.
+- [Phase 01]: [Phase 01, 01-05]: DraggableScrollableSheet panel shadow reuses tokens.shadowLg.first.color at its original upward (0,-5) offset instead of substituting the full token shadow list. — The token's baked-in offset points downward and would have inverted the shadow's visual direction on this upward-floating sheet.
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-23T05:38:42.196Z
-Stopped at: Completed 01-04-PLAN.md
+Last session: 2026-08-23T05:53:29.331Z
+Stopped at: Completed 01-05-PLAN.md
 Resume file: None
