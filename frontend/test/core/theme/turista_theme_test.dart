@@ -129,5 +129,80 @@ void main() {
         expect(textWidget.maxLines, isNull);
       },
     );
+
+    test(
+      'Los componentes del tema usan los radios D-05: botón 24, card 16, input 10',
+      () {
+        // Arrange
+        final theme = TuristaTheme.lightTheme;
+
+        // Act
+        final buttonShape =
+            theme.elevatedButtonTheme.style?.shape?.resolve(
+                  <WidgetState>{},
+                )
+                as RoundedRectangleBorder;
+        final cardShape = theme.cardTheme.shape as RoundedRectangleBorder;
+        final inputBorder =
+            theme.inputDecorationTheme.border as OutlineInputBorder;
+
+        // Assert
+        expect((buttonShape.borderRadius as BorderRadius).topLeft.x, 24.0);
+        expect((cardShape.borderRadius as BorderRadius).topLeft.x, 16.0);
+        expect(inputBorder.borderRadius.topLeft.x, 10.0);
+      },
+    );
+
+    test(
+      'El textTheme sigue la escala UI-SPEC (bodyLarge/labelLarge/titleLarge/displaySmall) con exactamente dos pesos',
+      () {
+        // Arrange
+        final textTheme = TuristaTheme.lightTheme.textTheme;
+
+        // Act / Assert
+        expect(textTheme.bodyLarge?.fontSize, 16);
+        expect(textTheme.bodyLarge?.fontWeight, FontWeight.w400);
+        expect(textTheme.labelLarge?.fontSize, 14);
+        expect(textTheme.labelLarge?.fontWeight, FontWeight.w600);
+        expect(textTheme.titleLarge?.fontSize, 20);
+        expect(textTheme.titleLarge?.fontWeight, FontWeight.w600);
+        expect(textTheme.displaySmall?.fontSize, 32);
+        expect(textTheme.displaySmall?.fontWeight, FontWeight.w600);
+
+        final weightsUsed = <FontWeight?>{
+          textTheme.bodyLarge?.fontWeight,
+          textTheme.labelLarge?.fontWeight,
+          textTheme.titleLarge?.fontWeight,
+          textTheme.displaySmall?.fontWeight,
+        };
+        expect(weightsUsed.length, 2);
+      },
+    );
+
+    test(
+      'Cada token de sombra está teñido con el tono cálido (o el acento del glow correspondiente), nunca con negro neutro',
+      () {
+        // Arrange
+        final tokens = TuristaTheme.tokens;
+
+        int channelByte(double component) => (component * 255).round();
+
+        void expectTint(List<BoxShadow> shadows, Color tint) {
+          for (final shadow in shadows) {
+            expect(channelByte(shadow.color.r), channelByte(tint.r));
+            expect(channelByte(shadow.color.g), channelByte(tint.g));
+            expect(channelByte(shadow.color.b), channelByte(tint.b));
+            expect(shadow.color, isNot(equals(Colors.black)));
+          }
+        }
+
+        // Act / Assert
+        expectTint(tokens.shadowSm, TuristaColors.shadowTint);
+        expectTint(tokens.shadowMd, TuristaColors.shadowTint);
+        expectTint(tokens.shadowLg, TuristaColors.shadowTint);
+        expectTint(tokens.shadowGlowPrimary, TuristaColors.primary);
+        expectTint(tokens.shadowGlowDanger, TuristaColors.danger);
+      },
+    );
   });
 }
