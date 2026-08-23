@@ -61,6 +61,26 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
     super.dispose();
   }
 
+  /// Muestra un [SnackBar] con los tokens cálidos del sistema (fondo danger,
+  /// texto legible sobre él). Único punto de estilo para los cinco sitios de
+  /// error de esta pantalla, para que no se desalineen entre sí. No repite
+  /// forma ni comportamiento flotante: ambos vienen del tema.
+  void _showError(BuildContext context, String message) {
+    final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: tokens.danger,
+        content: Text(
+          message,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onError,
+          ),
+        ),
+      ),
+    );
+  }
+
   void _convertCurrency(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     if (_amountController.text.isEmpty) {
@@ -70,9 +90,7 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
 
     final amount = double.tryParse(_amountController.text);
     if (amount == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.invalidAmount)));
+      _showError(context, l10n.invalidAmount);
       return;
     }
 
@@ -101,9 +119,7 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
+      _showError(context, '${l10n.error}: $e');
     }
   }
 
@@ -125,9 +141,7 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
+      _showError(context, '${l10n.error}: $e');
     }
   }
 
@@ -167,16 +181,12 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
 
       if (foundNumber == null) {
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.noNumberFound)));
+        _showError(context, l10n.noNumberFound);
       }
     } catch (e) {
       setState(() => _isLoading = false);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
+      _showError(context, '${l10n.error}: $e');
     }
   }
 
@@ -382,7 +392,9 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
                               ),
                               const SizedBox(height: AppSpacing.sm),
                               state is CurrencyLoading
-                                  ? const CircularProgressIndicator()
+                                  ? CircularProgressIndicator(
+                                    color: theme.colorScheme.primary,
+                                  )
                                   : FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
@@ -445,8 +457,15 @@ class _CurrencyConverterViewState extends State<_CurrencyConverterView> {
                 ),
                 if (_isLoading)
                   Container(
-                    color: Colors.black54,
-                    child: const Center(child: CircularProgressIndicator()),
+                    // Warm dimming instead of a neutral grey plate: reuse the
+                    // shadow token's tint at the same opacity Colors.black54
+                    // used, instead of introducing a new literal.
+                    color: tokens.shadowLg.first.color.withValues(alpha: 0.54),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
                   ),
               ],
             );
