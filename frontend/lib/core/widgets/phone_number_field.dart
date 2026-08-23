@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:country_picker/country_picker.dart';
 
+import '../../core/theme/veltur_tokens.dart';
+
 /// Valor que expone el widget para que puedas construir E.164 o validar.
 class PhoneNumberValue {
   final String countryCode; // ej. MX
@@ -85,16 +87,41 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
   }
 
   void _pickCountry() {
+    // El bottom sheet de country_picker vive en su propio árbol de widgets y
+    // no hereda el InputDecorationTheme de la pantalla que lo invoca, así que
+    // aquí los valores se declaran explícitamente a partir de los tokens
+    // (a diferencia del campo principal, que sí hereda del tema).
+    final theme = Theme.of(context);
+    final tokens = VelturTokens.of(context);
     showCountryPicker(
       context: context,
       showPhoneCode: true,
       favorite: const ['MX', 'US', 'ES'],
       countryListTheme: CountryListThemeData(
+        backgroundColor: theme.colorScheme.surface,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(tokens.radiusLg),
+        ),
         bottomSheetHeight: 600,
-        inputDecoration: const InputDecoration(
+        textStyle: theme.textTheme.bodyLarge,
+        searchTextStyle: theme.textTheme.bodyLarge,
+        inputDecoration: InputDecoration(
           labelText: 'Buscar país',
-          prefixIcon: Icon(Icons.search),
-          border: OutlineInputBorder(),
+          prefixIcon: const Icon(Icons.search),
+          filled: true,
+          fillColor: theme.colorScheme.surface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(tokens.radiusSm),
+            borderSide: BorderSide(color: tokens.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(tokens.radiusSm),
+            borderSide: BorderSide(color: tokens.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(tokens.radiusSm),
+            borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+          ),
         ),
       ),
       onSelect: (country) {
@@ -125,7 +152,9 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
       onChanged: (_) => _emitChange(),
       decoration: InputDecoration(
         hintText: widget.hintText ?? '722-569-8563',
-        border: const OutlineInputBorder(),
+        hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          color: VelturTokens.of(context).textMuted,
+        ),
         prefixIcon: InkWell(
           onTap: _pickCountry,
           child: ConstrainedBox(

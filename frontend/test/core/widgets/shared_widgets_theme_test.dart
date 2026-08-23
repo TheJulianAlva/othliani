@@ -209,35 +209,35 @@ void main() {
         await tester.pumpWidget(_pumpPhoneField(TuristaTheme.lightTheme));
         await tester.pumpAndSettle();
 
-        // Act
+        // Act: TextFormField ya fusiona su InputDecoration con
+        // InputDecorationTheme.of(context) antes de construir el TextField
+        // interno (ver `applyDefaults` en el SDK), así que el `border`
+        // resuelto aquí ES el del tema si el widget no declaró uno local.
         final field = tester.widget<TextField>(find.byType(TextField));
-        final decoration = field.decoration!;
+        final resolvedBorder = field.decoration!.border! as OutlineInputBorder;
 
-        // Assert: sin `border` local, el campo hereda el radio 10 del tema
-        expect(decoration.border, isNull);
-        final themeBorder =
-            TuristaTheme.lightTheme.inputDecorationTheme.border!
-                as OutlineInputBorder;
-        expect(themeBorder.borderRadius, BorderRadius.circular(10));
+        // Assert: radio 10 y color de borde del tema, no un override local
+        expect(resolvedBorder.borderRadius, BorderRadius.circular(10));
+        expect(resolvedBorder.borderSide.color, TuristaColors.border);
       },
     );
 
     testWidgets(
-      'Al enfocar, el borde del tema se vuelve terracota (focusedBorder)',
+      'El focusedBorder resuelto del campo es terracota, no el default de Material',
       (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(_pumpPhoneField(TuristaTheme.lightTheme));
         await tester.pumpAndSettle();
 
-        // Act
-        await tester.tap(find.byType(TextFormField));
-        await tester.pumpAndSettle();
+        // Act: mismo mecanismo de fusión que el test anterior — el
+        // focusedBorder resuelto viene del tema porque el widget no declara
+        // uno propio.
+        final field = tester.widget<TextField>(find.byType(TextField));
+        final resolvedFocusedBorder =
+            field.decoration!.focusedBorder! as OutlineInputBorder;
 
-        // Assert: el theme's focusedBorder (no un override local) es terracota
-        final focusedBorder =
-            TuristaTheme.lightTheme.inputDecorationTheme.focusedBorder!
-                as OutlineInputBorder;
-        expect(focusedBorder.borderSide.color, TuristaColors.primary);
+        // Assert
+        expect(resolvedFocusedBorder.borderSide.color, TuristaColors.primary);
       },
     );
 
