@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 01
 current_phase_name: Rediseño Turista
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-08-23T05:09:10.037Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-08-23T05:30:15.226Z"
 last_activity: 2026-08-22
 last_activity_desc: Phase 01 execution started
-state_head: 2c7843db6b43f659bf89d123dff098b445a19b01
+state_head: abd6d519b7ca5af2023f2ce1ae9a48667ccdc9ee
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-22)
 ## Current Position
 
 Phase: 01 (Rediseño Turista) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-08-22 — Phase 01 execution started
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 |------|----------|-------|-------|
 | Phase 01 P01 | 20 | 2 tasks | 10 files |
 | Phase 01 P02 | 15 | 2 tasks | 4 files |
+| Phase 01 P03 | 30 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 01]: VelturTokens ThemeExtension contract built app-neutral (no Turista imports) so Phase 2 (Guía) constructs its own instance and reuses core/widgets/ unchanged (D-02). — Mechanically enforced via a portability test that fails if a shared widget re-hardcodes a color.
 - [Phase 01]: MaterialApp wraps theme: in AnimatedTheme — widget tests that pump a second theme need pumpAndSettle() before reading rendered colors, else they read the pre-lerp frame.
 - [Phase 01]: SavingOverlay/InfoModal/PhoneNumberField now read all colors/radii/shadows from VelturTokens.of(context)/Theme.of(context) — every widget in core/widgets/ is theme-driven, completing D-02. — Phase 2 (Guía) can reuse all four shared widgets unchanged by constructing its own VelturTokens instance; mechanically enforced by shared_widgets_theme_test.dart's portability test.
+- [Phase 01]: decorationFor(...) helper on WalkieTalkieButton makes the three-state color/halo contract testable without a real socket; extracted because pumping the full StatefulWidget triggers Socket.IO/flutter_sound side effects — Widget's initState connects a real socket and opens the audio player; a pure static state->decoration mapping keeps the privacy-critical three-state contract mechanically testable
+- [Phase 01]: message_input_field.dart's local border override (24px, Agencia radius scale) was shadowing TuristaTheme.inputDecorationTheme; removed so the field inherits the theme's 10px terracota-focus border — Local decoration overrides silently defeat theme-level token wiring; found during Task 3's required read_first pass, not assumed
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-23T05:09:10.012Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-08-23T05:30:15.210Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
